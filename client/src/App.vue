@@ -3,7 +3,7 @@
     class="min-h-screen bg-surface-50 font-sans text-surface-800 selection:bg-primary-200 selection:text-primary-900 relative">
 
     <div
-      :class="['fixed top-6 left-1/2 transform -transurface-x-1/2 z-100 transition-all duration-300 ease-out flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl border', toastState.show ? 'transurface-y-0 opacity-100' : '-transurface-y-10 opacity-0 pointer-events-none', toastState.type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-primary-50 border-primary-200 text-primary-700']">
+      :class="['fixed top-6 left-1/2 transform -translate-x-1/2 z-100 transition-all duration-200 ease-out flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl border', toastState.show ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none', toastState.type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700']">
       <svg v-if="toastState.type === 'error'" class="w-5 h-5 shrink-0" fill="none" stroke="currentColor"
         viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -17,7 +17,7 @@
     </div>
 
     <nav class="bg-white/80 backdrop-blur-md border-b border-surface-200 sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-6">
+      <div class="max-w-7xl mx-auto">
         <div class="flex justify-between items-center h-16">
 
           <div class="flex items-center gap-3">
