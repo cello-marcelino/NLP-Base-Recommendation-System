@@ -23,7 +23,7 @@ Pastikan komputer Anda sudah terinstal Python dan Node.js.
 
 1. Instalasi Backend
 Buka terminal, arahkan ke folder "server", buat dan aktifkan virtual environment (env), lalu jalankan perintah instalasi dalam satu baris berikut:
-pip install flask flask-cors pandas rank-bm25 sentence-transformers scikit-learn requests
+pip install flask flask-cors pandas rank-bm25 sentence-transformers scikit-learn requests openpyxl
 
 2. Instalasi Frontend
 Buka terminal, arahkan ke folder "client", lalu jalankan perintah instalasi berikut:
