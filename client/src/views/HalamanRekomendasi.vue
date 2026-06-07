@@ -418,9 +418,17 @@ const formatArray = (text) => {
 };
 
 onMounted(async () => {
-  try { await api.getSemuaDosen(); }
-  catch (e) { showToast("Gagal memuat awalan Server", "error"); }
-  finally { setTimeout(() => { isModelWarmingUp.value = false; }, 800); }
+  if (isModelWarmingUp.value) {
+    try { 
+      await api.getSemuaDosen(); 
+    } catch (e) { 
+      showToast("Gagal memuat awalan Server", "error"); 
+    } finally { 
+      setTimeout(() => { 
+        isModelWarmingUp.value = false; 
+      }, 500); 
+    }
+  }
 });
 
 const handleRefresh = async () => {
