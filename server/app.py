@@ -4,7 +4,7 @@ import pandas as pd
 import threading
 
 # Mengimpor mesin pintar yang baru saja kita buat
-from rekomendasi import hitung_rekomendasi
+from rekomendasi import RecommendationEngine
 
 lecturers_dataset = "data/dataset_profiles_terintegrasi.xlsx"
 
@@ -17,6 +17,17 @@ status_server = {
     "pesan": "Menginisialisasi peladen..."
 }
 
+def get_data_dosen():
+    try:
+        df = pd.read_excel(lecturers_dataset) 
+        # Membersihkan spasi tak kasatmata di semua judul kolom
+        df.columns = df.columns.str.strip()
+        df = df.fillna("") 
+        return df.to_dict(orient='records')
+    except Exception as e:
+        print("Error membaca data:", e)
+        return []
+
 def muat_mesin_ai():
     """Fungsi ini akan dijalankan di latar belakang agar tidak mengunci API"""
     global status_server
@@ -24,12 +35,14 @@ def muat_mesin_ai():
     try:
         status_server["pesan"] = "Membaca Pangkalan Data Dosen (Excel)..."
         status_server["progress"] = 25
-        # >>> PANGGIL KODE BACA DATA EXCEL ANDA DI SINI <<<
+        # 1. Ambil data asli berbentuk list dari Excel terlebih dahulu bray
+        data_dosen = get_data_dosen()
         
-        status_server["pesan"] = "Memuat Arsitektur SBERT ke dalam RAM (Ini memakan waktu)..."
+        status_server["pesan"] = "Memuat Arsitektur SBERT & Ekstraksi Vektor Cache (Ini memakan waktu)..."
         status_server["progress"] = 65
-        # >>> PANGGIL KODE LOAD SBERT ANDA DI SINI <<<
-        # contoh: model = SentenceTransformer('all-MiniLM-L6-v2')
+        
+        # 2. Masukkan objek data_dosen ke dalam cache, BUKAN teks path file-nya
+        RecommendationEngine.siapkan_cache(data_dosen)
         
         status_server["pesan"] = "Mempersiapkan jalur komunikasi API..."
         status_server["progress"] = 90
@@ -46,17 +59,6 @@ def muat_mesin_ai():
 # Picu proses pemuatan berat di latar belakang sesaat setelah kodingan dibaca
 threading.Thread(target=muat_mesin_ai, daemon=True).start()
 
-def get_data_dosen():
-    try:
-        df = pd.read_excel(lecturers_dataset) 
-        # BARIS BARU: Membersihkan spasi tak kasatmata di semua judul kolom
-        df.columns = df.columns.str.strip()
-        df = df.fillna("") 
-        return df.to_dict(orient='records')
-    except Exception as e:
-        print("Error membaca data:", e)
-        return []
-
 # Pintu 1: Cek Status
 @app.route('/api/status', methods=['GET'])
 def cek_status():
@@ -68,8 +70,7 @@ def daftar_dosen():
     data = get_data_dosen()
     return jsonify({"status": "sukses", "total_data": len(data), "data": data})
 
-# Pintu 3: PINTU BARU UNTUK REKOMENDASI AI
-# Tambahkan ini di dalam Pintu 3 (cari_rekomendasi) sebelum memanggil hitung_rekomendasi:
+# Pintu 3: PINTU REKOMENDASI AI (SUDAH DIPERBAIKI)
 @app.route('/api/rekomendasi', methods=['POST'])
 def cari_rekomendasi():
     data_klien = request.json
@@ -83,25 +84,32 @@ def cari_rekomendasi():
     
     if not judul and not abstrak:
         return jsonify({"status": "gagal", "pesan": "Judul dan Abstrak tidak boleh kosong!"}), 400
-        
-    data_dosen = get_data_dosen()
-    if len(data_dosen) == 0:
-        return jsonify({"status": "gagal", "pesan": "Dataset kosong atau gagal dibaca!"}), 500
     
-    # Berikan bobot ke Mesin AI
-    hasil_rekomendasi = hitung_rekomendasi(data_dosen, judul, abstrak, k, bobot_lexical, bobot_semantic)
-    
-    return jsonify({"status": "sukses", "data": hasil_rekomendasi})
+    try:
+        hasil_rekomendasi = RecommendationEngine.jalankan_pipeline(
+            judul_mhs=judul, 
+            abstrak_mhs=abstrak, 
+            k_rank=int(k), 
+            bobot_lex=float(bobot_lexical), 
+            bobot_sem=float(bobot_semantic)
+        )
+        return jsonify({"status": "sukses", "data": hasil_rekomendasi})
+    except Exception as e:
+        return jsonify({"status": "gagal", "pesan": str(e)}), 500
 
-# PINTU 4: Fitur Refresh Server
+# PINTU 4: Fitur Refresh Server (SUDAH DIPERBAIKI)
 @app.route('/api/refresh', methods=['POST'])
 def refresh_server():
-    # Mensimulasikan pemuatan ulang data
+    # Saat data Excel di-refresh, kalkulasi ulang matriks vektor barunya ke dalam cache RAM
     data_dosen = get_data_dosen()
-    return jsonify({
-        "status": "sukses", 
-        "pesan": f"Server berhasil disegarkan. {len(data_dosen)} data dosen dimuat ulang."
-    })
+    try:
+        RecommendationEngine.siapkan_cache(data_dosen)
+        return jsonify({
+            "status": "sukses", 
+            "pesan": f"Server berhasil disegarkan. {len(data_dosen)} data dosen dan cache vektor dimuat ulang."
+        })
+    except Exception as e:
+        return jsonify({"status": "gagal", "pesan": f"Gagal refresh cache: {str(e)}"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5050)
