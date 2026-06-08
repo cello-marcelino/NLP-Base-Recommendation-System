@@ -30,5 +30,11 @@ export default {
     const respons = await fetch(`${BASE_URL}/refresh`, { method: 'POST' });
     if (!respons.ok) throw new Error("Gagal menyegarkan Server");
     return await respons.json();
+  },
+
+  async cekStatusServer() {
+    const respons = await fetch(`${BASE_URL}/status`);
+    if (!respons.ok) throw new Error("Gagal mengecek status server");
+    return await respons.json();
   }
 }

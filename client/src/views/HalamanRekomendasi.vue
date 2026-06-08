@@ -2,10 +2,23 @@
   <div class="max-w-7xl mx-auto py-8">
 
     <div v-if="isModelWarmingUp"
-      class="fixed inset-0 bg-white/90 backdrop-blur-md z-50 flex flex-col items-center justify-center">
-      <div class="w-16 h-16 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin mb-6"></div>
-      <h2 class="text-2xl font-extrabold text-surface-800">Menyiapkan Server SIREDO...</h2>
-      <p class="text-surface-500 mt-2 text-sm font-medium animate-pulse">Memuat arsitektur SBERT ke dalam memori.</p>
+      class="fixed inset-0 bg-white/90 backdrop-blur-md z-50 flex flex-col items-center justify-center transition-opacity duration-500">
+      <div class="w-16 h-16 border-4 border-surface-200 border-t-primary-600 rounded-full animate-spin mb-4 shadow-sm">
+      </div>
+
+      <h2 class="text-2xl font-extrabold text-surface-800">Menghidupkan Mesin SIREDO...</h2>
+
+      <div class="w-72 bg-surface-200 rounded-full h-2.5 mt-5 mb-2 overflow-hidden shadow-inner">
+        <div
+          class="bg-linear-to-r from-primary-500 to-primary-700 h-2.5 rounded-full transition-all duration-700 ease-out"
+          :style="{ width: serverProgress + '%' }"></div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="text-primary-700 font-mono text-sm font-extrabold">{{ serverProgress }}%</span>
+        <span class="text-surface-400 font-bold">|</span>
+        <p class="text-surface-500 text-sm font-medium animate-pulse">{{ serverMessage }}</p>
+      </div>
     </div>
 
     <div class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
@@ -150,7 +163,7 @@
                   class="flex flex-col md:flex-row items-center justify-center gap-3 text-xs font-bold text-center mb-6">
                   <div
                     class="px-4 py-2.5 bg-primary-50 border border-primary-100 text-primary-700 rounded-lg w-full md:w-auto shadow-sm">
-                    Input Form Klien</div>
+                    Input Parameter</div>
                   <div class="text-surface-300 hidden md:block">→</div>
                   <div
                     class="px-4 py-2.5 bg-amber-50 border border-amber-100 text-amber-700 rounded-lg w-full md:w-auto shadow-sm">
@@ -172,7 +185,8 @@
                           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                          </svg></div>
+                          </svg>
+                        </div>
                         Topik Utama (Judul)
                       </div>
                       <div class="text-sm font-bold text-surface-800">{{ judulInput }}</div>
@@ -293,7 +307,7 @@
                     <tr>
                       <th class="p-3 border-b border-surface-200">Nama Kandidat</th>
                       <th class="p-3 border-b border-surface-200 text-center text-blue-600">Lexical ({{ bobotLexical
-                        }}%)
+                      }}%)
                       </th>
                       <th class="p-3 border-b border-surface-200 text-center text-fuchsia-600">Semantic ({{ 100 -
                         bobotLexical }}%)</th>
@@ -306,7 +320,7 @@
                       <td class="p-3 text-center text-surface-500">{{ dosen['Lexical Score'] }}</td>
                       <td class="p-3 text-center text-surface-500">{{ dosen['Semantic Score'] }}</td>
                       <td class="p-3 text-center font-bold text-primary-700 bg-primary-50/50">{{ dosen['Hybrid Score']
-                        }}
+                      }}
                       </td>
                     </tr>
                   </tbody>
@@ -390,6 +404,8 @@ const abstrakInput = ref('');
 const kRank = ref(10);
 const bobotLexical = ref(40);
 const isModelWarmingUp = ref(true);
+const serverProgress = ref(0);
+const serverMessage = ref('Menghubungkan ke server...');
 
 const isProcessing = ref(false);
 const isRefreshing = ref(false);
@@ -417,19 +433,34 @@ const formatArray = (text) => {
   return arr.map(s => s.replace(/(^")|("$)/g, '').trim()).filter(x => x && x !== '-');
 };
 
-onMounted(async () => {
+onMounted(() => {
+  // Hanya pantau jika UI warming up masih terbuka
   if (isModelWarmingUp.value) {
-    try { 
-      await api.getSemuaDosen(); 
-    } catch (e) { 
-      showToast("Gagal memuat awalan Server", "error"); 
-    } finally { 
-      setTimeout(() => { 
-        isModelWarmingUp.value = false; 
-      }, 500); 
-    }
+    pantauStatusServer();
   }
 });
+
+const pantauStatusServer = () => {
+  // Melakukan tembakan ke server setiap 1.5 detik
+  const interval = setInterval(async () => {
+    try {
+      const res = await api.cekStatusServer();
+      serverProgress.value = res.progress;
+      serverMessage.value = res.pesan;
+
+      // Hentikan pemantauan jika server melaporkan dirinya sudah siap
+      if (res.ready) {
+        clearInterval(interval);
+        // Berikan jeda 800ms agar user sempat membaca pesan "Siap Beroperasi"
+        setTimeout(() => { 
+          isModelWarmingUp.value = false; 
+        }, 800);
+      }
+    } catch (e) {
+      serverMessage.value = "Peladen Python belum menyala...";
+    }
+  }, 1500); 
+};
 
 const handleRefresh = async () => {
   isRefreshing.value = true;

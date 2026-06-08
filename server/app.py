@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pandas as pd
+import threading
 
 # Mengimpor mesin pintar yang baru saja kita buat
 from rekomendasi import hitung_rekomendasi
@@ -9,6 +10,41 @@ lecturers_dataset = "data/dataset_profiles_terintegrasi.xlsx"
 
 app = Flask(__name__)
 CORS(app)
+
+status_server = {
+    "ready": False,
+    "progress": 0,
+    "pesan": "Menginisialisasi peladen..."
+}
+
+def muat_mesin_ai():
+    """Fungsi ini akan dijalankan di latar belakang agar tidak mengunci API"""
+    global status_server
+    
+    try:
+        status_server["pesan"] = "Membaca Pangkalan Data Dosen (Excel)..."
+        status_server["progress"] = 25
+        # >>> PANGGIL KODE BACA DATA EXCEL ANDA DI SINI <<<
+        
+        status_server["pesan"] = "Memuat Arsitektur SBERT ke dalam RAM (Ini memakan waktu)..."
+        status_server["progress"] = 65
+        # >>> PANGGIL KODE LOAD SBERT ANDA DI SINI <<<
+        # contoh: model = SentenceTransformer('all-MiniLM-L6-v2')
+        
+        status_server["pesan"] = "Mempersiapkan jalur komunikasi API..."
+        status_server["progress"] = 90
+        
+        # STATUS SIAP
+        status_server["pesan"] = "Mesin SIREDO Siap Beroperasi!"
+        status_server["progress"] = 100
+        status_server["ready"] = True
+        
+    except Exception as e:
+        status_server["pesan"] = f"Gagal menghidupkan mesin: {str(e)}"
+        status_server["progress"] = 0
+
+# Picu proses pemuatan berat di latar belakang sesaat setelah kodingan dibaca
+threading.Thread(target=muat_mesin_ai, daemon=True).start()
 
 def get_data_dosen():
     try:
@@ -24,7 +60,7 @@ def get_data_dosen():
 # Pintu 1: Cek Status
 @app.route('/api/status', methods=['GET'])
 def cek_status():
-    return jsonify({"pesan": "Server Flask berjalan dengan baik!"})
+    return jsonify(status_server)
 
 # Pintu 2: Mengambil Semua Dosen
 @app.route('/api/dosen', methods=['GET'])
