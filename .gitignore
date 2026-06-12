@@ -1,31 +1,33 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# === NODE / FRONTEND (Client) ===
+client/node_modules/
+client/.pnp
+client/.pnp.js
+client/dist/
+client/build/
+client/.env
+client/.env.local
 
-node_modules
-dist
-dist-ssr
-*.local
-.venv
+# === PYTHON / BACKEND (Server) ===
+**/__pycache__/
+**/*.py[cod]
+**/*$py.class
+server/.venv/
+server/venv/
+server/env/
 
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
+# === JUPYTER NOTEBOOKS ===
+server/notebooks/.ipynb_checkpoints/
 
-# Editor directories and files
-.vscode/*
-../.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
+# === IDE / EDITOR ===
+.vscode/
+client/.vscode/
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+*.swp
+
+# === OS LOGS ===
+.DS_Store
+Thumbs.db
