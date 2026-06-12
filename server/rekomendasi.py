@@ -66,14 +66,23 @@ class PreprocessingPipeline:
 class ScoringPipeline:
     @staticmethod
     def hitung_leksikal(token_mhs):
-        skor_mentah = CACHE["mesin_bm25"].get_scores(token_mhs)
-        nilai_max = max(skor_mentah) if max(skor_mentah) > 0 else 1
-        return [skor / nilai_max for skor in skor_mentah]
+        mesin = CACHE["mesin_bm25"]
+        skor_mentah = mesin.get_scores(token_mhs)
+        skor_sempurna_teoretis = sum(mesin.idf.get(t, 0) for t in token_mhs)
+        
+        if skor_sempurna_teoretis == 0:
+            return [0.0] * len(skor_mentah)
+        skor_absolut = [min(skor / skor_sempurna_teoretis, 1.0) for skor in skor_mentah]
+        
+        return skor_absolut
 
     @staticmethod
     def hitung_semantik(teks_mhs):
         vektor_mhs = np.array(model_sbert.encode([teks_mhs], convert_to_numpy=True))
-        return cosine_similarity(vektor_mhs, CACHE["vektor_dosen"])[0]
+        skor_mentah = cosine_similarity(vektor_mhs, CACHE["vektor_dosen"])[0]
+        skor_absolut = [max(float(skor), 0.0) for skor in skor_mentah]
+
+        return skor_absolut
 
 class RecommendationEngine:
     @staticmethod
@@ -138,6 +147,42 @@ class RecommendationEngine:
         
         token_mhs = tokens_unigram + tokens_bigram
 
+        # =================================================================
+        # LOGIKA PEMBOBOTAN ADAPTIF (Terpicu jika Frontend mengirim -1)
+        # =================================================================
+        is_adaptif = False
+        kata_langka = []
+        
+        # Pastikan bobot dalam bentuk float
+        bobot_lex = float(bobot_lex)
+        
+        if bobot_lex < 0:
+            is_adaptif = True
+            mesin = CACHE["mesin_bm25"]
+            if mesin and len(mesin.idf) > 0:
+                # Cari nilai rata-rata kelangkaan kata di seluruh pangkalan data
+                avg_corpus_idf = sum(mesin.idf.values()) / len(mesin.idf)
+                max_corpus_idf = max(mesin.idf.values())
+                
+                # Deteksi berapa banyak kata spesifik/langka di kueri pengguna
+                for t in token_mhs:
+                    idf_val = mesin.idf.get(t, max_corpus_idf)
+                    if idf_val > avg_corpus_idf:
+                        kata_langka.append(t)
+                
+                # Kalkulasi rasio: Semakin banyak kata spesifik, semakin tinggi bobot BM25
+                rasio_langka = len(kata_langka) / len(token_mhs) if len(token_mhs) > 0 else 0
+                
+                # Rentang dinamis: BM25 minimal 20%, maksimal 80%
+                bobot_lex = 0.2 + (rasio_langka * 0.6)
+                bobot_sem = 1.0 - bobot_lex
+            else:
+                bobot_lex, bobot_sem = 0.3, 0.7
+                
+        bobot_lex_final = round(float(bobot_lex), 2)
+        bobot_sem_final = round(float(bobot_sem), 2)
+        # =================================================================
+
         skor_lex = ScoringPipeline.hitung_leksikal(token_mhs)
         skor_sem = ScoringPipeline.hitung_semantik(teks_mhs_expand)
 
@@ -145,7 +190,7 @@ class RecommendationEngine:
         data_dosen = CACHE["data_dosen"]
         
         for i in range(len(data_dosen)):
-            skor_hybrid = (bobot_lex * skor_lex[i]) + (bobot_sem * skor_sem[i])
+            skor_hybrid = (bobot_lex_final * skor_lex[i]) + (bobot_sem_final * skor_sem[i])
             semua_hasil.append({
                 "indeks": i,
                 "NAMA": data_dosen[i].get('NAMA', '-'),
@@ -192,6 +237,11 @@ class RecommendationEngine:
                 "teks_ekspansi": teks_mhs_expand,
                 "kata_diekspansi": log_ekspansi,
                 "token_unigram": list(set(tokens_unigram)),
-                "token_bigram": list(set(tokens_bigram))
+                "token_bigram": list(set(tokens_bigram)),
+                # ---- TAMBAHAN BARU UNTUK UI FRONTEND ----
+                "is_adaptif": is_adaptif,
+                "bobot_lex_final": bobot_lex_final,
+                "bobot_sem_final": bobot_sem_final,
+                "kata_langka": kata_langka
             }
         }
