@@ -5,6 +5,7 @@ import threading
 
 # Mengimpor mesin pintar yang baru saja kita buat
 from rekomendasi import RecommendationEngine
+from database import AuthLayer, DataLayer
 
 lecturers_dataset = "data/dataset_profiles_terintegrasi.xlsx"
 
@@ -97,16 +98,16 @@ def cari_rekomendasi():
     except Exception as e:
         return jsonify({"status": "gagal", "pesan": str(e)}), 500
 
-# PINTU 4: Fitur Refresh Server (SUDAH DIPERBAIKI)
+# PINTU 4: Fitur Refresh Server (SINKRON DENGAN CACHE FILE)
 @app.route('/api/refresh', methods=['POST'])
 def refresh_server():
-    # Saat data Excel di-refresh, kalkulasi ulang matriks vektor barunya ke dalam cache RAM
-    data_dosen = get_data_dosen()
+    data_dosen = DataLayer.fetch_all_dosen()
     try:
-        RecommendationEngine.siapkan_cache(data_dosen)
+        # Tambahkan parameter force_recalculate=True khusus untuk tombol refresh web
+        RecommendationEngine.siapkan_cache(data_dosen, force_recalculate=True)
         return jsonify({
             "status": "sukses", 
-            "pesan": f"Server berhasil disegarkan. {len(data_dosen)} data dosen dan cache vektor dimuat ulang."
+            "pesan": f"Server berhasil disegarkan! {len(data_dosen)} data dosen dan file matriks diperbarui."
         })
     except Exception as e:
         return jsonify({"status": "gagal", "pesan": f"Gagal refresh cache: {str(e)}"}), 500
