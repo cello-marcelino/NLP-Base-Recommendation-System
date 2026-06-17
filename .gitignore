@@ -31,3 +31,4 @@ client/.vscode/
 # === OS LOGS ===
 .DS_Store
 Thumbs.db
+server/utils/__pycache__/kamus_ekspansi.cpython-314.pyc
