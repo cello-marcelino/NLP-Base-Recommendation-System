@@ -4,7 +4,7 @@ import pandas as pd
 import threading
 
 # Mengimpor mesin pintar yang baru saja kita buat
-from rekomendasi import RecommendationEngine
+from rekomendasi import engine
 from database import AuthLayer, DataLayer
 
 lecturers_dataset = "data/dataset_profiles_terintegrasi.xlsx"
@@ -43,7 +43,7 @@ def muat_mesin_ai():
         status_server["progress"] = 65
         
         # 2. Masukkan objek data_dosen ke dalam cache, BUKAN teks path file-nya
-        RecommendationEngine.siapkan_cache(data_dosen)
+        engine.siapkan_cache(data_dosen)
         
         status_server["pesan"] = "Mempersiapkan jalur komunikasi API..."
         status_server["progress"] = 90
@@ -87,7 +87,7 @@ def cari_rekomendasi():
         return jsonify({"status": "gagal", "pesan": "Judul dan Abstrak tidak boleh kosong!"}), 400
     
     try:
-        hasil_rekomendasi = RecommendationEngine.jalankan_pipeline(
+        hasil_rekomendasi = engine.jalankan_pipeline(
             judul_mhs=judul, 
             abstrak_mhs=abstrak, 
             k_rank=int(k), 
@@ -104,7 +104,7 @@ def refresh_server():
     data_dosen = DataLayer.fetch_all_dosen()
     try:
         # Tambahkan parameter force_recalculate=True khusus untuk tombol refresh web
-        RecommendationEngine.siapkan_cache(data_dosen, force_recalculate=True)
+        engine.siapkan_cache(data_dosen, force_recalculate=True)
         return jsonify({
             "status": "sukses", 
             "pesan": f"Server berhasil disegarkan! {len(data_dosen)} data dosen dan file matriks diperbarui."
