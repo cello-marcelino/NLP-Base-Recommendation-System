@@ -1,14 +1,11 @@
-# server/database/migrate.py
 import os
 import sys
 import pandas as pd
 from mysql.connector import Error
 
-# Kode sakti agar script ini bisa membaca folder induknya saat dieksekusi langsung
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from database.config import get_db_connection
 
-# Path absolut mengarah ke file Excel lama Anda
 EXCEL_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../data/dataset_profiles_terintegrasi.xlsx'))
 
 def jalankan_migrasi():
@@ -48,14 +45,12 @@ def jalankan_migrasi():
         
         inserted_count = 0
         for row in data_dosen:
-            # 1. Tarik NIDN mentah
             nidn_mentah = str(row.get('NIDN', '') or row.get('nidn', '')).strip()
-            
-            # 2. LOGIKA BARU: Jika NIDN kosong, jadikan None (NULL di MySQL) agar tidak bentrok
+
             nidn_final = None if nidn_mentah == "" else nidn_mentah
 
             cursor.execute(query, (
-                nidn_final,  # <--- Gunakan nidn_final di sini
+                nidn_final,
                 str(row.get('NAMA', '') or row.get('nama', '')),
                 str(row.get('PROGRAM_STUDI', '') or row.get('program_studi', '')),
                 str(row.get('BIDANG_KEAHLIAN', '') or row.get('bidang_keahlian', '')),
@@ -76,7 +71,7 @@ def jalankan_migrasi():
         conn.rollback()
     finally:
         if conn.is_connected():
-            cursor.close() #type: ignore
+            cursor.close()
             conn.close()
 
 if __name__ == '__main__':

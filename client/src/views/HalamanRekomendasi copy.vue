@@ -455,24 +455,24 @@ const formatArray = (text) => {
 };
 
 onMounted(() => {
-  // Hanya pantau jika UI warming up masih terbuka
+  // Pantau status server
   if (isModelWarmingUp.value) {
     pantauStatusServer();
   }
 });
 
 const pantauStatusServer = () => {
-  // Melakukan tembakan ke server setiap 1.5 detik
+  // Cek berkala
   const interval = setInterval(async () => {
     try {
       const res = await api.cekStatusServer();
       serverProgress.value = res.progress;
       serverMessage.value = res.pesan;
 
-      // Hentikan pemantauan jika server melaporkan dirinya sudah siap
+      // Hentikan saat siap
       if (res.ready) {
         clearInterval(interval);
-        // Berikan jeda 800ms agar user sempat membaca pesan "Siap Beroperasi"
+        // Jeda singkat
         setTimeout(() => {
           isModelWarmingUp.value = false;
         }, 800);

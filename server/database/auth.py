@@ -20,7 +20,7 @@ class AuthLayer:
             return False, f"Username sudah digunakan atau error: {e}"
         finally:
             if conn and conn.is_connected():
-                cursor.close() #type: ignore
+                cursor.close()
                 conn.close()
 
     @staticmethod
@@ -33,10 +33,10 @@ class AuthLayer:
             cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cursor.fetchone()
             
-            if user and check_password_hash(user['password_hash'], password): #type: ignore
-                return True, {"username": user['username'], "role": user['role']} #type: ignore
+            if user and check_password_hash(user['password_hash'], password):
+                return True, {"username": user['username'], "role": user['role']}
             return False, None
         finally:
             if conn and conn.is_connected():
-                cursor.close() #type: ignore
+                cursor.close()
                 conn.close()

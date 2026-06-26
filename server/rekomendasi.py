@@ -1,30 +1,4 @@
-"""
-SIREDO - Recommendation Engine (v2)
-
-Perbaikan dari versi sebelumnya:
-1. Normalisasi BM25: min-max scaling relatif terhadap kandidat per-query,
-   ganti dari skor/sum(idf) yang tidak punya batas atas yang valid secara matematis.
-2. avg_idf/max_idf dihitung SEKALI saat indexing (di CacheManager), bukan tiap
-   request mode adaptif -> hilangkan O(vocab) berulang per call.
-3. KeyBERT di-batch (1 call untuk semua top_k) bukan loop per-item.
-4. CacheManager pakai threading.Lock -> aman dari race condition saat
-   force_recalculate dipanggil concurrent.
-5. Tokenisasi query reuse PreprocessingPipeline (sebelumnya logic regex/ngram
-   diketik ulang manual di jalankan_pipeline -> DRY violation).
-6. lru_cache untuk embedding query mahasiswa -> kalau frontend cuma geser
-   slider bobot_lex/bobot_sem dengan teks yang sama, SBERT tidak encode ulang.
-7. Validasi cache vektor pakai fingerprint isi data, bukan cuma jumlah baris.
-8. print() -> logging.
-
-CATATAN MIGRASI dari versi lama:
-- Pemanggilan jadi lewat instance `engine`, bukan static method di class:
-    lama:  RecommendationEngine.siapkan_cache(data)
-    baru:  engine.siapkan_cache(data)   # import dari module ini
-- Cek versi KeyBERT yang dipakai: kombinasi batch input (`docs=List[str]`)
-  + `seed_keywords` bisa berbeda perilakunya antar versi keybert (broadcast
-  ke semua doc, atau harus List[List[str]] per-doc). Sudah ada fallback
-  normalisasi shape, tapi tetap verifikasi outputnya match versi terinstall.
-"""
+"""Mesin rekomendasi SIREDO."""
 
 import os
 import re
@@ -54,12 +28,10 @@ FINGERPRINT_CACHE_PATH = VEKTOR_CACHE_PATH + ".fingerprint"
 
 logger.info("Menginisialisasi model semantik...")
 model_sbert = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-kw_model = KeyBERT(model=model_sbert)  # type: ignore
+kw_model = KeyBERT(model=model_sbert) # type: ignore
 
 
-# ---------------------------------------------------------------------------
 # Preprocessing
-# ---------------------------------------------------------------------------
 class PreprocessingPipeline:
     @staticmethod
     def ekspansi_query_dengan_log(teks: str, kamus: Dict = KAMUS_EKSPANSI) -> Tuple[str, Dict[str, str]]:
@@ -75,9 +47,7 @@ class PreprocessingPipeline:
 
     @staticmethod
     def tokenize_split(teks: str, n: int = 2) -> Tuple[List[str], List[str]]:
-        """Tokenisasi yang mengembalikan (unigram, bigram) terpisah.
-        Dipakai bersama oleh indexing dosen & query mahasiswa, supaya tidak ada
-        logic regex/ngram yang diketik ulang di tempat lain (lihat versi lama)."""
+        """Tokenisasi unigram dan bigram."""
         tokens = re.findall(r'\b[a-z0-9]{2,}\b', teks.lower())
         tokens_bersih = [t for t in tokens if t not in STOPWORDS]
         bigrams = ["_".join(g) for g in ngrams(tokens_bersih, n)]
@@ -85,7 +55,7 @@ class PreprocessingPipeline:
 
     @staticmethod
     def tokenize_ngram(teks: str, n: int = 2) -> List[str]:
-        """Gabungan unigram+bigram, dipakai untuk indexing BM25."""
+        """Token BM25."""
         uni, bi = PreprocessingPipeline.tokenize_split(teks, n)
         return uni + bi
 
@@ -103,9 +73,7 @@ class PreprocessingPipeline:
         return teks_terbobot, teks_normal
 
 
-# ---------------------------------------------------------------------------
-# Adaptive weighting (diisolasi dari pipeline utama -> testable terpisah)
-# ---------------------------------------------------------------------------
+# Adaptive weighting
 class AdaptiveWeighting:
     BATAS_MIN = 0.2
     BATAS_MAX = 0.8
@@ -127,25 +95,11 @@ class AdaptiveWeighting:
         return round(bobot_lex, 2), round(1.0 - bobot_lex, 2), kata_langka
 
 
-# ---------------------------------------------------------------------------
 # Scoring
-# ---------------------------------------------------------------------------
 class ScoringPipeline:
     @staticmethod
     def hitung_leksikal_normalized(mesin: BM25Okapi, token_mhs: List[str]) -> np.ndarray:
-        """
-        Versi lama: skor_mentah / sum(idf query) sebagai 'skor sempurna teoretis'.
-        Masalah: BM25 dengan saturasi TF (k1) nyaris tidak pernah mencapai idf
-        penuh per term kecuali tf -> tak terhingga, jadi batas itu tidak valid
-        secara matematis dan membuat skor antar query tidak comparable.
-
-        Diganti min-max scaling relatif ke kandidat pada query yang sama -
-        teknik standar untuk fusi hybrid lexical+semantic (dipakai di hybrid
-        search Weaviate/Pinecone). Trade-off: skor tertinggi selalu mendekati
-        1.0 walau secara absolut lemah jika semua kandidat memang tidak
-        relevan -- tapi ini jauh lebih stabil untuk dikombinasikan linear
-        dengan skor semantik yang juga di rentang 0-1.
-        """
+        """Normalisasi skor leksikal."""
         skor_mentah = np.array(mesin.get_scores(token_mhs), dtype=float)
         skor_min, skor_max = skor_mentah.min(), skor_mentah.max()
         if skor_max - skor_min < 1e-9:
@@ -158,9 +112,7 @@ class ScoringPipeline:
         return np.clip(skor_mentah, 0.0, None)
 
 
-# Cache embedding query mahasiswa. Kunci hanya teks (bukan bobot), karena
-# embedding tidak bergantung pada bobot_lex/bobot_sem -- jadi kalau user cuma
-# geser slider bobot di UI tanpa ubah judul/abstrak, SBERT tidak dipanggil ulang.
+# Cache embedding query
 @lru_cache(maxsize=256)
 def _encode_query_cached(teks_mhs_expand: str) -> tuple:
     vektor = model_sbert.encode([teks_mhs_expand], convert_to_numpy=True)[0]
@@ -172,9 +124,7 @@ def _fingerprint_data(data_dosen: List[Dict]) -> str:
     return hashlib.md5(payload.encode("utf-8")).hexdigest()
 
 
-# ---------------------------------------------------------------------------
-# Cache state (instance, bukan global dict) + lock untuk rebuild
-# ---------------------------------------------------------------------------
+# Cache state
 class CacheManager:
     def __init__(self):
         self._lock = threading.Lock()
@@ -234,8 +184,6 @@ class CacheManager:
 
             self.mesin_bm25 = BM25Okapi(self.token_dosen)
 
-            # Precompute sekali di sini -- sebelumnya avg_idf/max_idf dihitung
-            # ulang setiap request mode adaptif (O(vocab) per call).
             if self.mesin_bm25.idf:
                 self.avg_idf = sum(self.mesin_bm25.idf.values()) / len(self.mesin_bm25.idf)
                 self.max_idf = max(self.mesin_bm25.idf.values())
@@ -243,13 +191,10 @@ class CacheManager:
                 self.avg_idf = self.max_idf = 0.0
 
             self.is_ready = True
-            _encode_query_cached.cache_clear()  # embedding lama tetap valid sebenarnya,
-            # tapi di-clear untuk jaga-jaga kalau model/pipeline berubah bareng rebuild.
+            _encode_query_cached.cache_clear()
 
 
-# ---------------------------------------------------------------------------
 # Facade
-# ---------------------------------------------------------------------------
 class RecommendationEngine:
     def __init__(self):
         self.cache = CacheManager()
@@ -268,10 +213,6 @@ class RecommendationEngine:
         if not self.cache.is_ready:
             raise RuntimeError("Cache belum siap. Panggil siapkan_cache() dulu.")
 
-        # Narrowing eksplisit: secara runtime kedua ini selalu ke-set begitu
-        # is_ready=True (lihat CacheManager.siapkan), tapi atributnya di-type
-        # Optional supaya CacheManager juga valid sebelum siapkan() dipanggil.
-        # Assign ke local var di sini supaya Pylance/mypy bisa narrow tipenya.
         mesin_bm25 = self.cache.mesin_bm25
         vektor_dosen = self.cache.vektor_dosen
         if mesin_bm25 is None or vektor_dosen is None:
@@ -349,7 +290,6 @@ class RecommendationEngine:
 
         keywords_batch: List[List[Tuple[str, float]]] = []
         if teks_list:
-            # Batch: 1 panggilan model untuk semua top_k, bukan loop k_rank kali.
             raw = kw_model.extract_keywords(
                 teks_list,
                 keyphrase_ngram_range=(1, 3),
@@ -359,8 +299,6 @@ class RecommendationEngine:
                 top_n=3,
                 seed_keywords=[teks_mhs_raw],
             )
-            # Beberapa versi keybert mengembalikan list flat (bukan nested)
-            # kalau input cuma 1 dokumen -> normalisasi shape di sini.
             if len(teks_list) == 1 and raw and isinstance(raw[0], tuple):
                 keywords_batch = [raw] # type: ignore
             else:
@@ -382,5 +320,5 @@ class RecommendationEngine:
         return hasil_final
 
 
-# Singleton, supaya model & cache dimuat sekali per proses (mirip pola lama).
+# Singleton
 engine = RecommendationEngine()

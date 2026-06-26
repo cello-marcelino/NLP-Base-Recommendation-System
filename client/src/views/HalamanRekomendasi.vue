@@ -410,7 +410,7 @@ const jalankanPipeline = async () => {
   hasStarted.value = true;
   hasilRekomendasi.value = [];
   
-  // Reset memory agar tidak terjadi "State Basi" saat klik berikutnya
+  // Reset state
   metadataMesin.value = {
     teks_asli: '',
     teks_ekspansi: '',
@@ -424,7 +424,6 @@ const jalankanPipeline = async () => {
   try {
     pipeline.value[0].status = 'running'; pipeline.value[0].open = true; 
     
-    // Jika mode adaptif aktif, kirim -1. Jika tidak, kirim nilai slider.
     const decLex = isAdaptifMode.value ? -1 : bobotLexical.value / 100;
     const decSem = isAdaptifMode.value ? -1 : (100 - bobotLexical.value) / 100;
     

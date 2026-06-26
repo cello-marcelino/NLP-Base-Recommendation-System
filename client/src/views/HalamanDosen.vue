@@ -134,23 +134,19 @@ const daftarDosen = ref([]);
 const modalAktif = ref(false);
 const dosenTerpilih = ref({});
 
-// State Baru untuk Pencarian
+// State pencarian
 const searchQuery = ref('');
 
 const currentPage = ref(1);
 const itemsPerPage = ref(10);
 
-// ==========================================
-// LOGIKA FILTER PENCARIAN (COMPUTED)
-// ==========================================
+// Filter pencarian
 const filteredDosen = computed(() => {
   if (!searchQuery.value) {
     return daftarDosen.value;
   }
   
   const query = searchQuery.value.toLowerCase();
-  
-  // Mencari kecocokan di Nama, Program Studi, atau Bidang Keahlian
   return daftarDosen.value.filter(dosen => {
     const nama = dosen.NAMA ? dosen.NAMA.toLowerCase() : '';
     const prodi = dosen.PROGRAM_STUDI ? dosen.PROGRAM_STUDI.toLowerCase() : '';
@@ -160,14 +156,12 @@ const filteredDosen = computed(() => {
   });
 });
 
-// Reset ke halaman 1 setiap kali pengguna mengetik di kotak pencarian
+// Reset halaman saat query berubah
 watch(searchQuery, () => {
   currentPage.value = 1;
 });
 
-// ==========================================
-// LOGIKA COMPUTED PAGINASI (Update ke filteredDosen)
-// ==========================================
+// Paginasi
 const totalPages = computed(() => {
   return Math.ceil(filteredDosen.value.length / itemsPerPage.value) || 1;
 });

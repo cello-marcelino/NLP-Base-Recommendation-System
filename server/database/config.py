@@ -4,12 +4,12 @@ from mysql.connector import Error
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': '',  # Kosongkan jika menggunakan XAMPP standar Windows
+    'password': '',
     'database': 'db_siredo'
 }
 
 def get_db_connection():
-    """Membuka gerbang koneksi ke MySQL"""
+    """Buka koneksi MySQL."""
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         if connection.is_connected():

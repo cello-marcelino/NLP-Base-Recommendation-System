@@ -2,21 +2,21 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HalamanRekomendasi from '../views/HalamanRekomendasi.vue'
 import HalamanDosen from '../views/HalamanDosen.vue'
 
-// Membuat daftar rute (peta jalan)
+// Rute aplikasi
 const routes = [
   {
-    path: '/',                 // Jika URL utamanya kosong (halaman awal)
+    path: '/',
     name: 'Rekomendasi',
-    component: HalamanRekomendasi // Tampilkan komponen Halaman Rekomendasi
+    component: HalamanRekomendasi
   },
   {
-    path: '/dosen',            // Jika URL-nya ada tambahan "/dosen"
+    path: '/dosen',
     name: 'DaftarDosen',
-    component: HalamanDosen    // Tampilkan komponen Halaman Dosen
+    component: HalamanDosen
   }
 ]
 
-// Menyalakan mesin pengatur rute
+// Router Vue
 const router = createRouter({
   history: createWebHistory(),
   routes

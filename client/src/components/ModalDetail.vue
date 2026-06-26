@@ -76,11 +76,10 @@
 <script setup>
 defineProps({ isOpen: Boolean, dataDosen: Object, tutupModal: Function });
 
-// Fungsi cerdas untuk mengubah teks CSV yang berantakan menjadi Array bersih
+// Format array teks
 const formatArray = (text) => {
   if (!text) return [];
   let str = String(text).replace(/^\[|\]$/g, '').trim();
-  // Pisahkan berdasarkan koma yang memiliki tanda kutip (", ") atau koma biasa
   let arr = str.includes('", "') ? str.split('", "') : str.split(',');
   return arr.map(s => s.replace(/(^")|("$)/g, '').trim()).filter(x => x && x !== '-' && x !== 'None');
 };

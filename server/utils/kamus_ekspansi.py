@@ -1,8 +1,6 @@
-# __all__ = ["KAMUS_EKSPANSI", "ekspansi_query"] 
-
+﻿
 KAMUS_EKSPANSI = {
 
-    # ── AI & DEEP LEARNING ─────────────────────────────────────────────
     "deep learning": [
         "neural network", "cnn", "rnn", "lstm", "gru", "transformer",
         "bert", "gpt", "autoencoder", "gan", "feedforward",
@@ -35,7 +33,6 @@ KAMUS_EKSPANSI = {
         "overfitting", "underfitting", "cross validation"
     ],
 
-    # ── COMPUTER VISION ────────────────────────────────────────────────
     "klasifikasi gambar": [
         "image classification", "image recognition", "citra digital",
         "computer vision", "resnet", "vgg", "efficientnet",
@@ -66,7 +63,6 @@ KAMUS_EKSPANSI = {
         "handwriting recognition", "document digitization"
     ],
 
-    # ── NLP & TEXT ─────────────────────────────────────────────────────
     "pemrosesan bahasa alami": [
         "natural language processing", "nlp", "text mining",
         "text analysis", "corpus", "tokenisasi", "tokenization",
@@ -98,7 +94,6 @@ KAMUS_EKSPANSI = {
         "keybert", "topic modeling", "lda", "bertopic"
     ],
 
-    # ── DATA SCIENCE ───────────────────────────────────────────────────
     "analisis data": [
         "data analysis", "statistik", "visualisasi data",
         "exploratory data analysis", "eda", "pandas", "numpy",
@@ -125,7 +120,6 @@ KAMUS_EKSPANSI = {
         "imputasi", "one hot encoding", "label encoding"
     ],
 
-    # ── WEB & MOBILE ───────────────────────────────────────────────────
     "pengembangan web": [
         "web development", "frontend", "backend", "fullstack",
         "rest api", "graphql", "react", "vue", "angular",
@@ -151,7 +145,6 @@ KAMUS_EKSPANSI = {
         "puppeteer", "data extraction", "parsing html"
     ],
 
-    # ── DATABASE & CLOUD ───────────────────────────────────────────────
     "basis data": [
         "database", "sql", "mysql", "postgresql", "sqlite",
         "nosql", "mongodb", "redis", "elasticsearch",
@@ -172,7 +165,6 @@ KAMUS_EKSPANSI = {
         "message broker", "rabbitmq", "load balancing", "scalability"
     ],
 
-    # ── KEAMANAN & JARINGAN ────────────────────────────────────────────
     "keamanan siber": [
         "cybersecurity", "network security", "penetration testing",
         "vulnerability assessment", "enkripsi", "kriptografi",
@@ -194,7 +186,6 @@ KAMUS_EKSPANSI = {
         "smart device", "edge computing", "firmware"
     ],
 
-    # ── SOFTWARE ENGINEERING ───────────────────────────────────────────
     "rekayasa perangkat lunak": [
         "software engineering", "sdlc", "agile", "scrum",
         "kanban", "waterfall", "software design",
@@ -216,16 +207,7 @@ KAMUS_EKSPANSI = {
         "erd", "data flow diagram", "dfd"
     ],
 
-    # ── GENERAL (tetap dari versi sebelumnya) ──────────────────────────
     "klasifikasi": ["classification", "kategorisasi", "pengelompokan"],
     "gambar":       ["image", "citra", "visual", "vision"],
 }
 
-# def ekspansi_query(teks, kamus=KAMUS_EKSPANSI):
-#     teks_lower = teks.lower()
-#     teks_ekspansi = teks_lower
-#     sorted_keys = sorted(kamus.keys(), key=len, reverse=True)
-#     for frasa in sorted_keys:
-#         if frasa in teks_lower:
-#             teks_ekspansi += " " + " ".join(kamus[frasa])
-#     return teks_ekspansi

@@ -55,13 +55,8 @@
 <script setup>
 import { toastState } from './utils/toast';
 
-// 💡 PUSAT KONTROL MENU NAVIGASI
-// Jika ingin tambah halaman baru, cukup tambahkan 1 baris di sini!
 const menuNavigasi = [
   { label: 'Mesin Rekomendasi', path: '/' },
   { label: 'Daftar Dosen', path: '/dosen' },
-  // Contoh jika nanti ada halaman baru:
-  // { label: 'Statistik Data', path: '/statistik' },
-  // { label: 'Bantuan', path: '/bantuan' },
 ];
 </script>

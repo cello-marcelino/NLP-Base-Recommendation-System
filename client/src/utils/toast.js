@@ -3,7 +3,7 @@ import { ref } from 'vue';
 export const toastState = ref({
   show: false,
   message: '',
-  type: 'error' // 'error' atau 'success'
+  type: 'error'
 });
 
 export const showToast = (message, type = 'error') => {
