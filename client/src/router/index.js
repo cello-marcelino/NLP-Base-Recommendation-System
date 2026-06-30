@@ -1,13 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HalamanRekomendasi from '../views/HalamanRekomendasi.vue'
+
+import HalamanRekomendasiSingle from '../views/HalamanRekomendasi-single.vue'
+import HalamanRekomendasiBatch from '../views/HalamanRekomendasi-batch.vue'
 import HalamanDosen from '../views/HalamanDosen.vue'
 
-// Rute aplikasi
 const routes = [
   {
     path: '/',
-    name: 'Rekomendasi',
-    component: HalamanRekomendasi
+    name: 'RekomendasiSingle',
+    component: HalamanRekomendasiSingle
+  },
+  {
+    path: '/batch',
+    name: 'RekomendasiBatch',
+    component: HalamanRekomendasiBatch
   },
   {
     path: '/dosen',
@@ -16,7 +22,6 @@ const routes = [
   }
 ]
 
-// Router Vue
 const router = createRouter({
   history: createWebHistory(),
   routes

@@ -39,7 +39,7 @@
           </div>
 
         </div>
-      </div>
+      </div>  
     </nav>
 
     <main class="p-6">
@@ -55,8 +55,11 @@
 <script setup>
 import { toastState } from './utils/toast';
 
+// 💡 PUSAT KONTROL MENU NAVIGASI
+// Jika ingin tambah halaman baru, cukup tambahkan 1 baris di sini!
 const menuNavigasi = [
-  { label: 'Mesin Rekomendasi', path: '/' },
+  { label: 'Rekomendasi Single', path: '/' },
+  { label: 'Rekomendasi Batch', path: '/batch' },
   { label: 'Daftar Dosen', path: '/dosen' },
 ];
 </script>
