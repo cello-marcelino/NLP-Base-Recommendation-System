@@ -4,30 +4,26 @@ SIREDO adalah mesin pencari dan sistem rekomendasi berbasis *Artificial Intellig
 
 ---
 
-## 🧠 Metode dan Logika (AI Core)
+## 🧠 Metode dan Logika (AI Core) - Optimized Architecture
 
-Sistem ini menggunakan pendekatan Hibrida yang canggih untuk memberikan rekomendasi dosen yang akurat, dengan alur pemrosesan sebagai berikut:
+Sistem ini menggunakan pendekatan Hibrida yang canggih dengan optimasi arsitektur **Pre-computation & O(1) Query Phase** untuk mencapai respons API dalam hitungan milidetik:
 
 * **Pendekatan Leksikal (BM25):** Menghitung skor kecocokan persis antara kata pada input mahasiswa dan profil dosen menggunakan pembobotan berbasis TF-IDF.
-* **Pendekatan Semantik (SBERT):** Mengonversi teks ke dalam matriks vektor untuk mengevaluasi jarak kesamaan makna (*Cosine Similarity*) sehingga topik relevan tetap terdeteksi meski kosakatanya berbeda.
-* **Pembobotan Hibrida Adaptif:** Sistem memanfaatkan nilai *Inverse Document Frequency* (IDF) secara dinamis.
-* **Peningkatan Bobot Otomatis:** Bobot Leksikal akan ditingkatkan jika kueri mengandung istilah teknis atau langka, dan bobot Semantik ditingkatkan jika kueri menggunakan bahasa umum.
-* **Pemeringkatan Akhir:** Sistem menggabungkan kedua perhitungan tersebut menjadi *Hybrid Score* lalu mengurutkan hasilnya secara menurun.
-* **Optimalisasi dan Caching Vektor:** Sistem melakukan komputasi matriks SBERT dan menyimpannya secara lokal menggunakan file `.npy`.
-* **Peningkatan Kecepatan:** Hal ini memangkas waktu *booting* peladen secara radikal dari sekitar 30 menit menjadi hanya 0.1 detik.
-* **Validasi Keamanan Hash:** Sistem juga membangkitkan file `.fingerprint` berbasis *hash* (MD5) untuk mendeteksi apabila ada perubahan data dosen di pangkalan data sebelum memutuskan untuk membangun ulang matriks.
+* **Pendekatan Semantik (SBERT):** Mengonversi teks ke dalam matriks vektor untuk mengevaluasi jarak kesamaan makna (*Cosine Similarity*).
+* **Pembobotan Hibrida Adaptif:** Sistem mengevaluasi *Inverse Document Frequency* (IDF) kueri secara dinamis untuk menentukan rasio bobot Leksikal dan Semantik.
+* **Vectorized Ranking:** Pemeringkatan skor dosen tidak lagi menggunakan perulangan (*looping*) konvensional, melainkan murni menggunakan aljabar linier matriks NumPy (`np.argsort`) sehingga komputasi data berskala besar terjadi nyaris instan.
+* **KeyBERT Pre-computation:** Ekstraksi frasa kunci keahlian dosen dieksekusi **hanya satu kali** saat peladen (*server*) menyala, menghilangkan beban inferensi AI saat permintaan (*query*) masuk.
 
 ---
 
-## 🏗️ Layer Aplikasi
+## 🏗️ Layer Aplikasi (Backend & AI)
 
-Arsitektur sistem dibangun di atas kerangka kerja *Full-Stack* (Vue.js dan Flask) dengan prinsip *Separation of Concerns* (SoC):
-
-* **Layer Antarmuka Pengguna (Frontend - Vue.js):** Berada di direktori `client/`, menangani stat animasi visualisasi proses pemikiran AI, pencarian *real-time*, dan paginasi sisi klien agar tidak membebani server. Komunikasi HTTP ke *backend* dijembatani oleh file `api.js`.
-* **Layer API (Backend - Flask Python):** Berada di `app.py`, mengekspos *endpoint* seperti `/api/rekomendasi` dan mengimplementasikan *multithreading* di latar belakang saat memuat model AI. Isu *race condition* telah diperbaiki sehingga server akan secara elegan mengembalikan status HTTP 503 jika diakses sebelum model siap.
-* **Layer Kecerdasan Buatan (AI Core):** Terisolasi di file `rekomendasi.py`, mengelola prapemrosesan teks seperti ekspansi kueri dan penghapusan *stopwords*, proses *AdaptiveWeighting*, serta perhitungan matriks vektor menggunakan *Min-Max Scaling*.
-* **Layer Pangkalan Data:** Berfokus pada direktori `database/`, beralih ke arsitektur relasional (MySQL) untuk efisiensi CRUD. File Excel kini murni digunakan sebagai penyemai cadangan (*seeder*) otomatis apabila koneksi MySQL gagal atau tabel masih kosong.
-* **Layer Keamanan (Autentikasi):** Sistem memiliki modul `auth.py` yang menggunakan pustaka `flask-jwt-extended` untuk manajemen *JSON Web Tokens* (JWT) dan `werkzeug.security` untuk enkripsi kata sandi guna mengamankan jalur API.
+* **Layer API (Backend - Flask Python):** Berada di `app.py`. Menjalankan *multithreading* di latar belakang untuk melakukan prapemrosesan AI. 
+* **Layer Kecerdasan Buatan (AI Core):** Terisolasi di file `rekomendasi.py`.
+* **Sistem Caching Tingkat Lanjut:** Untuk mencegah *bottleneck* komputasi saat peladen dihidupkan ulang, sistem menyimpan status *(state)* AI secara lokal dalam dua format:
+  1. `vektor_dosen.npy`: Menyimpan prapemrosesan matriks vektor SBERT.
+  2. `keybert_dosen.json`: Menyimpan prapemrosesan ekstraksi topik keahlian dosen dari model KeyBERT.
+  Sistem divalidasi menggunakan `.fingerprint` berbasis *hash* (MD5) untuk mendeteksi perubahan data di pangkalan data secara otomatis.
 
 ---
 
