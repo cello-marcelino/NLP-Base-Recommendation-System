@@ -1,10 +1,11 @@
-"""Mesin rekomendasi SIREDO."""
+"""Mesin rekomendasi SIREDO - Optimasi Vektor & Pre-computation."""
 
 import os
 import re
 import logging
 import hashlib
 import threading
+import json
 from functools import lru_cache
 from typing import List, Dict, Tuple, Any, Optional
 
@@ -23,15 +24,17 @@ warnings.filterwarnings("ignore", category=UserWarning, module="sklearn.feature_
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("siredo.engine")
 
+# Definisi jalur cache (Tambahan Cache untuk KeyBERT)
 VEKTOR_CACHE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data/vektor_dosen.npy'))
 FINGERPRINT_CACHE_PATH = VEKTOR_CACHE_PATH + ".fingerprint"
+KEYBERT_CACHE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data/keybert_dosen.json'))
 
 logger.info("Menginisialisasi model semantik...")
 model_sbert = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 kw_model = KeyBERT(model=model_sbert) # type: ignore
 
 
-# Preprocessing
+# Preprocessing (Tidak ada perubahan kompleksitas)
 class PreprocessingPipeline:
     @staticmethod
     def ekspansi_query_dengan_log(teks: str, kamus: Dict = KAMUS_EKSPANSI) -> Tuple[str, Dict[str, str]]:
@@ -47,7 +50,6 @@ class PreprocessingPipeline:
 
     @staticmethod
     def tokenize_split(teks: str, n: int = 2) -> Tuple[List[str], List[str]]:
-        """Tokenisasi unigram dan bigram."""
         tokens = re.findall(r'\b[a-z0-9]{2,}\b', teks.lower())
         tokens_bersih = [t for t in tokens if t not in STOPWORDS]
         bigrams = ["_".join(g) for g in ngrams(tokens_bersih, n)]
@@ -55,7 +57,6 @@ class PreprocessingPipeline:
 
     @staticmethod
     def tokenize_ngram(teks: str, n: int = 2) -> List[str]:
-        """Token BM25."""
         uni, bi = PreprocessingPipeline.tokenize_split(teks, n)
         return uni + bi
 
@@ -80,11 +81,7 @@ class AdaptiveWeighting:
 
     @classmethod
     def hitung(
-        cls,
-        token_mhs: List[str],
-        mesin_bm25: Optional[BM25Okapi],
-        avg_idf: float,
-        max_idf: float,
+        cls, token_mhs: List[str], mesin_bm25: Optional[BM25Okapi], avg_idf: float, max_idf: float,
     ) -> Tuple[float, float, List[str]]:
         if not mesin_bm25 or not token_mhs:
             return 0.3, 0.7, []
@@ -99,7 +96,6 @@ class AdaptiveWeighting:
 class ScoringPipeline:
     @staticmethod
     def hitung_leksikal_normalized(mesin: BM25Okapi, token_mhs: List[str]) -> np.ndarray:
-        """Normalisasi skor leksikal."""
         skor_mentah = np.array(mesin.get_scores(token_mhs), dtype=float)
         skor_min, skor_max = skor_mentah.min(), skor_mentah.max()
         if skor_max - skor_min < 1e-9:
@@ -112,7 +108,6 @@ class ScoringPipeline:
         return np.clip(skor_mentah, 0.0, None)
 
 
-# Cache embedding query
 @lru_cache(maxsize=256)
 def _encode_query_cached(teks_mhs_expand: str) -> tuple:
     vektor = model_sbert.encode([teks_mhs_expand], convert_to_numpy=True)[0]
@@ -124,7 +119,7 @@ def _fingerprint_data(data_dosen: List[Dict]) -> str:
     return hashlib.md5(payload.encode("utf-8")).hexdigest()
 
 
-# Cache state
+# Cache state (Telah dimodifikasi untuk KeyBERT Pre-computation)
 class CacheManager:
     def __init__(self):
         self._lock = threading.Lock()
@@ -134,6 +129,7 @@ class CacheManager:
         self.token_dosen: List[List[str]] = []
         self.vektor_dosen: Optional[np.ndarray] = None
         self.mesin_bm25: Optional[BM25Okapi] = None
+        self.keybert_data: List[List[Tuple[str, float]]] = [] # Cache untuk kata kunci
         self.avg_idf: float = 0.0
         self.max_idf: float = 0.0
         self.is_ready = False
@@ -155,7 +151,8 @@ class CacheManager:
             fingerprint_baru = _fingerprint_data(data_dosen)
             pakai_cache = False
 
-            if not force_recalculate and os.path.exists(VEKTOR_CACHE_PATH):
+            # Cek Vektor & KeyBERT Cache
+            if not force_recalculate and os.path.exists(VEKTOR_CACHE_PATH) and os.path.exists(KEYBERT_CACHE_PATH):
                 try:
                     vektor_lokal = np.load(VEKTOR_CACHE_PATH)
                     fingerprint_lama = None
@@ -165,22 +162,46 @@ class CacheManager:
 
                     if vektor_lokal.shape[0] == len(data_dosen) and fingerprint_lama == fingerprint_baru:
                         self.vektor_dosen = vektor_lokal
+                        
+                        # Load KeyBERT JSON Cache
+                        with open(KEYBERT_CACHE_PATH, "r") as f:
+                            self.keybert_data = json.load(f)
+                            
                         pakai_cache = True
-                        logger.info("Matriks SBERT dimuat dari cache lokal (fingerprint cocok).")
+                        logger.info("Matriks SBERT & KeyBERT dimuat dari cache lokal (fingerprint cocok).")
                     else:
-                        logger.warning("Data dosen berubah (jumlah/isi) -> hitung ulang matriks vektor.")
+                        logger.warning("Data dosen berubah -> hitung ulang matriks & ekstraksi frasa.")
                 except Exception as e:
-                    logger.warning(f"Gagal membaca cache npy: {e}")
+                    logger.warning(f"Gagal membaca cache lokal: {e}")
 
             if not pakai_cache:
-                logger.info("Menghitung ulang matriks SBERT dari awal...")
+                logger.info("Menghitung ulang matriks SBERT (Ini memakan waktu)...")
                 self.vektor_dosen = np.array(model_sbert.encode(self.teks_bobot_list, convert_to_numpy=True))
+                
+                logger.info("Mengekstrak Frasa Statis KeyBERT (Ini memakan waktu)...")
+                raw_keywords = kw_model.extract_keywords(
+                    self.teks_raw_list,
+                    keyphrase_ngram_range=(1, 3),
+                    stop_words=list(STOPWORDS),
+                    use_maxsum=True,
+                    nr_candidates=15,
+                    top_n=5 # Ambil 5 frasa keahlian utama
+                )
+                
+                # Penanganan hasil batch dari KeyBERT
+                if len(self.teks_raw_list) == 1 and raw_keywords and isinstance(raw_keywords[0], tuple):
+                    self.keybert_data = [raw_keywords] # type: ignore
+                else:
+                    self.keybert_data = raw_keywords # type: ignore
+                    
                 try:
                     np.save(VEKTOR_CACHE_PATH, self.vektor_dosen)
+                    with open(KEYBERT_CACHE_PATH, "w") as f:
+                        json.dump(self.keybert_data, f)
                     with open(FINGERPRINT_CACHE_PATH, "w") as f:
                         f.write(fingerprint_baru)
                 except Exception as e:
-                    logger.error(f"Gagal menyimpan cache npy/fingerprint: {e}")
+                    logger.error(f"Gagal menyimpan cache npy/json/fingerprint: {e}")
 
             self.mesin_bm25 = BM25Okapi(self.token_dosen)
 
@@ -203,12 +224,7 @@ class RecommendationEngine:
         self.cache.siapkan(data_dosen, force_recalculate)
 
     def jalankan_pipeline(
-        self,
-        judul_mhs: str,
-        abstrak_mhs: str,
-        k_rank: int = 5,
-        bobot_lex: float = 0.3,
-        bobot_sem: float = 0.7,
+        self, judul_mhs: str, abstrak_mhs: str, k_rank: int = 5, bobot_lex: float = 0.3, bobot_sem: float = 0.7,
     ) -> Dict[str, Any]:
         if not self.cache.is_ready:
             raise RuntimeError("Cache belum siap. Panggil siapkan_cache() dulu.")
@@ -216,7 +232,7 @@ class RecommendationEngine:
         mesin_bm25 = self.cache.mesin_bm25
         vektor_dosen = self.cache.vektor_dosen
         if mesin_bm25 is None or vektor_dosen is None:
-            raise RuntimeError("Cache tidak konsisten: mesin_bm25/vektor_dosen kosong walau is_ready=True.")
+            raise RuntimeError("Cache tidak konsisten.")
 
         teks_mhs_raw = f"{judul_mhs} {abstrak_mhs}"
         teks_mhs_expand, log_ekspansi = PreprocessingPipeline.ekspansi_query_dengan_log(teks_mhs_raw)
@@ -237,12 +253,11 @@ class RecommendationEngine:
             bobot_sem = round(float(bobot_sem), 2)
 
         skor_lex = ScoringPipeline.hitung_leksikal_normalized(mesin_bm25, token_mhs)
-
         vektor_mhs = np.array(_encode_query_cached(teks_mhs_expand))
         skor_sem = ScoringPipeline.hitung_semantik(vektor_mhs, vektor_dosen)
 
         top_k = self._rank(skor_lex, skor_sem, bobot_lex, bobot_sem, k_rank)
-        hasil_final = self._enrich(top_k, token_mhs, teks_mhs_raw)
+        hasil_final = self._enrich(top_k, token_mhs) # Tidak lagi mengirim teks_mhs_raw
 
         return {
             "hasil_rekomendasi": hasil_final,
@@ -259,66 +274,61 @@ class RecommendationEngine:
             },
         }
 
+    # Area Optimasi 1: Operasi Vektor NumPy Menggantikan Looping Konvensional
     def _rank(
         self, skor_lex: np.ndarray, skor_sem: np.ndarray, bobot_lex: float, bobot_sem: float, k_rank: int
     ) -> List[Dict[str, Any]]:
+        # Komputasi dalam satu baris (sangat cepat untuk ribuan data)
+        skor_hybrid = (bobot_lex * skor_lex) + (bobot_sem * skor_sem)
+        
+        # Ekstrak index top-K (diurutkan secara descending)
+        top_k_indices = np.argsort(skor_hybrid)[::-1][:k_rank]
+        
         data_dosen = self.cache.data_dosen
         semua_hasil = []
-        for i in range(len(data_dosen)):
-            skor_hybrid = bobot_lex * skor_lex[i] + bobot_sem * skor_sem[i]
+        for i in top_k_indices:
+            idx = int(i) # Pastikan tipe integer murni
             semua_hasil.append({
-                "indeks": i,
-                "NAMA": data_dosen[i].get('NAMA', '-'),
-                "PROGRAM_STUDI": data_dosen[i].get('PROGRAM_STUDI', '-'),
-                "BIDANG_KEAHLIAN": data_dosen[i].get('BIDANG_KEAHLIAN', '-'),
-                "JURNAL": data_dosen[i].get('JURNAL', '-'),
-                "judul bimbing": data_dosen[i].get('judul bimbing', '-'),
-                "judul uji": data_dosen[i].get('judul uji', '-'),
-                "RIWAYAT_PENDIDIKAN": data_dosen[i].get('RIWAYAT_PENDIDIKAN', '-'),
-                "Hybrid Score": round(float(skor_hybrid), 3),
-                "Lexical Score": round(float(skor_lex[i]), 3),
-                "Semantic Score": round(float(skor_sem[i]), 3),
+                "indeks": idx,
+                "NAMA": data_dosen[idx].get('NAMA', '-'),
+                "PROGRAM_STUDI": data_dosen[idx].get('PROGRAM_STUDI', '-'),
+                "BIDANG_KEAHLIAN": data_dosen[idx].get('BIDANG_KEAHLIAN', '-'),
+                "JURNAL": data_dosen[idx].get('JURNAL', '-'),
+                "judul bimbing": data_dosen[idx].get('judul bimbing', '-'),
+                "judul uji": data_dosen[idx].get('judul uji', '-'),
+                "RIWAYAT_PENDIDIKAN": data_dosen[idx].get('RIWAYAT_PENDIDIKAN', '-'),
+                "Hybrid Score": round(float(skor_hybrid[idx]), 3),
+                "Lexical Score": round(float(skor_lex[idx]), 3),
+                "Semantic Score": round(float(skor_sem[idx]), 3),
             })
-        semua_hasil.sort(key=lambda x: x["Hybrid Score"], reverse=True)
-        return semua_hasil[:k_rank]
+        return semua_hasil
 
+    # Area Optimasi 2: Beban komputasi KeyBERT dihilangkan, murni menggunakan Lookup O(1)
     def _enrich(
-        self, top_k: List[Dict[str, Any]], token_mhs: List[str], teks_mhs_raw: str
+        self, top_k: List[Dict[str, Any]], token_mhs: List[str]
     ) -> List[Dict[str, Any]]:
         mhs_set = set(token_mhs)
-        teks_list = [self.cache.teks_raw_list[h["indeks"]] for h in top_k]
-
-        keywords_batch: List[List[Tuple[str, float]]] = []
-        if teks_list:
-            raw = kw_model.extract_keywords(
-                teks_list,
-                keyphrase_ngram_range=(1, 3),
-                stop_words=list(STOPWORDS),
-                use_maxsum=True,
-                nr_candidates=15,
-                top_n=3,
-                seed_keywords=[teks_mhs_raw],
-            )
-            if len(teks_list) == 1 and raw and isinstance(raw[0], tuple):
-                keywords_batch = [raw] # type: ignore
-            else:
-                keywords_batch = raw # type: ignore
-
+        
         hasil_final = []
-        for h, kw_result in zip(top_k, keywords_batch):
+        for h in top_k:
             idx = h["indeks"]
+            
+            # Irisan Leksikal
             dsn_set = set(self.cache.token_dosen[idx])
             irisan = list(mhs_set.intersection(dsn_set))
             kata_lex = [str(k).replace('_', ' ') for k in irisan]
+            
+            # Ambil KeyBERT dari Cache JSON (Bukan dihitung on-the-fly)
+            kw_result = self.cache.keybert_data[idx]
             kata_sem = [str(k[0]) for k in kw_result]
 
             h["Irisan Kata (Lexical)"] = ", ".join(kata_lex) if kata_lex else "-"
             h["Frasa Terkait (KeyBERT)"] = ", ".join(kata_sem) if kata_sem else "-"
+            
             del h["indeks"]
             hasil_final.append(h)
 
         return hasil_final
-
 
 # Singleton
 engine = RecommendationEngine()
