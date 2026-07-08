@@ -1,213 +1,395 @@
-﻿
-KAMUS_EKSPANSI = {
+﻿KAMUS_EKSPANSI = {
+    "artificial intelligence": [
+        "ai",
+        "artificial intelligence",
+        "kecerdasan buatan",
+        "machine intelligence",
+        "intelligent system",
+        "smart system",
+        "generative ai",
+        "genai",
+        "llm",
+        "large language model",
+        "chatgpt",
+        "gemini",
+        "claude",
+        "copilot",
+        "artificial neural intelligence"
+    ],
+
+    "machine learning": [
+        "machine learning",
+        "ml",
+        "deep learning",
+        "supervised learning",
+        "unsupervised learning",
+        "reinforcement learning",
+        "classification",
+        "regression",
+        "prediction",
+        "forecasting",
+        "clustering",
+        "feature engineering",
+        "feature selection",
+        "model training",
+        "model evaluation",
+        "predictive analytics"
+    ],
 
     "deep learning": [
-        "neural network", "cnn", "rnn", "lstm", "gru", "transformer",
-        "bert", "gpt", "autoencoder", "gan", "feedforward",
-        "backpropagation", "jaringan saraf tiruan", "jst",
-        "deep neural network", "dnn"
-    ],
-    "machine learning": [
-        "pembelajaran mesin", "svm", "support vector machine",
-        "random forest", "decision tree", "naive bayes", "knn",
-        "k-nearest neighbor", "gradient boosting", "xgboost",
-        "regresi", "prediksi", "supervised learning",
-        "unsupervised learning", "reinforcement learning"
-    ],
-    "kecerdasan buatan": [
-        "artificial intelligence", "ai", "sistem pakar", "expert system",
-        "logika fuzzy", "fuzzy logic", "agen cerdas", "intelligent agent"
-    ],
-    "transfer learning": [
-        "fine tuning", "pretrained model", "feature extraction",
-        "domain adaptation", "model reuse"
-    ],
-    "generative ai": [
-        "large language model", "llm", "diffusion model",
-        "stable diffusion", "text to image", "prompt engineering",
-        "rag", "retrieval augmented generation"
-    ],
-    "optimasi model": [
-        "hyperparameter tuning", "learning rate", "dropout",
-        "regularisasi", "batch normalization", "early stopping",
-        "overfitting", "underfitting", "cross validation"
+        "deep learning",
+        "cnn",
+        "convolutional neural network",
+        "rnn",
+        "gru",
+        "lstm",
+        "transformer",
+        "bert",
+        "mobilenet",
+        "mobilenetv2",
+        "resnet",
+        "efficientnet",
+        "vision transformer",
+        "gan",
+        "autoencoder"
     ],
 
-    "klasifikasi gambar": [
-        "image classification", "image recognition", "citra digital",
-        "computer vision", "resnet", "vgg", "efficientnet",
-        "inception", "mobilenet"
-    ],
-    "deteksi objek": [
-        "object detection", "yolo", "rcnn", "faster rcnn", "ssd",
-        "feature pyramid network", "bounding box", "anchor box",
-        "nms", "non maximum suppression"
-    ],
-    "segmentasi": [
-        "image segmentation", "semantic segmentation",
-        "instance segmentation", "unet", "mask rcnn",
-        "panoptic segmentation", "pixel classification"
-    ],
-    "pengolahan citra": [
-        "image processing", "opencv", "preprocessing citra",
-        "augmentasi data", "thresholding", "edge detection",
-        "morfologi citra", "histogram equalization", "noise reduction"
-    ],
-    "pengenalan wajah": [
-        "face recognition", "face detection", "facial landmark",
-        "facenet", "deepface", "arcface", "liveness detection", "biometrik"
-    ],
-    "ocr": [
-        "optical character recognition", "text detection",
-        "document analysis", "tesseract", "crnn",
-        "handwriting recognition", "document digitization"
-    ],
-
-    "pemrosesan bahasa alami": [
-        "natural language processing", "nlp", "text mining",
-        "text analysis", "corpus", "tokenisasi", "tokenization",
-        "stemming", "lemmatization", "pos tagging"
-    ],
-    "analisis sentimen": [
-        "sentiment analysis", "opinion mining", "klasifikasi teks",
-        "text classification", "polaritas", "emosi teks",
-        "ulasan", "review analysis"
-    ],
-    "information retrieval": [
-        "pencarian informasi", "search engine", "temu balik informasi",
-        "tf idf", "bm25", "inverted index", "query expansion",
-        "relevance ranking"
-    ],
-    "word embedding": [
-        "word2vec", "fasttext", "glove", "embedding",
-        "representasi vektor", "semantic similarity",
-        "cosine similarity", "dense retrieval"
-    ],
-    "chatbot": [
-        "conversational ai", "dialog system", "intent recognition",
-        "entity extraction", "ner", "named entity recognition",
-        "slot filling", "rasa", "langchain"
-    ],
-    "rangkuman teks": [
-        "text summarization", "extractive summarization",
-        "abstractive summarization", "keyword extraction",
-        "keybert", "topic modeling", "lda", "bertopic"
-    ],
-
-    "analisis data": [
-        "data analysis", "statistik", "visualisasi data",
-        "exploratory data analysis", "eda", "pandas", "numpy",
-        "scipy", "deskriptif", "inferensial"
-    ],
-    "data mining": [
-        "penggalian data", "association rule", "apriori", "fp growth",
-        "clustering", "k means", "dbscan", "hierarchical clustering",
+    "computer vision": [
+        "computer vision",
+        "vision",
+        "image processing",
+        "image recognition",
+        "image classification",
+        "image segmentation",
+        "object detection",
+        "face recognition",
+        "facial recognition",
+        "ocr",
+        "optical character recognition",
+        "biometric",
+        "biometrik",
+        "opencv",
+        "yolo",
+        "visual inspection",
+        "mask detection",
         "anomaly detection"
     ],
-    "big data": [
-        "hadoop", "spark", "apache kafka", "mapreduce",
-        "data lake", "data warehouse", "batch processing",
-        "stream processing", "etl"
-    ],
-    "prediksi": [
-        "forecasting", "time series", "arima", "lstm forecasting",
-        "regresi linier", "regresi logistik",
-        "prediksi permintaan", "prophet"
-    ],
-    "preprocessing": [
-        "data cleaning", "missing value", "outlier", "normalisasi",
-        "standarisasi", "feature engineering", "feature selection",
-        "imputasi", "one hot encoding", "label encoding"
+
+    "natural language processing": [
+        "nlp",
+        "natural language processing",
+        "text mining",
+        "text processing",
+        "text similarity",
+        "semantic similarity",
+        "semantic search",
+        "embedding",
+        "sentence transformer",
+        "bert",
+        "word2vec",
+        "fasttext",
+        "tf-idf",
+        "bag of words",
+        "tokenization",
+        "stemming",
+        "lemmatization",
+        "stopword",
+        "chatbot",
+        "sentiment analysis",
+        "text classification",
+        "topic modeling",
+        "prompt engineering"
     ],
 
-    "pengembangan web": [
-        "web development", "frontend", "backend", "fullstack",
-        "rest api", "graphql", "react", "vue", "angular",
-        "next.js", "typescript"
-    ],
-    "pengembangan mobile": [
-        "mobile development", "android", "ios", "flutter",
-        "react native", "kotlin", "swift",
-        "progressive web app", "pwa", "cross platform"
-    ],
-    "ui ux": [
-        "user interface", "user experience", "prototyping",
-        "wireframe", "figma", "usability testing",
-        "heuristic evaluation", "accessibility", "desain responsif"
-    ],
-    "e-commerce": [
-        "toko online", "marketplace", "payment gateway",
-        "keranjang belanja", "inventory management",
-        "midtrans", "xendit", "order management"
-    ],
-    "web scraping": [
-        "crawling", "selenium", "beautifulsoup", "scrapy",
-        "puppeteer", "data extraction", "parsing html"
+    "software engineering": [
+        "software engineering",
+        "software development",
+        "software architecture",
+        "application development",
+        "system development",
+        "clean code",
+        "clean architecture",
+        "solid",
+        "design pattern",
+        "oop",
+        "mvc",
+        "microservice",
+        "microservices",
+        "rest api",
+        "api gateway",
+        "agile",
+        "scrum",
+        "waterfall",
+        "prototype"
     ],
 
-    "basis data": [
-        "database", "sql", "mysql", "postgresql", "sqlite",
-        "nosql", "mongodb", "redis", "elasticsearch",
-        "query optimization", "normalisasi database"
+    "web development": [
+        "website",
+        "web",
+        "web application",
+        "frontend",
+        "backend",
+        "fullstack",
+        "laravel",
+        "django",
+        "flask",
+        "fastapi",
+        "spring boot",
+        "quarkus",
+        "nestjs",
+        "express",
+        "react",
+        "vue",
+        "vuejs",
+        "angular",
+        "next.js",
+        "nextjs",
+        "codeigniter",
+        "php",
+        "javascript",
+        "typescript"
     ],
+
+    "mobile development": [
+        "android",
+        "ios",
+        "flutter",
+        "dart",
+        "kotlin",
+        "react native",
+        "mobile application",
+        "mobile app",
+        "apk",
+        "progressive web app",
+        "pwa"
+    ],
+
+    "database": [
+        "database",
+        "dbms",
+        "mysql",
+        "postgresql",
+        "mariadb",
+        "mongodb",
+        "firebase",
+        "supabase",
+        "redis",
+        "sqlite",
+        "sql server",
+        "oracle",
+        "nosql",
+        "sql",
+        "erd",
+        "normalisasi",
+        "query optimization"
+    ],
+
+    "networking": [
+        "network",
+        "networking",
+        "computer network",
+        "tcp/ip",
+        "routing",
+        "switching",
+        "vpn",
+        "lan",
+        "wan",
+        "wifi",
+        "mikrotik",
+        "cisco",
+        "firewall",
+        "dns",
+        "dhcp",
+        "ftth",
+        "fiber optic"
+    ],
+
+    "cyber security": [
+        "cyber security",
+        "keamanan siber",
+        "information security",
+        "security",
+        "penetration testing",
+        "pentest",
+        "ethical hacking",
+        "vulnerability assessment",
+        "nist",
+        "iso 27001",
+        "kami",
+        "siem",
+        "wazuh",
+        "snort",
+        "suricata",
+        "malware",
+        "trojan",
+        "ransomware",
+        "phishing",
+        "threat intelligence",
+        "incident response"
+    ],
+
     "cloud computing": [
-        "komputasi awan", "aws", "gcp", "azure",
-        "iaas", "paas", "saas", "serverless",
-        "cloud storage", "cloud deployment"
+        "cloud",
+        "cloud computing",
+        "aws",
+        "amazon web services",
+        "azure",
+        "google cloud",
+        "gcp",
+        "docker",
+        "docker compose",
+        "kubernetes",
+        "terraform",
+        "ansible",
+        "virtual machine",
+        "virtualization",
+        "container"
     ],
+
     "devops": [
-        "ci cd", "docker", "kubernetes", "container",
-        "pipeline", "github actions", "jenkins", "terraform",
-        "infrastructure as code", "monitoring"
-    ],
-    "microservices": [
-        "arsitektur layanan", "api gateway", "service mesh",
-        "message broker", "rabbitmq", "load balancing", "scalability"
-    ],
-
-    "keamanan siber": [
-        "cybersecurity", "network security", "penetration testing",
-        "vulnerability assessment", "enkripsi", "kriptografi",
-        "ssl tls", "firewall", "ids ips"
-    ],
-    "kriptografi": [
-        "encryption", "rsa", "aes", "hash function", "sha",
-        "digital signature", "public key", "private key",
-        "blockchain", "zero knowledge proof"
-    ],
-    "jaringan komputer": [
-        "computer network", "tcp ip", "protokol", "routing",
-        "switching", "lan wan", "vpn", "dns", "dhcp",
-        "wireless network", "packet analysis"
-    ],
-    "iot": [
-        "internet of things", "sensor", "mikrokontroler",
-        "arduino", "raspberry pi", "mqtt", "embedded system",
-        "smart device", "edge computing", "firmware"
+        "devops",
+        "ci",
+        "cd",
+        "ci/cd",
+        "pipeline",
+        "deployment",
+        "automation",
+        "jenkins",
+        "github actions",
+        "gitlab ci",
+        "monitoring"
     ],
 
-    "rekayasa perangkat lunak": [
-        "software engineering", "sdlc", "agile", "scrum",
-        "kanban", "waterfall", "software design",
-        "software testing", "quality assurance"
-    ],
-    "pengujian perangkat lunak": [
-        "software testing", "unit testing", "integration testing",
-        "black box", "white box", "regression testing",
-        "test case", "selenium", "automated testing"
-    ],
-    "sistem informasi": [
-        "information system", "erp", "crm", "hris",
-        "decision support system", "dss",
-        "management information system", "enterprise system"
-    ],
-    "pemodelan sistem": [
-        "uml", "use case", "class diagram", "sequence diagram",
-        "activity diagram", "entity relationship diagram",
-        "erd", "data flow diagram", "dfd"
+    "internet of things": [
+        "iot",
+        "internet of things",
+        "arduino",
+        "esp32",
+        "esp8266",
+        "raspberry pi",
+        "sensor",
+        "mqtt",
+        "lorawan",
+        "smart monitoring",
+        "smart parking",
+        "embedded system"
     ],
 
-    "klasifikasi": ["classification", "kategorisasi", "pengelompokan"],
-    "gambar":       ["image", "citra", "visual", "vision"],
+    "robotics": [
+        "robot",
+        "robotics",
+        "automation",
+        "robot control",
+        "control system",
+        "embedded control"
+    ],
+
+    "ui ux": [
+        "ui",
+        "ux",
+        "user interface",
+        "user experience",
+        "design thinking",
+        "wireframe",
+        "prototype",
+        "figma",
+        "usability",
+        "sus",
+        "ueq"
+    ],
+
+    "multimedia": [
+        "multimedia",
+        "motion graphic",
+        "motion graphics",
+        "animation",
+        "animasi",
+        "2d",
+        "3d",
+        "video editing",
+        "company profile",
+        "branding",
+        "digital content",
+        "graphic design"
+    ],
+
+    "game development": [
+        "game",
+        "game development",
+        "unity",
+        "unity3d",
+        "unity2d",
+        "gamification",
+        "virtual reality",
+        "vr",
+        "augmented reality",
+        "ar",
+        "metaverse"
+    ],
+
+    "information system": [
+        "sistem informasi",
+        "information system",
+        "management information system",
+        "erp",
+        "crm",
+        "hris",
+        "inventory",
+        "asset management",
+        "helpdesk",
+        "warehouse",
+        "attendance",
+        "payroll",
+        "procurement",
+        "dashboard",
+        "monitoring system",
+        "document management",
+        "reporting system"
+    ],
+
+    "decision support system": [
+        "decision support system",
+        "dss",
+        "spk",
+        "sistem pendukung keputusan",
+        "ahp",
+        "saw",
+        "moora",
+        "topsis",
+        "weighted product",
+        "electre",
+        "promethee",
+        "roc"
+    ],
+
+    "recommendation system": [
+        "recommendation system",
+        "recommender system",
+        "recommendation engine",
+        "content based filtering",
+        "collaborative filtering",
+        "hybrid recommendation",
+        "cosine similarity",
+        "semantic similarity"
+    ],
+
+    "blockchain": [
+        "blockchain",
+        "distributed ledger",
+        "smart contract",
+        "web3",
+        "cryptocurrency"
+    ],
+
+    "data science": [
+        "data science",
+        "data mining",
+        "data analytics",
+        "business intelligence",
+        "knowledge discovery",
+        "eda",
+        "exploratory data analysis",
+        "pca",
+        "visualization"
+    ]
 }
-

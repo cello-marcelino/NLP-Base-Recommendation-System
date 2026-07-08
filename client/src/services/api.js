@@ -1,4 +1,4 @@
-const BASE_URL = 'http://127.0.0.1:5050/api';
+const BASE_URL = 'https://0kxw2h2r-5050.asse.devtunnels.ms/api';
 
 export default {
   async getSemuaDosen() {

@@ -26,6 +26,7 @@ __pycache__/
 # File AI & Cache Data (SIREDO Specific)
 server/data/*.npy
 server/data/*.fingerprint
+server/data/keybert_dosen.json
 *.npy
 *.pkl
 *.h5
