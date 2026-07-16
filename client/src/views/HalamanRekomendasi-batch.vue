@@ -3,7 +3,7 @@
   <div class="max-w-7xl mx-auto py-8 space-y-8">
 
     <!-- ═══════════════════════════════════════════════════════
-         HEADER
+                              HEADER
     ════════════════════════════════════════════════════════════ -->
     <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
       <div>
@@ -33,7 +33,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════
-         ATURAN & INFO SISTEM
+                      ATURAN & INFO SISTEM
     ════════════════════════════════════════════════════════════ -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
