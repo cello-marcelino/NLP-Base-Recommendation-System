@@ -40,10 +40,19 @@ Sistem ini menggunakan pendekatan Hibrida yang canggih dengan optimasi arsitektu
 3. Masuk ke direktori `server/database` lalu jalankan skrip `python migrate.py` untuk mengekstrak data dari Excel menjadi baris SQL secara otomatis. **Catatan:** Migrasi ini juga mendaftarkan akun admin *default* dengan sandi terenkripsi menggunakan `werkzeug.security`.
 
 ### Langkah 2: Menyalakan Peladen AI (Backend)
-1. Buka Terminal baru dan masuk ke dalam folder `server`.
-2. Aktifkan *virtual environment* Python dengan perintah `.venv\Scripts\activate`.
-3. Instal semua pustaka dan dependensi (termasuk modul JWT dan MySQL) menggunakan `pip install -r requirements.txt`.
-4. Nyalakan mesin peladen utama dengan mengeksekusi `python app.py`. **Catatan *Cold Start*:** Saat pertama kali menyala, AI membutuhkan waktu komputasi untuk merangkum vektor matriks menjadi *cache* `vektor_dosen.npy` dan `vektor_dosen.npy.fingerprint`, namun *booting* ke depannya hanya memakan waktu 0.1 detik.
+1. Buka terminal baru dan masuk ke dalam folder server.
+2. Aktifkan lingkungan Python yang digunakan. Pilih salah satu metode berikut:
+- Opsi A – Virtual Environment (.venv)
+    .venv\Scripts\activate
+- Opsi B – Conda Environment (gpuenv)
+    conda activate gpuenv
+3. Instal seluruh pustaka dan dependensi (termasuk modul JWT dan MySQL) menggunakan:
+    pip install -r requirements.txt
+    Catatan: Langkah ini cukup dilakukan satu kali untuk setiap environment yang baru dibuat.
+4. Jalankan peladen AI dengan perintah:
+    python app.py
+
+5. Catatan Cold Start. Saat peladen dijalankan untuk pertama kali, sistem akan melakukan proses pre-computation dengan membangun cache matriks embedding (vektor_dosen.npy) beserta berkas fingerprint (vektor_dosen.npy.fingerprint). Proses ini memerlukan waktu beberapa saat tergantung jumlah data dan spesifikasi perangkat. Setelah cache berhasil dibuat, proses booting berikutnya hanya membutuhkan sekitar 0,1 detik karena sistem akan langsung memuat cache yang telah tersedia.
 
 ### Langkah 3: Menyalakan Antarmuka Pengguna (Frontend)
 1. Buka Terminal baru dan arahkan ke folder `client`.
