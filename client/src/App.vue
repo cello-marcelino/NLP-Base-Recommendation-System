@@ -1,3 +1,4 @@
+<!-- LAYOUT  -->
 <template>
   <div
     class="min-h-screen bg-surface-50 font-sans text-surface-800 selection:bg-primary-200 selection:text-primary-900 relative">
