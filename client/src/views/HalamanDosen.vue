@@ -145,14 +145,16 @@
       </div>
     </div>
 
-    <div v-if="!isLoading && filteredDosen.length > 0" class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl border border-surface-200 shadow-sm">
-      <div class="text-sm text-surface-500 font-medium">
+    <div v-if="!isLoading && filteredDosen.length > 0"
+      class="flex flex-col items-center gap-4 bg-white p-4 rounded-xl border border-surface-200 shadow-sm sm:grid sm:grid-cols-3 sm:items-center">
+
+      <div class="text-sm text-surface-500 font-medium text-center sm:text-left order-2 sm:order-1">
         Menampilkan <span class="font-bold text-surface-800">{{ startIndex + 1 }}</span> -
         <span class="font-bold text-surface-800">{{ Math.min(endIndex, filteredDosen.length) }}</span>
         dari <span class="font-bold text-surface-800">{{ filteredDosen.length }}</span> dosen
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 justify-center order-1 sm:order-2">
         <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"
           class="flex items-center justify-center w-9 h-9 rounded-lg border border-surface-200 text-surface-600 hover:bg-surface-50 hover:text-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -173,6 +175,8 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </button>
       </div>
+
+      <div class="hidden sm:block order-3"></div>
     </div>
 
     <ModalDetail :isOpen="modalAktif" :dataDosen="dosenTerpilih" :tutupModal="tutupDetail" />
