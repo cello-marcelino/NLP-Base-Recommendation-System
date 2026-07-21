@@ -7,9 +7,9 @@
     ════════════════════════════════════════════════════════════ -->
     <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
       <div>
-        <div class="flex items-center gap-3 mb-1">
-          <div class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
-            <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center gap-3 mb-1.5">
+          <div class="w-9 h-9 bg-primary-100 rounded-xl flex items-center justify-center shadow-sm">
+            <svg class="w-4.5 h-4.5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
           </div>
@@ -18,13 +18,13 @@
         <h1 class="text-3xl font-extrabold text-surface-900 tracking-tight">
           Rekomendasi <span class="text-primary-600">Massal</span>
         </h1>
-        <p class="text-surface-500 mt-1 font-medium text-sm">
+        <p class="text-surface-500 mt-1.5 font-medium text-sm max-w-xl">
           Upload Excel/CSV → Sistem merekomendasikan 2 dosen penguji per mahasiswa secara otomatis
         </p>
       </div>
 
       <button @click="unduhTemplate"
-        class="flex items-center gap-2 bg-white hover:bg-surface-50 border border-surface-200 text-surface-600 px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all active:scale-95">
+        class="flex items-center gap-2 bg-white hover:bg-surface-50 border border-surface-200 hover:border-surface-300 text-surface-600 px-4 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:shadow transition-all active:scale-95 cursor-pointer">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
         </svg>
@@ -36,7 +36,7 @@
                       ATURAN & INFO SISTEM
     ════════════════════════════════════════════════════════════ -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3">
+      <div class="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex gap-3 transition-all hover:shadow-md hover:-translate-y-0.5">
         <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
           <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -53,7 +53,7 @@
         </div>
       </div>
 
-      <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3">
+      <div class="bg-amber-50 border border-amber-100 rounded-2xl p-4 flex gap-3 transition-all hover:shadow-md hover:-translate-y-0.5">
         <div class="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
           <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -67,7 +67,7 @@
         </div>
       </div>
 
-      <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex gap-3">
+      <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex gap-3 transition-all hover:shadow-md hover:-translate-y-0.5">
         <div class="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
           <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -86,7 +86,7 @@
          AREA UPLOAD
     ════════════════════════════════════════════════════════════ -->
     <div class="bg-white border border-surface-200 rounded-2xl shadow-sm overflow-hidden">
-      <div class="p-6 border-b border-surface-100">
+      <div class="px-6 py-4 border-b border-surface-100 bg-surface-50/50">
         <h2 class="text-sm font-bold text-surface-400 uppercase tracking-widest">Upload File Data Mahasiswa</h2>
       </div>
 
@@ -99,7 +99,7 @@
           :class="[
             'border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 cursor-pointer relative',
             isDragging
-              ? 'border-primary-400 bg-primary-50'
+              ? 'border-primary-400 bg-primary-50 scale-[1.01]'
               : fileTerpilih
                 ? 'border-emerald-300 bg-emerald-50'
                 : 'border-surface-200 hover:border-primary-300 hover:bg-surface-50'
@@ -109,7 +109,7 @@
           <input ref="inputFile" type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="handleFileChange" />
 
           <div v-if="!fileTerpilih">
-            <div class="w-14 h-14 bg-surface-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div class="w-14 h-14 bg-surface-100 rounded-2xl flex items-center justify-center mx-auto mb-4 transition-transform">
               <svg class="w-7 h-7 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
               </svg>
@@ -128,7 +128,8 @@
               <div class="font-bold text-surface-800 text-sm">{{ fileTerpilih.name }}</div>
               <div class="text-xs text-surface-500 mt-0.5">{{ formatUkuranFile(fileTerpilih.size) }} · Klik untuk ganti file</div>
             </div>
-            <button @click.stop="hapusFile" class="ml-2 w-7 h-7 bg-surface-100 hover:bg-red-50 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors">
+            <button @click.stop="hapusFile" title="Hapus file"
+              class="ml-2 w-7 h-7 bg-surface-100 hover:bg-red-50 hover:text-red-500 rounded-lg flex items-center justify-center transition-colors cursor-pointer active:scale-90">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
               </svg>
@@ -148,7 +149,7 @@
             <span class="text-xs text-surface-400">Menampilkan {{ Math.min(5, dataMahasiswa.length) }} dari {{ dataMahasiswa.length }} data</span>
           </div>
 
-          <div class="border border-surface-200 rounded-xl overflow-hidden">
+          <div class="border border-surface-200 rounded-xl overflow-hidden shadow-sm">
             <table class="w-full text-left text-xs">
               <thead class="bg-surface-50 border-b border-surface-200 text-[10px] font-bold text-surface-500 uppercase tracking-wider">
                 <tr>
@@ -160,7 +161,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-surface-100">
-                <tr v-for="(mhs, i) in dataMahasiswa.slice(0, 5)" :key="i" class="hover:bg-surface-50">
+                <tr v-for="(mhs, i) in dataMahasiswa.slice(0, 5)" :key="i" class="hover:bg-surface-50 transition-colors">
                   <td class="px-4 py-2.5 text-surface-400 font-bold font-mono">{{ i + 1 }}</td>
                   <td class="px-4 py-2.5 font-medium text-surface-800">{{ mhs.nama_mahasiswa }}</td>
                   <td class="px-4 py-2.5 font-mono text-surface-600">{{ mhs.nim }}</td>
@@ -178,7 +179,7 @@
           <!-- Validasi error -->
           <div v-if="errorValidasi.length > 0" class="bg-red-50 border border-red-200 rounded-xl p-4">
             <div class="text-xs font-bold text-red-700 uppercase tracking-widest mb-2">⚠ Masalah Ditemukan di File ({{ errorValidasi.length }})</div>
-            <ul class="space-y-1 max-h-40 overflow-y-auto">
+            <ul class="space-y-1 max-h-40 overflow-y-auto pr-1 batch-scroll">
               <li v-for="(err, ei) in errorValidasi.slice(0, 30)" :key="ei" class="text-xs text-red-600 flex items-start gap-1.5">
                 <span class="shrink-0 mt-0.5">•</span>{{ err }}
               </li>
@@ -199,7 +200,7 @@
             <button
               @click="prosesBatch"
               :disabled="isMemproses || errorValidasi.length > 0"
-              class="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-surface-300 text-white font-bold px-6 py-3 rounded-xl transition-all active:scale-95 shadow-md shadow-primary-200 relative overflow-hidden">
+              class="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 disabled:bg-surface-300 text-white font-bold px-6 py-3 rounded-xl transition-all active:scale-95 shadow-md shadow-primary-200 disabled:shadow-none relative overflow-hidden cursor-pointer disabled:cursor-not-allowed">
               <span v-if="isMemproses" class="absolute inset-0 bg-white/20 animate-pulse"></span>
               <svg v-if="isMemproses" class="w-4 h-4 animate-spin relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -223,19 +224,19 @@
           <h3 class="font-bold text-surface-800">Sedang Memproses...</h3>
           <p class="text-xs text-surface-500 mt-0.5">Sistem menganalisis setiap judul TA dengan Hybrid BM25 + SBERT</p>
         </div>
-        <span class="text-2xl font-extrabold text-primary-600 font-mono">
+        <span class="text-2xl font-extrabold text-primary-600 font-mono tabular-nums">
           {{ progressSelesai }}<span class="text-surface-300">/{{ dataMahasiswa.length }}</span>
         </span>
       </div>
 
-      <div class="w-full bg-surface-100 rounded-full h-2.5 overflow-hidden mb-3">
+      <div class="w-full bg-surface-100 rounded-full h-2.5 overflow-hidden mb-4">
         <div
-          class="bg-primary-500 h-2.5 rounded-full transition-all duration-500"
+          class="bg-gradient-to-r from-primary-500 to-primary-400 h-2.5 rounded-full transition-all duration-500"
           :style="`width: ${dataMahasiswa.length > 0 ? (progressSelesai / dataMahasiswa.length) * 100 : 0}%`">
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-2">
+      <div class="flex flex-wrap gap-2 max-h-40 overflow-y-auto batch-scroll pr-1">
         <div v-for="(mhs, i) in dataMahasiswa" :key="i"
           :class="[
             'flex items-center gap-1.5 text-[10px] font-bold px-2 py-1 rounded-lg border transition-all',
@@ -258,7 +259,7 @@
     <div v-if="hasilBatch.length > 0" class="space-y-4 animate-fade-in">
 
       <!-- Header hasil -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 class="text-xl font-extrabold text-surface-900">Hasil Rekomendasi</h2>
           <p class="text-sm text-surface-500 mt-0.5">
@@ -266,7 +267,7 @@
           </p>
         </div>
         <button @click="unduhHasil"
-          class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all active:scale-95 shadow-md shadow-emerald-200">
+          class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all active:scale-95 shadow-md shadow-emerald-200 cursor-pointer shrink-0">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
           </svg>
@@ -284,20 +285,20 @@
 
       <!-- Statistik ringkas -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="bg-white border border-surface-200 rounded-xl p-4 text-center">
-          <div class="text-2xl font-extrabold text-primary-600">{{ hasilBatch.length }}</div>
+        <div class="bg-white border border-surface-200 rounded-xl p-4 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
+          <div class="text-2xl font-extrabold text-primary-600 tabular-nums">{{ hasilBatch.length }}</div>
           <div class="text-[10px] font-bold text-surface-400 uppercase mt-1">Total Mahasiswa</div>
         </div>
-        <div class="bg-white border border-surface-200 rounded-xl p-4 text-center">
-          <div class="text-2xl font-extrabold text-emerald-600">{{ jumlahDosenTerpakai }}</div>
+        <div class="bg-white border border-surface-200 rounded-xl p-4 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
+          <div class="text-2xl font-extrabold text-emerald-600 tabular-nums">{{ jumlahDosenTerpakai }}</div>
           <div class="text-[10px] font-bold text-surface-400 uppercase mt-1">Dosen Dilibatkan</div>
         </div>
-        <div class="bg-white border border-surface-200 rounded-xl p-4 text-center">
-          <div class="text-2xl font-extrabold text-blue-600">{{ rerataSkorHybrid }}</div>
+        <div class="bg-white border border-surface-200 rounded-xl p-4 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
+          <div class="text-2xl font-extrabold text-blue-600 tabular-nums">{{ rerataSkorHybrid }}</div>
           <div class="text-[10px] font-bold text-surface-400 uppercase mt-1">Rata-rata Skor</div>
         </div>
-        <div class="bg-white border border-surface-200 rounded-xl p-4 text-center">
-          <div class="text-2xl font-extrabold text-amber-600">{{ jumlahFallback }}</div>
+        <div class="bg-white border border-surface-200 rounded-xl p-4 text-center transition-all hover:shadow-md hover:-translate-y-0.5">
+          <div class="text-2xl font-extrabold text-amber-600 tabular-nums">{{ jumlahFallback }}</div>
           <div class="text-[10px] font-bold text-surface-400 uppercase mt-1">Fallback Dipakai</div>
         </div>
       </div>
@@ -321,7 +322,8 @@
                 <tr
                   :class="[
                     'hover:bg-surface-50 transition-colors cursor-pointer',
-                    (hasil.penguji_1.nama === 'Tidak tersedia' || hasil.penguji_2.nama === 'Tidak tersedia') ? 'bg-red-50/40' : ''
+                    (hasil.penguji_1.nama === 'Tidak tersedia' || hasil.penguji_2.nama === 'Tidak tersedia') ? 'bg-red-50/40' : '',
+                    detailTerbuka === i ? 'bg-surface-50' : ''
                   ]"
                   @click="toggleDetail(i)">
 
@@ -895,5 +897,16 @@ const unduhHasil = () => {
     -webkit-line-clamp: 2;
     line-clamp: 2;
     overflow: hidden;
+}
+
+.batch-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.batch-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.batch-scroll::-webkit-scrollbar-thumb {
+  background-color: rgb(203 213 225 / 0.7);
+  border-radius: 9999px;
 }
 </style>
