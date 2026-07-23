@@ -110,10 +110,29 @@ def cari_rekomendasi():
             bobot_lex=float(bobot_lexical), 
             bobot_sem=float(bobot_semantic)
         )
+        
+        # ==========================================
+        # AUTO-LOGGING RIWAYAT PENCARIAN (ASYNC)
+        # ==========================================
+        def async_logging():
+            input_info = {
+                "judul": judul, 
+                "abstrak": abstrak,
+                "bobot_lexical": bobot_lexical, 
+                "bobot_semantic": bobot_semantic,
+                "is_adaptif": hasil_rekomendasi['metadata_mesin']['is_adaptif']
+            }
+            # Tembakkan ke database layer secara background
+            DataLayer.simpan_log_json(input_info, hasil_rekomendasi['hasil_rekomendasi'])
+
+        # Menjalankan fungsi logging di thread terpisah tanpa menahan respons ke pengguna
+        threading.Thread(target=async_logging, daemon=True).start()
+        # ==========================================
+
         return jsonify({"status": "sukses", "data": hasil_rekomendasi})
     except Exception as e:
         return jsonify({"status": "gagal", "pesan": str(e)}), 500
-
+    
 # Refresh cache
 @app.route('/api/refresh', methods=['POST'])
 def refresh_server():
@@ -190,6 +209,27 @@ def admin_hapus_dosen(id_dosen):
         return jsonify({"status": "sukses", "pesan": pesan}), 200
         
     return jsonify({"status": "gagal", "pesan": pesan}), 400
+
+
+# ==========================================
+# ENDPOINT ADMIN PANEL (HISTORI REKOMENDASI)
+# ==========================================
+
+@app.route('/api/admin/riwayat', methods=['GET'])
+def admin_ambil_riwayat():
+    """Endpoint untuk mengambil seluruh histori log pencarian rekomendasi (Format JSON)"""
+    try:
+        data_riwayat = DataLayer.fetch_riwayat_admin()
+        return jsonify({
+            "status": "sukses", 
+            "data": data_riwayat
+        }), 200
+    except Exception as e:
+        print(f"[ERROR] Endpoint riwayat gagal: {e}")
+        return jsonify({
+            "status": "gagal", 
+            "pesan": "Gagal mengambil data riwayat."
+        }), 500
 
 
 if __name__ == '__main__':

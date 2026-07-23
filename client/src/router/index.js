@@ -4,6 +4,7 @@ import HalamanRekomendasiSingle from '../views/HalamanRekomendasi-single.vue'
 import HalamanRekomendasiBatch from '../views/HalamanRekomendasi-batch.vue'
 import HalamanDosen from '../views/HalamanDosen.vue'
 import AdminDosen from '../views/AdminDosen.vue'
+import RiwayatRekomendasi from '../views/RiwayatRekomendasi.vue';
 
 const routes = [
   {
@@ -26,6 +27,11 @@ const routes = [
     name: 'AdminDosen',
     component: AdminDosen,
     // Nantinya Anda bisa menambahkan meta: { requiresAuth: true } di sini
+  },
+  {
+    path: '/admin/riwayat',
+    name: 'RiwayatRekomendasi',
+    component: RiwayatRekomendasi,
   }
 ]
 

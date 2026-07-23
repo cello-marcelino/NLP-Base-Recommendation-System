@@ -51,6 +51,12 @@ export default {
     return response.json();
   },
 
+  // Tambahkan di bawah fungsi-fungsi CRUD Dosen sebelumnya
+  getRiwayat: async () => {
+    const response = await fetch(`${BASE_URL}/admin/riwayat`);
+    return response.json();
+  },
+
   async refreshServer() {
     const respons = await fetch(`${BASE_URL}/refresh`, { method: 'POST' });
     if (!respons.ok) throw new Error('Gagal menyegarkan server');

@@ -60,6 +60,7 @@ import { toastState } from './utils/toast';
 const menuNavigasi = [
   { label: 'Rekomendasi Single', path: '/' },
   { label: 'Rekomendasi Batch', path: '/batch' },
+  { label: 'Riwayat Rekomendasi', path: '/admin/riwayat' },
   { label: 'Daftar Dosen', path: '/dosen' },
   { label: 'Admin Panel', path: '/admin/dosen' },
 ];

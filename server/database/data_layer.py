@@ -1,5 +1,6 @@
 from mysql.connector import Error
 from .config import get_db_connection
+import json
 
 
 class DataLayer:
@@ -148,6 +149,72 @@ class DataLayer:
         except Exception as e:
             conn.rollback()
             return False, f"Gagal menghapus data: {str(e)}"
+            
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
+
+    @staticmethod
+    def simpan_log_json(input_data, top_k_list):
+        """Menyimpan riwayat pencarian AI ke dalam 1 baris JSON"""
+        conn = get_db_connection()
+        if not conn:
+            print("[WARNING] Gagal konek DB untuk simpan log.")
+            return False
+            
+        try:
+            cursor = conn.cursor()
+            query = """
+                INSERT INTO log_rekomendasi 
+                (judul_mhs, abstrak_mhs, bobot_lexical, bobot_semantic, is_adaptif, batas_k, hasil_rekomendasi_json)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """
+            
+            # Ubah list/dict Python menjadi string JSON murni
+            hasil_json = json.dumps(top_k_list) 
+            
+            nilai = (
+                input_data.get('judul', ''),
+                input_data.get('abstrak', ''),
+                input_data.get('bobot_lexical', 0.5),
+                input_data.get('bobot_semantic', 0.5),
+                input_data.get('is_adaptif', 0),
+                len(top_k_list),
+                hasil_json
+            )
+            
+            cursor.execute(query, nilai)
+            conn.commit()
+            return True
+            
+        except Exception as e:
+            conn.rollback()
+            print(f"[ERROR] Gagal menyimpan log riwayat JSON: {e}")
+            return False
+            
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()
+
+    @staticmethod
+    def fetch_riwayat_admin():
+        """Mengambil seluruh histori rekomendasi untuk ditampilkan di Admin Panel"""
+        conn = get_db_connection()
+        if not conn:
+            return []
+            
+        try:
+            # PENTING: Gunakan dictionary=True agar data mudah di-parse jadi JSON
+            cursor = conn.cursor(dictionary=True)
+            # Urutkan dari yang paling baru dicari (DESC)
+            cursor.execute("SELECT * FROM log_rekomendasi ORDER BY created_at DESC")
+            return cursor.fetchall()
+            
+        except Exception as e:
+            print(f"[ERROR] Gagal mengambil data riwayat: {e}")
+            return []
             
         finally:
             if conn and conn.is_connected():

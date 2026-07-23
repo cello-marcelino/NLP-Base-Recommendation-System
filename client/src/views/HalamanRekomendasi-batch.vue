@@ -830,6 +830,48 @@ const unduhTemplate = () => {
       judul_ta: 'Analisis Sentimen Ulasan Produk dengan NLP',
       abstrak: 'Penelitian menggunakan Natural Language Processing untuk menganalisis sentimen ulasan produk e-commerce menggunakan model BERT dan LSTM.',
     },
+    {
+      nama_mahasiswa: 'Dewi Lestari',
+      nim: '12345004',
+      judul_ta: 'Rancang Bangun Sistem Informasi Akademik Berbasis Web',
+      abstrak: 'Penelitian ini membangun sistem informasi akademik berbasis web menggunakan Laravel untuk mempermudah pengelolaan data mahasiswa, dosen, dan jadwal kuliah.',
+    },
+    {
+      nama_mahasiswa: 'Rizky Pratama',
+      nim: '12345005',
+      judul_ta: 'Implementasi Internet of Things untuk Smart Home',
+      abstrak: 'Sistem smart home dikembangkan menggunakan ESP32 dan MQTT untuk mengendalikan perangkat elektronik serta memantau kondisi rumah secara real-time.',
+    },
+    {
+      nama_mahasiswa: 'Nabila Putri',
+      nim: '12345006',
+      judul_ta: 'Prediksi Harga Saham Menggunakan Long Short-Term Memory',
+      abstrak: 'Penelitian ini memanfaatkan algoritma LSTM untuk memprediksi pergerakan harga saham berdasarkan data historis dengan tingkat akurasi yang optimal.',
+    },
+    {
+      nama_mahasiswa: 'Andi Saputra',
+      nim: '12345007',
+      judul_ta: 'Sistem Rekomendasi Buku Menggunakan Collaborative Filtering',
+      abstrak: 'Penelitian mengembangkan sistem rekomendasi buku berbasis collaborative filtering untuk memberikan rekomendasi yang sesuai dengan preferensi pengguna.',
+    },
+    {
+      nama_mahasiswa: 'Maya Kusuma',
+      nim: '12345008',
+      judul_ta: 'Klasifikasi Citra Daun Tanaman Menggunakan Convolutional Neural Network',
+      abstrak: 'Model CNN diterapkan untuk mengidentifikasi jenis tanaman berdasarkan citra daun dengan tujuan membantu proses identifikasi secara otomatis.',
+    },
+    {
+      nama_mahasiswa: 'Fajar Nugroho',
+      nim: '12345009',
+      judul_ta: 'Sistem Monitoring Kualitas Udara Berbasis IoT',
+      abstrak: 'Penelitian membangun sistem monitoring kualitas udara menggunakan sensor gas dan mikrokontroler yang terhubung ke platform cloud untuk pemantauan jarak jauh.',
+    },
+    {
+      nama_mahasiswa: 'Putri Ayuningtyas',
+      nim: '12345010',
+      judul_ta: 'Chatbot Layanan Akademik Menggunakan Large Language Model',
+      abstrak: 'Penelitian mengembangkan chatbot akademik berbasis Large Language Model untuk menjawab pertanyaan mahasiswa secara otomatis dan kontekstual.',
+    },
   ];
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(template);
