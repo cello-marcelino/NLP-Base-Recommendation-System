@@ -130,5 +130,67 @@ def refresh_server():
     except Exception as e:
         return jsonify({"status": "gagal", "pesan": f"Gagal refresh cache: {str(e)}"}), 500
 
+# ==========================================
+# ENDPOINT ADMIN PANEL (CRUD DOSEN)
+# ==========================================
+
+def trigger_sinkronisasi_ai_async():
+    """
+    Fungsi pembantu (worker) untuk melakukan re-vektorisasi SBERT dan KeyBERT 
+    di latar belakang tanpa memblokir/menggantungkan respons HTTP ke Frontend Admin.
+    """
+    print("[INFO] Memulai sinkronisasi ulang matriks AI di latar belakang...")
+    try:
+        # Ambil data terbaru dari MySQL yang sudah ter-commit
+        data_terbaru = DataLayer.fetch_all_dosen()
+        if data_terbaru:
+            # Paksa engine AI untuk menghitung ulang cache
+            engine.siapkan_cache(data_terbaru, force_recalculate=True)
+            print("[INFO] Sinkronisasi AI selesai dan berhasil diperbarui!")
+    except Exception as e:
+        print(f"[ERROR] Sinkronisasi AI latar belakang gagal: {e}")
+
+
+@app.route('/api/admin/dosen', methods=['POST'])
+def admin_tambah_dosen():
+    """Endpoint menambah data dosen baru"""
+    data = request.json
+    sukses, pesan = DataLayer.insert_dosen(data)
+    
+    if sukses:
+        # PENTING: Jalankan update AI di thread terpisah (Non-blocking)
+        threading.Thread(target=trigger_sinkronisasi_ai_async, daemon=True).start()
+        return jsonify({"status": "sukses", "pesan": pesan}), 201
+    
+    return jsonify({"status": "gagal", "pesan": pesan}), 400
+
+
+@app.route('/api/admin/dosen/<int:id_dosen>', methods=['PUT'])
+def admin_edit_dosen(id_dosen):
+    """Endpoint memperbarui data dosen"""
+    data = request.json
+    sukses, pesan = DataLayer.update_dosen(id_dosen, data)
+    
+    if sukses:
+        # PENTING: Jalankan update AI di thread terpisah (Non-blocking)
+        threading.Thread(target=trigger_sinkronisasi_ai_async, daemon=True).start()
+        return jsonify({"status": "sukses", "pesan": pesan}), 200
+        
+    return jsonify({"status": "gagal", "pesan": pesan}), 400
+
+
+@app.route('/api/admin/dosen/<int:id_dosen>', methods=['DELETE'])
+def admin_hapus_dosen(id_dosen):
+    """Endpoint menghapus data dosen"""
+    sukses, pesan = DataLayer.delete_dosen(id_dosen)
+    
+    if sukses:
+        # PENTING: Jalankan update AI di thread terpisah (Non-blocking)
+        threading.Thread(target=trigger_sinkronisasi_ai_async, daemon=True).start()
+        return jsonify({"status": "sukses", "pesan": pesan}), 200
+        
+    return jsonify({"status": "gagal", "pesan": pesan}), 400
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5050)

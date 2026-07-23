@@ -61,5 +61,6 @@ const menuNavigasi = [
   { label: 'Rekomendasi Single', path: '/' },
   { label: 'Rekomendasi Batch', path: '/batch' },
   { label: 'Daftar Dosen', path: '/dosen' },
+  { label: 'Admin Panel', path: '/admin/dosen' },
 ];
 </script>

@@ -26,6 +26,31 @@ export default {
     return await respons.json();
   },
 
+  tambahDosen: async (dataDosen) => {
+    const response = await fetch(`${BASE_URL}/admin/dosen`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dataDosen)
+    });
+    return response.json();
+  },
+
+  editDosen: async (idDosen, dataDosen) => {
+    const response = await fetch(`${BASE_URL}/admin/dosen/${idDosen}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(dataDosen)
+    });
+    return response.json();
+  },
+
+  hapusDosen: async (idDosen) => {
+    const response = await fetch(`${BASE_URL}/admin/dosen/${idDosen}`, {
+      method: 'DELETE'
+    });
+    return response.json();
+  },
+
   async refreshServer() {
     const respons = await fetch(`${BASE_URL}/refresh`, { method: 'POST' });
     if (!respons.ok) throw new Error('Gagal menyegarkan server');

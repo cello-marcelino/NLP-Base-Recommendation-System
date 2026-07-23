@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HalamanRekomendasiSingle from '../views/HalamanRekomendasi-single.vue'
 import HalamanRekomendasiBatch from '../views/HalamanRekomendasi-batch.vue'
 import HalamanDosen from '../views/HalamanDosen.vue'
+import AdminDosen from '../views/AdminDosen.vue'
 
 const routes = [
   {
@@ -19,6 +20,12 @@ const routes = [
     path: '/dosen',
     name: 'DaftarDosen',
     component: HalamanDosen
+  },
+  {
+    path: '/admin/dosen',
+    name: 'AdminDosen',
+    component: AdminDosen,
+    // Nantinya Anda bisa menambahkan meta: { requiresAuth: true } di sini
   }
 ]
 
