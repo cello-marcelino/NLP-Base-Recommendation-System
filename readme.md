@@ -1,199 +1,109 @@
-# SiReDo — Sistem Rekomendasi Dosen
+# SiReDo — Sistem Rekomendasi Dosen (NLP-Base-Recommendation-System)
 
-SiReDo adalah aplikasi web untuk merekomendasikan dosen pembimbing berdasarkan judul dan abstrak rencana tugas akhir. Sistem membandingkan profil akademik serta rekam jejak penelitian dosen dengan input mahasiswa menggunakan pendekatan NLP hibrida: **BM25** untuk kecocokan kata dan **Sentence-BERT** untuk kemiripan makna.
+SiReDo (Sistem Rekomendasi Dosen) adalah aplikasi web berbasis *Machine Learning* yang dirancang untuk membantu mahasiswa menemukan dosen pembimbing skripsi yang paling relevan. Sistem ini bekerja dengan membandingkan teks "Judul" dan "Abstrak" proposal mahasiswa dengan profil, keahlian, dan riwayat penelitian dosen menggunakan pendekatan *Natural Language Processing* (NLP) berarsitektur Hibrida (*Hybrid*).
 
-## Ringkasan teknis
+Pendekatan hibrida mengkombinasikan:
+- **Okapi BM25** (Leksikal) untuk pencocokan kemiripan kata kunci secara persis.
+- **Sentence-BERT (SBERT)** (Semantik) dengan model `paraphrase-multilingual-MiniLM-L12-v2` untuk memahami konteks dan kemiripan makna.
 
-Alur utama aplikasi:
+---
 
-1. Data dosen dibaca dari MySQL. Jika MySQL tidak tersedia atau kosong, backend menggunakan `server/data/dataset_profiles_terintegrasi.xlsx` sebagai fallback.
-2. Teks profil dosen diproses dengan stopword bahasa Indonesia, token unigram/bigram, dan kamus ekspansi istilah.
-3. Backend membuat skor leksikal menggunakan Okapi BM25 dan skor semantik menggunakan cosine similarity dari embedding model `paraphrase-multilingual-MiniLM-L12-v2`.
-4. KeyBERT mengekstrak frasa penting dari profil dosen.
-5. Skor akhir dirangking dengan rumus hybrid:
+## 🌟 Fitur Utama Terbaru (V2 Refactored)
 
-   `skor akhir = (bobot lexical × skor BM25) + (bobot semantic × skor SBERT)`
+Sistem telah dirombak (*refactor*) menjadi jauh lebih cepat, modular, dan interaktif:
 
-6. Embedding dan hasil KeyBERT disimpan sebagai cache lokal di `server/data/`. Fingerprint MD5 digunakan untuk mendeteksi perubahan data dan memicu perhitungan ulang.
+1. **Rekomendasi Skripsi Hibrida**: Hasil direkomendasikan dengan pencampuran (skor *hybrid*) berdasarkan persentase adaptif atau manual (α BM25 + β SBERT).
+2. **Real-time Progress Streaming (SSE)**: UI menampilkan *progress bar* analisis secara waktu nyata (*real-time*), dari prapemrosesan hingga kalkulasi vektor matriks menggunakan *Server-Sent Events*.
+3. **Admin Panel Manajemen Dosen**: Administrator dapat menambah, mengedit, dan menghapus dosen.
+4. **Penyelarasan Cache Inkremental (Delta Sync)**: Mengubah data dosen sekarang hanya butuh 1-2 detik karena sistem SBERT AI tidak lagi memuat ulang keseluruhan dataset dari awal, melainkan hanya menyisipkan *patch* secara spesifik pada dosen yang dimodifikasi.
+5. **Dashboard Riwayat Uji Log**: Panel lengkap untuk melihat riwayat seluruh rekomendasi yang pernah dicari mahasiswa.
+6. **XAI (Explainable AI)**: Modal pop-up menjelaskan mengapa AI memilih dosen tersebut (Breakdown skor BM25 dan Semantik).
 
-Model AI dimuat ketika Flask mulai berjalan. Pada proses pertama, model dapat mengunduh file dari Hugging Face dan melakukan komputasi cache sehingga startup lebih lama.
+---
 
-## Fitur
+## 🏗️ Struktur Proyek dan Arsitektur
 
-- Rekomendasi single berdasarkan judul dan abstrak.
-- Rekomendasi batch melalui file `.xlsx`, `.xls`, atau `.csv`.
-- Daftar dosen dengan pencarian, pagination, dan detail profil.
-- Pengaturan bobot lexical dan semantic.
-- Mode bobot adaptif jika bobot lexical dikirim sebagai nilai negatif.
-- Endpoint status, refresh cache, daftar dosen, dan rekomendasi.
-
-## Arsitektur dan struktur folder
+Proyek telah dipisah secara rapi dalam pola arsitektur MVC / *Service-based*:
 
 ```text
 .
-├── client/                 # Frontend Vue + Vite
-│   ├── src/views/          # Halaman single, batch, dan daftar dosen
-│   ├── src/services/api.js # Komunikasi ke backend
-│   └── package.json
-├── server/                 # Backend Flask dan mesin rekomendasi
-│   ├── app.py              # REST API pada port 5050
-│   ├── rekomendasi.py      # Pipeline NLP, ranking, dan cache AI
-│   ├── database/           # Koneksi, query data, auth helper, migrasi
-│   ├── utils/              # Stopword dan kamus ekspansi
-│   ├── data/               # Dataset Excel dan cache AI
-│   └── requirements.txt
-└── testing/
-    └── locustfile.py       # Skenario load test opsional
+├── client/                     # Frontend Vue 3 + Vite
+│   ├── src/components/         # Komponen UI (Navbar, ServerWarmupOverlay, ProgressStepper, XaiModal)
+│   ├── src/views/              # Halaman Aplikasi (RecommendationView, AdminDosenView, dll)
+│   ├── src/services/           # Integrasi API (api.js) dan SSE (stream.js)
+│   └── src/assets/main.css     # Konfigurasi Tailwind CSS v4 Theme
+│
+└── server/                     # Backend Flask API
+    ├── app/
+    │   ├── config.py           # Konfigurasi lingkungan & database
+    │   ├── routes/             # Blueprint API (recommend, dosen, health)
+    │   ├── services/           # Logika AI & Bisnis (BM25, SBERT, Hybrid Engine, Data Loader)
+    │   └── utils/              # Pemroses teks, formatter response
+    ├── storage/                # Penyimpanan *Cache* AI (Numpy/JSON) dan Kamus NLP
+    ├── requirements.txt
+    └── run.py                  # Entrypoint peladen (Server)
 ```
 
-## Tools dan library
+---
 
-### Runtime dan tooling
+## 🚀 Panduan Menjalankan Aplikasi
 
-- Python 3.10+ (disarankan 3.12), `venv`, dan `pip`
-- Node.js 20+ dan npm
-- Flask development server
-- MySQL atau MariaDB; XAMPP dapat digunakan untuk menjalankan MySQL
-- Git
-- Locust untuk load testing opsional
+### 1. Prasyarat (*Prerequisites*)
 
-### Backend
+- **Python 3.10+** (disarankan 3.12)
+- **Node.js 20+**
+- **MySQL / MariaDB** (Tersedia via XAMPP)
 
-- Flask dan Flask-CORS — REST API dan akses lintas origin
-- `mysql-connector-python` — koneksi MySQL
-- pandas dan openpyxl — pembacaan dataset Excel
-- NumPy dan SciPy — operasi matriks dan numerik
-- `rank-bm25` — pencarian/ranking leksikal Okapi BM25
-- `sentence-transformers`, Transformers, dan PyTorch — embedding Sentence-BERT
-- KeyBERT — ekstraksi frasa kunci
-- scikit-learn — cosine similarity
-- NLTK — pembentukan n-gram
-- Werkzeug — hashing password pada helper autentikasi
-- Flask-JWT-Extended tersedia di requirements, tetapi route login/JWT belum diimplementasikan pada API saat ini
+### 2. Pengaturan Basis Data (Database)
 
-### Frontend
-
-- Vue 3 — framework UI
-- Vue Router — navigasi `/`, `/batch`, dan `/dosen`
-- Vite — development server dan build
-- Tailwind CSS 4 dengan `@tailwindcss/vite` — styling
-- SheetJS (`xlsx`) — membaca dan mengekspor file spreadsheet batch
-- Fetch API — komunikasi frontend ke backend
-
-## Prasyarat database
-
-Repo belum menyediakan file schema SQL. Buat database dan tabel berikut sebelum menjalankan migrasi. Perintah di bawah ditujukan untuk PowerShell dengan MySQL CLI tersedia di `PATH`. Jika password root kosong, hilangkan opsi `-p`.
-
+Buat database `db_siredo` di MySQL dan impor tabel (atau jalankan script migrasi awal):
 ```powershell
 mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS db_siredo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-
 mysql -u root -p db_siredo -e "CREATE TABLE IF NOT EXISTS dosen (id INT AUTO_INCREMENT PRIMARY KEY, nidn VARCHAR(30) NULL, nama TEXT NOT NULL, program_studi TEXT NOT NULL, bidang_keahlian LONGTEXT, jurnal LONGTEXT, judul_bimbing LONGTEXT, judul_uji LONGTEXT, riwayat_pendidikan LONGTEXT);"
-
-# Tabel ini hanya diperlukan jika helper AuthLayer akan dikembangkan menjadi fitur login.
-mysql -u root -p db_siredo -e "CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(100) NOT NULL UNIQUE, password_hash VARCHAR(255) NOT NULL, role VARCHAR(30) NOT NULL DEFAULT 'mahasiswa');"
+mysql -u root -p db_siredo -e "CREATE TABLE IF NOT EXISTS log_rekomendasi (id_log INT AUTO_INCREMENT PRIMARY KEY, judul_mhs TEXT, abstrak_mhs TEXT, hasil_rekomendasi_json LONGTEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
 ```
+*(Catatan: Kredensial MySQL dapat diubah melalui `server/app/config.py`)*
 
-Konfigurasi koneksi saat ini berada langsung di `server/database/config.py`:
+### 3. Menjalankan Backend (Python Flask)
 
-```python
-host = localhost
-user = root
-password = ''
-database = db_siredo
-```
-
-Sesuaikan file tersebut jika konfigurasi MySQL lokal berbeda. Untuk deployment, pindahkan kredensial ke environment variable.
-
-## Menjalankan backend
-
-Buka PowerShell pertama:
+Buka terminal/PowerShell pertama, masuk ke folder `server`, lalu jalankan:
 
 ```powershell
-cd "C:\Users\USER\Desktop\Semester 4\PBL\NLP-Base-Recommendation-System\server"
-
-py -3 -m venv .venv
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+cd server
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-
-# Jalankan setelah database dan tabel dosen tersedia.
-python .\database\migrate.py
+pip install --upgrade pip
+pip install -r requirements.txt
 
 # Menyalakan API pada http://127.0.0.1:5050
-python .\app.py
+python run.py
 ```
+*(Saat pertama kali `run.py` dijalankan, model AI SBERT akan menghidupkan mesinnya secara otomatis, memuat korpus dari database, dan membuat cache lokal di folder `storage/`)*
 
-`migrate.py` membaca dataset Excel, mengosongkan tabel `dosen`, lalu mengisinya kembali. Jalankan ulang migrasi hanya jika memang ingin mengganti isi tabel dari Excel.
+### 4. Menjalankan Frontend (Vue 3 + Vite)
 
-Saat backend aktif, cek status mesin AI dari PowerShell kedua:
+Buka terminal/PowerShell kedua, biarkan Backend tetap hidup, masuk ke folder `client`:
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:5050/api/status
-Invoke-RestMethod http://127.0.0.1:5050/api/dosen
+cd client
+npm install
+npm run dev
 ```
+Buka tautan lokal yang ditampilkan (biasanya `http://localhost:5173`). UI aplikasi akan menyala dan *Server Warmup Overlay* akan mendeteksi kesiapan mesin AI.
 
-Tunggu sampai field `ready` bernilai `True` sebelum mengirim rekomendasi. Pengujian rekomendasi yang tersedia:
+---
 
-```powershell
-cd "C:\Users\USER\Desktop\Semester 4\PBL\NLP-Base-Recommendation-System\server"
-\.venv\Scripts\Activate.ps1
-python .\api_test.py
-```
+## 🧩 Modul Ekstraksi AI
 
-## Menjalankan frontend
+Sistem ini bergantung pada *Natural Language Processing*, dengan metode pra-pemrosesan berikut yang di-handle oleh `server/app/utils/text_preprocessor.py`:
+- *Case Folding* (Penyeragaman huruf)
+- *Stopwords Removal* (Menghapus kata tidak penting Bahasa Indonesia dari `storage/stopwords.txt`)
+- *Synonym Expansion* (Ekspansi makna khusus dari `storage/kamus_ekspansi.json`)
+- Pembuatan N-Gram (Unigram & Bigram) untuk meningkatkan pembacaan frasa skripsi.
 
-Buka PowerShell baru dan biarkan backend tetap berjalan:
-
-```powershell
-cd "C:\Users\USER\Desktop\Semester 4\PBL\NLP-Base-Recommendation-System\client"
-
-npm ci
-npm run dev -- --host 127.0.0.1
-```
-
-Buka URL yang ditampilkan Vite, biasanya `http://127.0.0.1:5173`. Frontend saat ini mengarah langsung ke `http://127.0.0.1:5050/api` melalui `client/src/services/api.js`.
-
-Untuk verifikasi build production:
-
-```powershell
-npm run build
-npm run preview
-```
-
-## API utama
-
-| Method | Endpoint | Fungsi |
-|---|---|---|
-| `GET` | `/api/status` | Status warming-up dan kesiapan mesin AI |
-| `GET` | `/api/dosen` | Mengambil seluruh data dosen |
-| `POST` | `/api/rekomendasi` | Menghasilkan ranking rekomendasi |
-| `POST` | `/api/refresh` | Menghitung ulang cache dari data MySQL |
-
-Contoh request rekomendasi:
-
-```powershell
-$body = @{ judul = 'Sistem informasi geografis pemetaan banjir'; abstrak = 'Pemetaan daerah rawan banjir menggunakan data spasial'; k = 3; bobot_lexical = 0.4; bobot_semantic = 0.6 } | ConvertTo-Json
-Invoke-RestMethod -Method Post -Uri http://127.0.0.1:5050/api/rekomendasi -ContentType 'application/json' -Body $body
-```
-
-## Load test opsional
-
-`locustfile.py` tidak termasuk dalam `server/requirements.txt`, sehingga instalasikan secara terpisah:
-
-```powershell
-cd "C:\Users\USER\Desktop\Semester 4\PBL\NLP-Base-Recommendation-System"
-server\.venv\Scripts\Activate.ps1
-python -m pip install locust
-locust -f .\testing\locustfile.py --host http://127.0.0.1:5050
-```
-
-Buka `http://localhost:8089` untuk mengatur jumlah user dan durasi pengujian.
-
-## Catatan pengembangan
-
-- `server/data/vektor_dosen.npy`, file fingerprint, dan `keybert_dosen.json` adalah cache yang dibuat otomatis dan diabaikan Git.
-- Endpoint `/api/refresh` hanya mengambil data dari MySQL; jika MySQL tidak aktif, gunakan migrasi atau restart backend agar fallback Excel dipakai.
-- `server/database/auth.py` hanya berisi helper register/login dan belum dipanggil oleh route Flask maupun frontend.
-- Flask dijalankan dengan `debug=True`; gunakan WSGI server dan konfigurasi keamanan tambahan untuk production.
+## ✨ Manajemen Kontribusi
+Seluruh basis kode telah dirapihkan. Apabila Anda ingin mengembangkan sistem ini lebih jauh:
+- Pastikan tidak mengubah rute `/api/recommend/stream` karena menggunakan spesifikasi `text/event-stream`.
+- Jika menambahkan library JS, instal menggunakan `npm install`.
+- Jika menambahkan library Python, ingat untuk melakukan `pip freeze > requirements.txt`.

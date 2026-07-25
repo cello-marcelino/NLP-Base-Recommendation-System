@@ -121,14 +121,14 @@
       </div>
     </div>
 
-    <ModalDetail :isOpen="modalAktif" :dataDosen="dosenTerpilih" :tutupModal="tutupDetail" />
+    <XaiModal :isOpen="modalAktif" :dataDosen="dosenTerpilih" :tutupModal="tutupDetail" />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
 import api from '../services/api';
-import ModalDetail from '../components/ModalDetail.vue';
+import XaiModal from '../components/XaiModal.vue';
 
 const daftarDosen = ref([]);
 const modalAktif = ref(false);

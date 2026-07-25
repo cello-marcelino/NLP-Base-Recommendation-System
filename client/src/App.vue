@@ -42,7 +42,9 @@
       </div>  
     </nav>
 
-    <main class="p-6">
+    <main class="flex-1 w-full relative z-0">
+      <ServerWarmupOverlay />
+      <!-- View Transition Wrapper -->
       <router-view v-slot="{ Component }">
         <keep-alive>
           <component :is="Component" />
@@ -54,14 +56,14 @@
 
 <script setup>
 import { toastState } from './utils/toast';
+import ServerWarmupOverlay from './components/ServerWarmupOverlay.vue';
 
 // 💡 PUSAT KONTROL MENU NAVIGASI
 // Jika ingin tambah halaman baru, cukup tambahkan 1 baris di sini!
 const menuNavigasi = [
-  { label: 'Rekomendasi Single', path: '/' },
-  { label: 'Rekomendasi Batch', path: '/batch' },
-  { label: 'Riwayat Rekomendasi', path: '/admin/riwayat' },
+  { label: 'Rekomendasi Proposal', path: '/' },
   { label: 'Daftar Dosen', path: '/dosen' },
   { label: 'Admin Panel', path: '/admin/dosen' },
+  { label: 'Riwayat', path: '/admin/riwayat' }
 ];
 </script>

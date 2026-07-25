@@ -5,6 +5,7 @@
 .idea/
 .DS_Store
 Thumbs.db
+.antigravity/
 
 # ==========================================
 # 2. Lingkungan Python & Backend (Flask)
@@ -24,9 +25,7 @@ __pycache__/
 .ipynb_checkpoints/
 
 # File AI & Cache Data (SIREDO Specific)
-server/data/*.npy
-server/data/*.fingerprint
-server/data/keybert_dosen.json
+server/storage/cache/
 *.npy
 *.pkl
 *.h5

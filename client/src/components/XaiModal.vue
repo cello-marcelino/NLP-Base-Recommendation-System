@@ -45,10 +45,10 @@
             </h4>
             <div class="bg-white border border-surface-200 rounded-xl p-5 shadow-sm h-full">
               <ul class="space-y-3">
-                <li v-for="(item, i) in formatArray(dataDosen['judul uji'])" :key="i" class="text-sm text-surface-600 pl-4 relative before:content-[''] before:w-1.5 before:h-1.5 before:bg-surface-300 before:rounded-full before:absolute before:left-0 before:top-2">
+                <li v-for="(item, i) in formatArray(dataDosen['judul uji'] || dataDosen['JUDUL_UJI'])" :key="i" class="text-sm text-surface-600 pl-4 relative before:content-[''] before:w-1.5 before:h-1.5 before:bg-surface-300 before:rounded-full before:absolute before:left-0 before:top-2">
                   {{ item }}
                 </li>
-                <li v-if="formatArray(dataDosen['judul uji']).length === 0" class="text-sm text-surface-400 italic">Belum ada data.</li>
+                <li v-if="formatArray(dataDosen['judul uji'] || dataDosen['JUDUL_UJI']).length === 0" class="text-sm text-surface-400 italic">Belum ada data.</li>
               </ul>
             </div>
           </div>
@@ -59,10 +59,10 @@
             </h4>
             <div class="bg-white border border-surface-200 rounded-xl p-5 shadow-sm h-full">
               <ul class="space-y-3">
-                <li v-for="(item, i) in formatArray(dataDosen['judul bimbing'])" :key="i" class="text-sm text-surface-600 pl-4 relative before:content-[''] before:w-1.5 before:h-1.5 before:bg-surface-300 before:rounded-full before:absolute before:left-0 before:top-2">
+                <li v-for="(item, i) in formatArray(dataDosen['judul bimbing'] || dataDosen['JUDUL_BIMBING'])" :key="i" class="text-sm text-surface-600 pl-4 relative before:content-[''] before:w-1.5 before:h-1.5 before:bg-surface-300 before:rounded-full before:absolute before:left-0 before:top-2">
                   {{ item }}
                 </li>
-                <li v-if="formatArray(dataDosen['judul bimbing']).length === 0" class="text-sm text-surface-400 italic">Belum ada data.</li>
+                <li v-if="formatArray(dataDosen['judul bimbing'] || dataDosen['JUDUL_BIMBING']).length === 0" class="text-sm text-surface-400 italic">Belum ada data.</li>
               </ul>
             </div>
           </div>

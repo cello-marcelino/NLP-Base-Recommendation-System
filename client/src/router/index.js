@@ -1,37 +1,31 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import HalamanRekomendasiSingle from '../views/HalamanRekomendasi-single.vue'
-import HalamanRekomendasiBatch from '../views/HalamanRekomendasi-batch.vue'
-import HalamanDosen from '../views/HalamanDosen.vue'
-import AdminDosen from '../views/AdminDosen.vue'
-import RiwayatRekomendasi from '../views/RiwayatRekomendasi.vue';
+import RecommendationView from '../views/RecommendationView.vue'
+import DosenProfileView from '../views/DosenProfileView.vue'
+
+import AdminDosenView from '../views/AdminDosenView.vue'
+import RiwayatRekomendasiView from '../views/RiwayatRekomendasiView.vue'
 
 const routes = [
   {
     path: '/',
-    name: 'RekomendasiSingle',
-    component: HalamanRekomendasiSingle
-  },
-  {
-    path: '/batch',
-    name: 'RekomendasiBatch',
-    component: HalamanRekomendasiBatch
+    name: 'Recommendation',
+    component: RecommendationView
   },
   {
     path: '/dosen',
-    name: 'DaftarDosen',
-    component: HalamanDosen
+    name: 'DosenProfile',
+    component: DosenProfileView
   },
   {
     path: '/admin/dosen',
     name: 'AdminDosen',
-    component: AdminDosen,
-    // Nantinya Anda bisa menambahkan meta: { requiresAuth: true } di sini
+    component: AdminDosenView
   },
   {
     path: '/admin/riwayat',
-    name: 'RiwayatRekomendasi',
-    component: RiwayatRekomendasi,
+    name: 'AdminRiwayat',
+    component: RiwayatRekomendasiView
   }
 ]
 
