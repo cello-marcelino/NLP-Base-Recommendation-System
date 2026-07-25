@@ -7,9 +7,16 @@ health_bp = Blueprint('health', __name__)
 
 @health_bp.route('/api/status', methods=['GET'])
 def cek_status():
+    from app.services.data_loader import get_db_connection
+    conn = get_db_connection()
+    sumber_data = "MySQL" if conn else "Excel (Fallback)"
+    if conn:
+        conn.close()
+
     status_server = {
         "ready": engine.is_ready,
-        "pesan": "Mesin SIREDO Siap Beroperasi!" if engine.is_ready else "Menginisialisasi peladen..."
+        "pesan": "Mesin SIREDO Siap Beroperasi!" if engine.is_ready else "Menginisialisasi peladen...",
+        "sumber_data": sumber_data
     }
     return jsonify(status_server)
 
