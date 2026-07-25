@@ -33,11 +33,16 @@ class BM25Service:
 
     def hitung_bobot_adaptif(self, token_mhs: List[str]) -> Tuple[float, float, List[str]]:
         if not self.mesin_bm25 or not token_mhs:
-            return 0.3, 0.7, []
-        BATAS_MIN = 0.2
-        BATAS_MAX = 0.8
+            return 0.35, 0.65, []
+            
+        # Skenario B: Adaptive Hybrid Weighting (Alpha Dinamis)
+        if len(token_mhs) < 15:
+            bobot_lex = 0.70
+            bobot_sem = 0.30
+        else:
+            bobot_lex = 0.35
+            bobot_sem = 0.65
+            
         kata_langka = [t for t in token_mhs if self.mesin_bm25.idf.get(t, self.max_idf) > self.avg_idf]
-        rasio_langka = len(kata_langka) / len(token_mhs)
-        bobot_lex = BATAS_MIN + rasio_langka * (BATAS_MAX - BATAS_MIN)
         kata_langka_unik = list(dict.fromkeys(kata_langka))
-        return round(bobot_lex, 2), round(1.0 - bobot_lex, 2), kata_langka_unik
+        return bobot_lex, bobot_sem, kata_langka_unik

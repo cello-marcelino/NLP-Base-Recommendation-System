@@ -38,6 +38,10 @@ def cari_rekomendasi_standard():
         vektor_mhs = engine.sbert.encode_query(teks_mhs_expand)
         skor_sem = engine.sbert.hitung_semantik(vektor_mhs, engine.sbert.vektor_dosen)
 
+        # Skenario A: Hard Constraint (Pruning Leksikal)
+        # Jika skor BM25 nol, maka dosen tersebut di-drop (skor SBERT di-nol-kan)
+        skor_sem[skor_lex == 0] = 0.0
+
         # Step 4: Hybrid Aggregation
         bobot_lexical = float(bobot_lexical)
         bobot_semantic = float(bobot_semantic)
@@ -110,6 +114,9 @@ def cari_rekomendasi_stream():
             yield generate_progress_event(3, "Semantic Scoring (SBERT)")
             vektor_mhs = engine.sbert.encode_query(teks_mhs_expand)
             skor_sem = engine.sbert.hitung_semantik(vektor_mhs, engine.sbert.vektor_dosen)
+
+            # Skenario A: Hard Constraint (Pruning Leksikal)
+            skor_sem[skor_lex == 0] = 0.0
 
             yield generate_progress_event(4, "Hybrid Aggregation & XAI Generation")
             is_adaptif = bobot_lexical < 0
