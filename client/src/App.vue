@@ -4,7 +4,7 @@
 
     <!-- Toast Notification -->
     <div
-      :class="['fixed top-6 left-1/2 transform -translate-x-1/2 z-[100] transition-all duration-200 ease-out flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl border', toastState.show ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none', toastState.type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700']">
+      :class="['fixed top-6 left-1/2 transform -translate-x-1/2 z-100 transition-all duration-200 ease-out flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl border', toastState.show ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0 pointer-events-none', toastState.type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700']">
       <svg v-if="toastState.type === 'error'" class="w-5 h-5 shrink-0" fill="none" stroke="currentColor"
         viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
