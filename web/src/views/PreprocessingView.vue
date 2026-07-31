@@ -24,7 +24,7 @@
           <span class="page-badge">Technical Deep Dive</span>
           <h1>Pipeline NLP SiReDo</h1>
           <p class="page-lead">
-            Dokumentasi teknis lengkap tentang bagaimana SiReDo memproses query proposal skripsi
+            Dokumentasi teknis lengkap tentang bagaimana SiReDo memproses query topik penelitian
             menjadi rekomendasi dosen yang relevan dan dapat dijelaskan (explainable).
           </p>
         </div>
@@ -124,8 +124,8 @@
               <tbody>
                 <tr><td><code>bidang_keahlian</code></td><td>×5</td><td>Paling informatif, direpetisi 5x</td></tr>
                 <tr><td><code>jurnal</code></td><td>×2</td><td>Judul jurnal/publikasi</td></tr>
-                <tr><td><code>judul_bimbing</code></td><td>×1</td><td>Judul skripsi yang dibimbing</td></tr>
-                <tr><td><code>judul_uji</code></td><td>×1</td><td>Judul skripsi yang diuji</td></tr>
+                <tr><td><code>judul_bimbing</code></td><td>×1</td><td>Judul penelitian yang dibimbing</td></tr>
+                <tr><td><code>judul_uji</code></td><td>×1</td><td>Judul penelitian yang diuji</td></tr>
                 <tr><td><code>pendidikan</code></td><td>×1</td><td>Latar belakang pendidikan</td></tr>
               </tbody>
             </table>
@@ -352,7 +352,7 @@
               <p>
                 Query diekspansi dengan istilah-istilah domain yang setara namun berbeda
                 secara leksikal. Contoh: "deep learning" → ditambahkan "dl neural network cnn rnn lstm".
-                Ini menutup celah antara terminologi mahasiswa dan dosen.
+                Ini menutup celah antara perbedaan terminologi yang umum terjadi.
               </p>
               <div class="sc-impact">Dampak: Meningkatkan recall untuk SBERT</div>
             </div>

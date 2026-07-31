@@ -52,7 +52,7 @@ onMounted(checkStatus)
         <p class="hero-desc">
           SiReDo menggunakan algoritma <strong>BM25</strong> (lexical) dan <strong>SBERT</strong> (semantic) 
           untuk menemukan dosen pembimbing atau penguji yang paling relevan 
-          berdasarkan judul dan abstrak proposal skripsi mahasiswa.
+          berdasarkan judul dan abstrak topik penelitian.
         </p>
         <div class="hero-actions">
           <router-link to="/single" class="btn-primary">Mulai Analisis →</router-link>
@@ -114,7 +114,7 @@ onMounted(checkStatus)
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
             </div>
             <h3>Single Recommendation</h3>
-            <p>Analisis satu proposal secara real-time. Lihat skor BM25, SBERT, dan Hybrid setiap dosen beserta XAI explanation.</p>
+            <p>Analisis satu topik penelitian secara real-time. Lihat skor BM25, SBERT, dan Hybrid setiap dosen beserta XAI explanation.</p>
             <span class="card-cta">Buka tool →</span>
           </router-link>
 
@@ -123,7 +123,7 @@ onMounted(checkStatus)
               <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
             </div>
             <h3>Batch Recommendation</h3>
-            <p>Proses ratusan proposal sekaligus via upload Excel atau JSON payload. Cocok untuk jadwal ujian massal.</p>
+            <p>Proses ratusan data sekaligus via upload Excel atau JSON payload. Cocok untuk alokasi dosen massal.</p>
             <span class="card-cta">Buka tool →</span>
           </router-link>
 

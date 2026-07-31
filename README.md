@@ -1,6 +1,6 @@
-# Siredo v3 - Sistem Rekomendasi Dosen Penguji Skripsi
+# Siredo v3 - Sistem Rekomendasi Dosen
 
-Siredo (Sistem Rekomendasi Dosen) v3 adalah platform berbasis AI untuk memberikan rekomendasi dosen penguji skripsi terbaik secara otomatis berdasarkan kecocokan abstrak dan judul proposal mahasiswa. Sistem ini memadukan kemudahan penggunaan (UI yang dinamis dan premium) dengan performa model hybrid NLP mutakhir.
+Siredo (Sistem Rekomendasi Dosen) v3 adalah platform berbasis AI untuk memberikan rekomendasi dosen pembimbing atau penguji terbaik secara otomatis berdasarkan kecocokan abstrak dan judul penelitian/proyek. Sistem ini memadukan kemudahan penggunaan (UI yang dinamis dan premium) dengan performa model hybrid NLP mutakhir.
 
 ## Arsitektur & Teknologi (Tech Stack)
 
@@ -59,8 +59,8 @@ Frontend akan berjalan di `http://localhost:5173`
 
 ## Fitur Utama
 1. **Single Recommendation**: Analisis proposal secara detail beserta *Explainable AI* (XAI) yang memperlihatkan alasan mengapa dosen tertentu direkomendasikan.
-2. **Batch Recommendation**: Proses banyak data sekaligus menggunakan unggahan file Excel. Sangat membantu administrator dalam menjadwalkan sidang massal.
+2. **Batch Recommendation**: Proses banyak data sekaligus menggunakan unggahan file Excel. Sangat membantu dalam menjadwalkan alokasi dosen pembimbing/penguji secara massal.
 3. **Konfigurasi Global**: Atur ambang batas (Threshold), panjang token, serta mode AI (Adaptif vs Manual) langsung dari antarmuka Web tanpa menyentuh kode.
 
 ---
-*Dibuat untuk memudahkan penentuan penguji skripsi dengan pendekatan AI yang cerdas dan transparan.*
+*Dibuat untuk memudahkan penentuan dosen pembimbing maupun penguji dengan pendekatan AI yang cerdas dan transparan.*

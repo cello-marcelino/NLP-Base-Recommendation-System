@@ -78,7 +78,7 @@ const openXai = (rec) => { selectedDosen.value = rec }
     <div class="sp-header">
       <span class="sp-badge">Live Tool</span>
       <h1 class="sp-title">Single Recommendation</h1>
-      <p class="sp-lead">Analisis satu proposal secara real-time — lihat skor <strong>BM25</strong>, <strong>SBERT</strong>, dan <strong>Hybrid</strong> beserta Pipeline Log dan XAI Explanation.</p>
+      <p class="sp-lead">Analisis satu topik penelitian secara real-time — lihat skor <strong>BM25</strong>, <strong>SBERT</strong>, dan <strong>Hybrid</strong> beserta Pipeline Log dan XAI Explanation.</p>
     </div>
 
     <!-- Two-col layout -->
@@ -89,12 +89,12 @@ const openXai = (rec) => { selectedDosen.value = rec }
         <div class="input-card" :class="{ 'input-card--loading': isProcessing }">
           <div class="input-card__overlay" v-if="isProcessing"></div>
 
-          <div class="ic-section-label">Data Rencana Skripsi</div>
+          <div class="ic-section-label">Data Topik / Rencana Penelitian</div>
 
           <form @submit.prevent="onSubmit" class="ic-form">
             <!-- Judul -->
             <div class="ic-field">
-              <label class="ic-label">Judul Proposal</label>
+              <label class="ic-label">Judul Penelitian</label>
               <input
                 v-model="judul"
                 class="ic-input"
@@ -109,7 +109,7 @@ const openXai = (rec) => { selectedDosen.value = rec }
                 v-model="abstrak"
                 rows="5"
                 class="ic-textarea"
-                placeholder="Masukkan abstrak proposal..."
+                placeholder="Masukkan abstrak atau deskripsi penelitian..."
               ></textarea>
             </div>
 
@@ -151,7 +151,7 @@ const openXai = (rec) => { selectedDosen.value = rec }
             </svg>
           </div>
           <p class="sp-empty__title">Panel Analisis AI</p>
-          <p class="sp-empty__sub">Isi data proposal di sebelah kiri, lalu klik <em>Mulai Analisis</em>.</p>
+          <p class="sp-empty__sub">Isi data penelitian di sebelah kiri, lalu klik <em>Mulai Analisis</em>.</p>
         </div>
 
         <div v-else class="sp-results">

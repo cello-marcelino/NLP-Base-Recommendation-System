@@ -3,7 +3,7 @@
 ## [3.0.0] - 2026-07-31
 
 ### 🔥 Major Updates & Open Source Vision
-Siredo v3 secara resmi dirilis ulang dan direstrukturisasi dari versi-versi sebelumnya untuk menjadi **Web Documented Version**. Pembaruan ini merupakan langkah besar dalam menjadikan Siredo sebagai **Open Source Sistem Rekomendasi Dosen Penguji Skripsi** pertama dan terlengkap, khususnya untuk lingkungan akademik Politeknik Negeri Batam.
+Siredo v3 secara resmi dirilis ulang dan direstrukturisasi dari versi-versi sebelumnya untuk menjadi **Web Documented Version**. Pembaruan ini merupakan langkah besar dalam menjadikan Siredo sebagai **Open Source Sistem Rekomendasi Dosen** pertama dan terlengkap, khususnya untuk lingkungan akademik Politeknik Negeri Batam.
 
 Versi ini merombak total antarmuka (UI) dan arsitektur (Backend) agar tidak hanya berfungsi sebagai aplikasi, melainkan sebagai platform pembelajaran dan integrasi yang menyediakan **API terstruktur yang lengkap dan terdokumentasi**. Pengembang maupun institusi akademik lain kini dapat dengan mudah mempelajari, menggunakan, maupun mengintegrasikan sistem *Hybrid NLP* (BM25 + SBERT) ini ke dalam infrastruktur internal mereka sendiri.
 

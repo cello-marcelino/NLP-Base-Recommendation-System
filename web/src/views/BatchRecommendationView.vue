@@ -36,7 +36,7 @@ const submitExcel = async () => {
     <div class="bp-header">
       <span class="bp-badge">Live Tool</span>
       <h1 class="bp-title">Batch Recommendation</h1>
-      <p class="bp-lead">Proses banyak proposal sekaligus via upload Excel atau JSON payload. Cocok untuk otomatisasi penjadwalan dosen penguji massal.</p>
+      <p class="bp-lead">Proses banyak data sekaligus via upload Excel atau JSON payload. Cocok untuk alokasi dosen pembimbing atau penguji secara massal.</p>
     </div>
 
     <!-- Main Content -->
@@ -110,7 +110,7 @@ const submitExcel = async () => {
           <table class="bp-table">
             <thead>
               <tr>
-                <th class="bp-th w-1/3">ID / Proposal</th>
+                <th class="bp-th w-1/3">ID / Judul</th>
                 <th class="bp-th">Top Rekomendasi (Dosen & Skor Hybrid)</th>
               </tr>
             </thead>

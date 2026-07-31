@@ -74,7 +74,7 @@ const sections = [
             <table>
               <thead><tr><th>Endpoint</th><th>Method</th><th>Deskripsi</th></tr></thead>
               <tbody>
-                <tr><td><code>/rekomendasi/single</code></td><td><span class="badge-post">POST</span></td><td>Rekomendasi satu proposal</td></tr>
+                <tr><td><code>/rekomendasi/single</code></td><td><span class="badge-post">POST</span></td><td>Rekomendasi satu dokumen/penelitian</td></tr>
                 <tr><td><code>/rekomendasi/batch</code></td><td><span class="badge-post">POST</span></td><td>Rekomendasi massal via JSON</td></tr>
                 <tr><td><code>/rekomendasi/batch/upload</code></td><td><span class="badge-post">POST</span></td><td>Rekomendasi massal via Excel</td></tr>
                 <tr><td><code>/config</code></td><td><span class="badge-get">GET</span></td><td>Ambil konfigurasi aktif</td></tr>
@@ -103,7 +103,7 @@ const sections = [
           <h2>POST /rekomendasi/single</h2>
           <p>
             Menjalankan pipeline rekomendasi lengkap (Preprocessing → BM25 → SBERT → Hybrid Ranking)
-            untuk satu proposal skripsi. Mengembalikan top-K dosen beserta skor dan penjelasan XAI.
+            untuk satu dokumen penelitian. Mengembalikan top-K dosen beserta skor dan penjelasan XAI.
           </p>
 
           <h3>Request Body</h3>
@@ -111,8 +111,8 @@ const sections = [
             <table>
               <thead><tr><th>Parameter</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead>
               <tbody>
-                <tr><td><code>judul</code></td><td>string</td><td>✓*</td><td>Judul proposal skripsi</td></tr>
-                <tr><td><code>abstrak</code></td><td>string</td><td>✓*</td><td>Abstrak proposal (opsional jika judul diisi)</td></tr>
+                <tr><td><code>judul</code></td><td>string</td><td>✓*</td><td>Judul penelitian/dokumen</td></tr>
+                <tr><td><code>abstrak</code></td><td>string</td><td>✓*</td><td>Abstrak penelitian (opsional jika judul diisi)</td></tr>
                 <tr><td><code>k_rank</code></td><td>integer</td><td>—</td><td>Jumlah rekomendasi. Default: dari konfigurasi (5)</td></tr>
               </tbody>
             </table>
@@ -175,19 +175,19 @@ curl -X POST http://localhost:5000/api/rekomendasi/single \
         <section id="batch">
           <h2>POST /rekomendasi/batch</h2>
           <p>
-            Menjalankan pipeline rekomendasi untuk banyak proposal sekaligus melalui JSON payload.
+            Menjalankan pipeline rekomendasi untuk banyak data sekaligus melalui JSON payload.
             Cocok untuk integrasi programatik dengan sistem akademik.
           </p>
 
           <h3>Request Body</h3>
-          <p>Array of objects. Setiap objek mewakili satu proposal.</p>
+          <p>Array of objects. Setiap objek mewakili satu dokumen penelitian.</p>
           <div class="param-table">
             <table>
               <thead><tr><th>Field</th><th>Tipe</th><th>Wajib</th><th>Keterangan</th></tr></thead>
               <tbody>
-                <tr><td><code>id</code></td><td>string</td><td>✓</td><td>Identifier unik proposal (digunakan untuk mapping output)</td></tr>
-                <tr><td><code>judul</code></td><td>string</td><td>✓*</td><td>Judul proposal</td></tr>
-                <tr><td><code>abstrak</code></td><td>string</td><td>—</td><td>Abstrak proposal</td></tr>
+                <tr><td><code>id</code></td><td>string</td><td>✓</td><td>Identifier unik dokumen (digunakan untuk mapping output)</td></tr>
+                <tr><td><code>judul</code></td><td>string</td><td>✓*</td><td>Judul penelitian</td></tr>
+                <tr><td><code>abstrak</code></td><td>string</td><td>—</td><td>Abstrak penelitian</td></tr>
               </tbody>
             </table>
           </div>
@@ -227,7 +227,7 @@ curl -X POST http://localhost:5000/api/rekomendasi/single \
         <section id="batch-upload">
           <h2>POST /rekomendasi/batch/upload</h2>
           <p>
-            Upload file Excel (<code>.xlsx</code>) untuk memproses banyak proposal sekaligus.
+            Upload file Excel (<code>.xlsx</code>) untuk memproses banyak dokumen sekaligus.
             File harus mengandung kolom <code>id</code>, <code>judul</code>, dan opsional <code>abstrak</code>.
           </p>
 
