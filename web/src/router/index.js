@@ -36,6 +36,11 @@ const routes = [
     name: 'DosenData',
     component: () => import('../views/DosenDataView.vue')
   },
+  {
+    path: '/install',
+    name: 'InstallSetup',
+    component: () => import('../views/InstallSetupView.vue')
+  },
 ]
 
 const router = createRouter({
