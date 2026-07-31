@@ -1,0 +1,29 @@
+# Node modules
+node_modules/
+dist/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Storage / User Data
+server/storage/cache/
+server/storage/data/config.json
+
+# (Leave server/data/dataset_profiles_terintegrasi.xlsx tracked if it's the main dataset, 
+#  but typically large data should be ignored. For now I'll ignore general data but exclude the xlsx)
+# server/data/*
+# !server/data/*.xlsx
+
+# IDE / Antigravity
+.antigravity/
