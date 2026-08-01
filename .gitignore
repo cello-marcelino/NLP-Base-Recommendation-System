@@ -27,3 +27,7 @@ server/storage/data/config.json
 
 # IDE / Antigravity
 .antigravity/
+
+# Local Dev Notes & Logs (ignored in git)
+DEV_NOTES.local.md
+*.local.md
