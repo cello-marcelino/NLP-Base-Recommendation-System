@@ -36,3 +36,5 @@ DEV_NOTES.local.md
 # Vercel
 .vercel/
 web/.vercel/
+vercel.json
+web/vercel.json
