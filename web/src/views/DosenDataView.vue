@@ -6,25 +6,31 @@ const dosenList = ref([])
 const isLoading = ref(true)
 const error = ref('')
 const searchQuery = ref('')
-const selectedDosenJurnal = ref(null)
+const selectedDosenRiwayat = ref(null)
+const riwayatType = ref('')
 
-const parseStringList = (str) => {
-  if (!str || str.trim() === 'nan') return []
-  // Matches content enclosed in double quotes
-  const matches = str.match(/"([^"]+)"/g)
-  if (matches) {
-    return matches.map(m => m.replace(/(^"|"$)/g, '').trim()).filter(j => j.length > 0)
-  }
-  // Fallback if not using quotes
-  return str.split(/\n|;/).map(j => j.trim()).filter(j => j.length > 3)
-}
-
-const parsedJurnalList = computed(() => {
-  return parseStringList(selectedDosenJurnal.value?.jurnal)
+const parsedRiwayatList = computed(() => {
+  if (!selectedDosenRiwayat.value) return []
+  if (riwayatType.value === 'jurnal') return parseStringList(selectedDosenRiwayat.value.jurnal)
+  if (riwayatType.value === 'bimbing') return parseStringList(selectedDosenRiwayat.value.judul_bimbing)
+  if (riwayatType.value === 'uji') return parseStringList(selectedDosenRiwayat.value.judul_uji)
+  return []
 })
 
-const getJurnalCount = (jurnalStr) => {
-  return parseStringList(jurnalStr).length
+const getListCount = (str) => {
+  return parseStringList(str).length
+}
+
+const openRiwayatModal = (dosen, type) => {
+  selectedDosenRiwayat.value = dosen
+  riwayatType.value = type
+}
+
+const getRiwayatTitle = () => {
+  if (riwayatType.value === 'jurnal') return 'Publikasi Jurnal'
+  if (riwayatType.value === 'bimbing') return 'Riwayat Bimbingan'
+  if (riwayatType.value === 'uji') return 'Riwayat Ujian'
+  return 'Riwayat Akademik'
 }
 
 const fetchDosen = async () => {
@@ -109,7 +115,7 @@ onMounted(() => {
               <th class="th-nama">Nama Lengkap</th>
               <th class="th-prodi">Program Studi</th>
               <th class="th-keahlian">Bidang Keahlian</th>
-              <th class="th-jurnal">Total Jurnal</th>
+              <th class="th-riwayat">Riwayat Akademik</th>
             </tr>
           </thead>
           <tbody>
@@ -123,11 +129,21 @@ onMounted(() => {
               <td class="td-keahlian">
                 <div class="keahlian-text">{{ dosen.bidang_keahlian || '-' }}</div>
               </td>
-              <td class="td-jurnal">
-                <button class="jurnal-btn" @click="selectedDosenJurnal = dosen" :disabled="getJurnalCount(dosen.jurnal) === 0">
-                  <span class="jurnal-badge" :class="{ 'jurnal-badge--zero': getJurnalCount(dosen.jurnal) === 0 }">{{ getJurnalCount(dosen.jurnal) }}</span>
-                  <span class="jurnal-btn-text">Lihat</span>
-                </button>
+              <td class="td-riwayat">
+                <div class="riwayat-actions">
+                  <button class="jurnal-btn" @click="openRiwayatModal(dosen, 'jurnal')" :disabled="getListCount(dosen.jurnal) === 0" title="Publikasi Jurnal">
+                    <span class="jurnal-badge" :class="{ 'jurnal-badge--zero': getListCount(dosen.jurnal) === 0 }">{{ getListCount(dosen.jurnal) }}</span>
+                    <span class="jurnal-btn-text">Jurnal</span>
+                  </button>
+                  <button class="jurnal-btn" @click="openRiwayatModal(dosen, 'bimbing')" :disabled="getListCount(dosen.judul_bimbing) === 0" title="Riwayat Bimbingan">
+                    <span class="jurnal-badge" :class="{ 'jurnal-badge--zero': getListCount(dosen.judul_bimbing) === 0 }">{{ getListCount(dosen.judul_bimbing) }}</span>
+                    <span class="jurnal-btn-text">Bimbing</span>
+                  </button>
+                  <button class="jurnal-btn" @click="openRiwayatModal(dosen, 'uji')" :disabled="getListCount(dosen.judul_uji) === 0" title="Riwayat Ujian">
+                    <span class="jurnal-badge" :class="{ 'jurnal-badge--zero': getListCount(dosen.judul_uji) === 0 }">{{ getListCount(dosen.judul_uji) }}</span>
+                    <span class="jurnal-btn-text">Uji</span>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -136,15 +152,15 @@ onMounted(() => {
 
     </div>
     
-    <!-- Jurnal Modal -->
-    <div v-if="selectedDosenJurnal" class="jurnal-modal-overlay" @click.self="selectedDosenJurnal = null">
+    <!-- Riwayat Modal -->
+    <div v-if="selectedDosenRiwayat" class="jurnal-modal-overlay" @click.self="selectedDosenRiwayat = null">
       <div class="jurnal-modal-box">
         <div class="jurnal-modal-header">
           <div>
-            <h3 class="jurnal-modal-title">Publikasi Jurnal</h3>
-            <p class="jurnal-modal-subtitle">{{ selectedDosenJurnal.nama }}</p>
+            <h3 class="jurnal-modal-title">{{ getRiwayatTitle() }}</h3>
+            <p class="jurnal-modal-subtitle">{{ selectedDosenRiwayat.nama }}</p>
           </div>
-          <button @click="selectedDosenJurnal = null" class="jurnal-modal-close">
+          <button @click="selectedDosenRiwayat = null" class="jurnal-modal-close">
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -152,9 +168,9 @@ onMounted(() => {
         </div>
         <div class="jurnal-modal-body">
           <ul class="jurnal-list">
-            <li v-for="(jurnal, idx) in parsedJurnalList" :key="idx" class="jurnal-item">
+            <li v-for="(riwayat, idx) in parsedRiwayatList" :key="idx" class="jurnal-item">
               <div class="jurnal-number">{{ idx + 1 }}</div>
-              <div class="jurnal-text">{{ jurnal }}</div>
+              <div class="jurnal-text">{{ riwayat }}</div>
             </li>
           </ul>
         </div>
@@ -277,6 +293,7 @@ onMounted(() => {
 .th-prodi { width: 20%; }
 .th-keahlian { width: auto; }
 .th-jurnal { width: 120px; text-align: center; }
+.th-riwayat { width: 180px; text-align: center; }
 
 .data-row {
   border-bottom: 1px solid var(--border);
@@ -297,6 +314,10 @@ onMounted(() => {
 }
 
 .td-jurnal { text-align: center; }
+.td-riwayat { text-align: center; vertical-align: middle; }
+.riwayat-actions {
+  display: flex; gap: 0.5rem; justify-content: center; align-items: center;
+}
 .jurnal-btn {
   display: inline-flex; flex-direction: column; align-items: center; gap: 0.25rem;
   background: transparent; border: none; cursor: pointer;

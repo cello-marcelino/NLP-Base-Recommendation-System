@@ -7,14 +7,6 @@ defineProps({
 
 defineEmits(['close'])
 
-const parseStringList = (str) => {
-  if (!str || str.trim() === 'nan') return []
-  const matches = str.match(/"([^"]+)"/g)
-  if (matches) {
-    return matches.map(m => m.replace(/(^"|"$)/g, '').trim()).filter(j => j.length > 0)
-  }
-  return str.split(/\n|;/).map(j => j.trim()).filter(j => j.length > 3)
-}
 </script>
 
 <template>
@@ -59,21 +51,6 @@ const parseStringList = (str) => {
           </div>
         </div>
 
-        <div class="xai-section">
-          <h4 class="xai-label">Riwayat Jurnal</h4>
-          <ul v-if="parseStringList(dosen.jurnal).length" class="xai-bullet-list">
-            <li v-for="(jurnal, idx) in parseStringList(dosen.jurnal)" :key="'j'+idx">{{ jurnal }}</li>
-          </ul>
-          <p v-else class="xai-empty">Belum ada riwayat jurnal.</p>
-        </div>
-        
-        <div class="xai-section">
-          <h4 class="xai-label">Riwayat Bimbingan</h4>
-          <ul v-if="parseStringList(dosen.judul_bimbing).length" class="xai-bullet-list">
-            <li v-for="(bimbing, idx) in parseStringList(dosen.judul_bimbing)" :key="'b'+idx">{{ bimbing }}</li>
-          </ul>
-          <p v-else class="xai-empty">Belum ada riwayat bimbingan.</p>
-        </div>
         
       </div>
     </div>
@@ -152,11 +129,4 @@ const parseStringList = (str) => {
 }
 .xai-check { font-size: 0.6rem; }
 
-.xai-bullet-list {
-  margin: 0; padding-left: 1.2rem;
-  display: flex; flex-direction: column; gap: 0.5rem;
-}
-.xai-bullet-list li {
-  font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;
-}
 </style>
