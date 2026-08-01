@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: siredo_backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./server/storage:/app/storage
+    environment:
+      - FLASK_ENV=development
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: siredo_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      # Opsional: Jika menggunakan devtunnel, sesuaikan di Vercel, tetapi secara lokal gunakan API lokal (jika via docker)
+      - VITE_API_URL=http://localhost:5000/api
+    volumes:
+      # Sync kode lokal dengan container (hot-reload)
+      - ./web/src:/app/src
+      - ./web/public:/app/public
+    depends_on:
+      - backend
+    restart: unless-stopped
