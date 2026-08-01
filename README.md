@@ -33,29 +33,18 @@ Sistem ini dibangun menggunakan arsitektur *Client-Server* terpisah:
 
 ## Cara Menjalankan (Development)
 
-### 1. Menjalankan Backend (Server)
-Pastikan Python 3.9+ telah terpasang.
-```bash
-cd server
-python -m venv venv
-# Windows:
-venv\Scripts\activate
-# Linux/Mac:
-source venv/bin/activate
+Proyek ini dipisahkan menjadi dua bagian utama (Backend dan Frontend). Silakan merujuk ke masing-masing direktori untuk panduan teknis yang lebih spesifik:
 
-pip install -r requirements.txt
-python run.py
-```
-Backend akan berjalan di `http://localhost:5000`
+- [Panduan Backend / Server](./server/)
+- [Panduan Frontend / Web](./web/README.md)
 
-### 2. Menjalankan Frontend (Web)
-Pastikan Node.js (versi 16+) telah terpasang.
-```bash
-cd web
-npm install
-npm run dev
-```
-Frontend akan berjalan di `http://localhost:5173`
+### Deployment & Hosting
+Sistem ini telah disiapkan untuk di-deploy menggunakan kombinasi layanan modern:
+- **Frontend (Web):** Menggunakan [Vercel](https://vercel.com) yang menyajikan file SPA (Single Page Application).
+- **Backend (Server):** Dapat dijalankan pada server lokal yang di-ekspos ke internet publik menggunakan [Microsoft Dev Tunnels](https://learn.microsoft.com/en-us/azure/developer/dev-tunnels/get-started).
+
+**Catatan Integrasi (VITE_API_URL):**
+Saat mengonfigurasi Frontend di Vercel, *Environment Variable* `VITE_API_URL` harus diatur ke URL backend Anda dan **diakhiri dengan `/api`** (contoh: `https://siredo-server-5000.jpe1.devtunnels.ms/api`). Hal ini karena semua *route* pada Flask backend diletakkan di bawah *prefix* `/api`.
 
 ## Fitur Utama
 1. **Single Recommendation**: Analisis proposal secara detail beserta *Explainable AI* (XAI) yang memperlihatkan alasan mengapa dosen tertentu direkomendasikan.

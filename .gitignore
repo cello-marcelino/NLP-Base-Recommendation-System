@@ -31,3 +31,7 @@ server/storage/data/config.json
 # Local Dev Notes & Logs (ignored in git)
 DEV_NOTES.local.md
 *.local.md
+
+# Vercel
+.vercel/
+web/.vercel/
