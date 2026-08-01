@@ -9,6 +9,17 @@ const searchQuery = ref('')
 const selectedDosenRiwayat = ref(null)
 const riwayatType = ref('')
 
+const parseStringList = (str) => {
+  if (!str || str.trim() === 'nan') return []
+  // Matches content enclosed in double quotes
+  const matches = str.match(/"([^"]+)"/g)
+  if (matches) {
+    return matches.map(m => m.replace(/(^"|"$)/g, '').trim()).filter(j => j.length > 0)
+  }
+  // Fallback if not using quotes
+  return str.split(/\n|;/).map(j => j.trim()).filter(j => j.length > 3)
+}
+
 const parsedRiwayatList = computed(() => {
   if (!selectedDosenRiwayat.value) return []
   if (riwayatType.value === 'jurnal') return parseStringList(selectedDosenRiwayat.value.jurnal)
