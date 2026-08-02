@@ -1,75 +1,132 @@
-# Panduan Setup Linux (Docker, DevTunnel & Vercel)
+# 🚀 Panduan Setup Skenario B: Hybrid Deployment
+*(Backend AI di Docker Linux + Microsoft DevTunnel + Frontend di Vercel)*
 
-Dokumen ini berisi log apa saja yang telah ditambahkan pada cabang `dockerize-siredo` serta panduan lengkap untuk melakukan pengujian sistem di server Linux Anda malam ini.
-
-## Log Penambahan File (Dockerization)
-1. `server/Dockerfile` & `server/.dockerignore`: Konfigurasi *image* backend berbasis `python:3.9-slim`. Otomatis menginstal library yang dibutuhkan (NLP, Flask, dsb).
-2. `web/Dockerfile` & `web/.dockerignore`: Konfigurasi *image* frontend berbasis `node:18-alpine` untuk menjalankan Vite Dev Server.
-3. `docker-compose.yml`: Orkestrasi untuk menjalankan seluruh *stack* secara bersamaan. Backend mem-binding port `5000` dan me-mount folder `storage` untuk persistensi cache. Frontend mem-binding port `5173`.
+Dokumen ini adalah panduan lengkap untuk melakukan pengujian dan deployment sistem Siredo v3 menggunakan **Skenario B**.
 
 ---
 
-## Panduan Setup di Server Linux
+## 🏛️ Arsitektur Skenario B
 
-### 1. Menjalankan Docker Compose
-Pastikan server Linux Anda sudah menginstal Docker dan Docker Compose.
+```
+[ Pengguna Publik ]
+        │
+        ▼
+┌────────────────────────────────────────┐
+│      1. FRONTEND (Vercel Cloud)        │
+│   https://siredo.vercel.app            │
+│   (Menyajikan UI Vue 3 yang Cepat)     │
+└──────────────────┬─────────────────────┘
+                   │
+                   │ Request API (VITE_API_URL)
+                   ▼
+┌────────────────────────────────────────┐
+│      2. JALUR AKSES (DevTunnel)        │
+│   https://siredo-server-5000...ms/api  │
+│   (Jembatan Internet ke Server Linux)  │
+└──────────────────┬─────────────────────┘
+                   │
+                   │ Forward ke Port 5000
+                   ▼
+┌────────────────────────────────────────┐
+│      3. BACKEND (Docker di Linux)      │
+│   Container: siredo_backend            │
+│   - Python Flask + SBERT & KeyBERT     │
+│   - Volume: server/storage (Cache)     │
+└────────────────────────────────────────┘
+```
 
-Kloning repositori (atau tarik cabang `dockerize-siredo`), lalu masuk ke folder utama proyek:
+---
+
+## 📋 Langkah-Langkah Eksekusi di Linux
+
+### Langkah 1: Clone / Tarik Cabang Git di Linux
+Buka terminal Linux Anda dan masuk ke repositori proyek:
 ```bash
-cd siredo-v3
+git fetch origin
 git checkout dockerize-siredo
+git pull origin dockerize-siredo
 ```
 
-Jalankan sistem menggunakan Docker Compose di latar belakang (*detached mode*):
+---
+
+### Langkah 2: Jalankan Backend dengan Docker
+Jalankan kontainer Backend Flask (lengkap dengan engine AI):
 ```bash
-docker-compose up -d --build
+# Menjalankan backend di background
+docker compose up -d --build backend
 ```
+*(Catatan: Jika server Anda menggunakan Docker Compose versi lama, gunakan perintah `docker-compose up -d --build backend`)*
 
-- Backend dapat diakses pada `http://localhost:5000`
-- Frontend dapat diakses pada `http://localhost:5173`
-*(Jika Anda ingin melihat log untuk proses NLP model loading, jalankan: `docker-compose logs -f backend`)*
+**Memeriksa Status & Log Model AI:**
+```bash
+docker compose logs -f backend
+```
+*Tunggu hingga inisialisasi cache model Sentence-BERT dan KeyBERT selesai dan server menampilkan `Running on http://0.0.0.0:5000`.*
 
-### 2. Ekspos Backend via DevTunnel (Linux)
+---
 
-Untuk agar Vercel dapat memanggil API Flask Anda, Anda perlu menyalakan DevTunnel yang mengarah ke port 5000 (Backend).
+### Langkah 3: Install & Jalankan DevTunnel di Linux
 
-**A. Instalasi DevTunnel CLI di Linux:**
-Jalankan perintah ini di terminal Linux Anda:
+Agar port 5000 di dalam Docker Linux dapat diakses oleh Vercel dari internet publik:
+
+**1. Instalasi DevTunnel CLI (Hanya jika belum terpasang):**
 ```bash
 curl -sL https://aka.ms/DevTunnelCliInstall | bash
 ```
+*(Jika perintah `devtunnel` belum terbaca, muat ulang shell dengan `source ~/.bashrc` atau buka sesi terminal baru)*
 
-**B. Menjalankan DevTunnel Anonymous:**
+**2. Jalankan DevTunnel dengan ID Persisten `siredo-server`:**
 ```bash
 devtunnel host siredo-server -p 5000 --allow-anonymous
 ```
-Atau jika Anda sebelumnya belum mendaftarkan ID tunnel tersebut:
-```bash
-devtunnel host -p 5000 -a
-```
-*(Catat URL yang dihasilkan oleh terminal devtunnel, misalnya `https://siredo-server-5000.jpe1.devtunnels.ms`)*
+Terminal akan menampilkan URL publik tetap, misalnya:  
+`https://siredo-server-5000.jpe1.devtunnels.ms`
 
-### 3. Setup Vercel (Frontend Hosting)
-
-Jika Anda ingin men-deploy Frontend di Vercel:
-
-1. Instal Vercel CLI secara global di Linux:
-   ```bash
-   npm i -g vercel
-   ```
-2. Masuk ke folder web:
-   ```bash
-   cd web
-   ```
-3. Lakukan deploy (ikuti instruksi login jika pertama kali):
-   ```bash
-   vercel --prod
-   ```
-4. Masuk ke dasbor web Vercel (atau atur via Vercel CLI / file `.env.production`) dan pastikan *Environment Variable* ini terpasang untuk *production*:
-   ```
-   VITE_API_URL=https://<URL_DEVTUNNEL_ANDA>/api
-   ```
-   *(Penting: Jangan lupa tambahkan `/api` di akhir URL DevTunnel).*
+> 💡 **TIPS AGAR TUNNEL TIDAK MATI SAAT TERMINAL SSH DITUTUP:**  
+> Jalankan DevTunnel di dalam sesi **`tmux`** atau **`screen`**:
+> ```bash
+> # Buat sesi tmux baru
+> tmux new -s tunnel
+> 
+> # Jalankan perintah devtunnel di dalamnya
+> devtunnel host siredo-server -p 5000 --allow-anonymous
+> 
+> # Keluar dari tampilan (detach) tanpa mematikan proses:
+> # Tekan Ctrl + B, lalu tekan tombol D
+> ```
+> *(Untuk masuk kembali ke sesi tunnel: `tmux attach -t tunnel`)*
 
 ---
-**Tips**: Karena *storage* di-mount, file konfigurasi dan cache model NLP SBERT akan tersimpan dengan aman di folder `server/storage` Linux Anda meskipun container Docker di-*restart*.
+
+### Langkah 4: Verifikasi Koneksi Backend
+Uji apakah backend Anda sudah bisa diakses dari internet publik:
+```bash
+curl https://siredo-server-5000.jpe1.devtunnels.ms/api/dosen
+```
+Jika mengembalikan data JSON dosen, berarti backend di Docker Linux dan DevTunnel Anda sudah 100% siap!
+
+---
+
+### Langkah 5: Hubungkan Frontend di Vercel
+
+1. Buka dashboard proyek Anda di **[Vercel Dashboard](https://vercel.com)**.
+2. Masuk ke menu **Settings** > **Environment Variables**.
+3. Pastikan variabel berikut sudah terdaftar:
+   - **Key:** `VITE_API_URL`
+   - **Value:** `https://siredo-server-5000.jpe1.devtunnels.ms/api`  
+     *(⚠️ Wajib menyertakan `/api` di akhir URL)*
+4. Lakukan **Redeploy** pada deployment terbaru di Vercel agar perubahan variabel berlaku.
+
+---
+
+## 🛠️ Perintah Berguna (Maintenance)
+
+| Kebutuhan | Perintah |
+|---|---|
+| Cek log backend realtime | `docker compose logs -f backend` |
+| Restart backend container | `docker compose restart backend` |
+| Stop backend | `docker compose down` |
+| Cek container yang berjalan | `docker ps` |
+
+---
+*Setup Skenario B selesai! Frontend Anda berjalan ultra-cepat di Vercel CDN, sementara proses NLP berat ditangani oleh server Linux Anda.*
