@@ -5,6 +5,9 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
+      args:
+        # Default: cpu (~180 MB). Ganti menjadi 'gpu' jika server memiliki NVIDIA CUDA GPU
+        DEVICE: ${DEVICE:-cpu}
     container_name: siredo_backend
     ports:
       - "5000:5000"

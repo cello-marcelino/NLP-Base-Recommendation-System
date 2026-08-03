@@ -59,12 +59,19 @@ git pull origin dockerize-siredo
 ---
 
 ### Langkah 2: Jalankan Backend dengan Docker
-Jalankan kontainer Backend Flask (lengkap dengan engine AI):
+
+**Mode A: Menggunakan CPU (Default - Sangat Direkomendasikan & Ringan ~180MB)**
 ```bash
-# Menjalankan backend di background
+# Otomatis mengunduh PyTorch CPU-Only yang hemat kuota dan memori
 docker compose up -d --build backend
 ```
-*(Catatan: Jika server Anda menggunakan Docker Compose versi lama, gunakan perintah `docker-compose up -d --build backend`)*
+
+**Mode B: Menggunakan NVIDIA GPU (Opsional - Jika Server Memiliki Kartu Grafis NVIDIA)**
+```bash
+# Menjalankan build dengan target GPU (CUDA)
+DEVICE=gpu docker compose up -d --build backend
+```
+*(Catatan: Jika server Anda menggunakan Docker Compose versi lama, gunakan `docker-compose up -d --build backend`)*
 
 **Memeriksa Status & Log Model AI:**
 ```bash
