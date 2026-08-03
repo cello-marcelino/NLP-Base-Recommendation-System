@@ -57,6 +57,15 @@ npm run dev
 ```
 Frontend akan berjalan di `http://localhost:5173`
 
+## Deployment & Hosting (Hybrid: Vercel + Docker Linux + DevTunnel)
+
+Sistem ini telah disiapkan untuk di-deploy secara hybrid:
+- **Frontend**: Dihosting di **Vercel** (`web/vercel.json` dan `web/.env.production`).
+- **Backend**: Dijalankan di dalam **Docker** (`docker-compose.yml` & `server/Dockerfile`).
+- **Akses Publik**: Diekspos melalui **Microsoft DevTunnel** persisten (`siredo-server` -> Port 5000).
+
+📖 Panduan detail langkah demi langkah untuk server Linux dapat dilihat di **[SETUP_LINUX.md](./SETUP_LINUX.md)**.
+
 ## Fitur Utama
 1. **Single Recommendation**: Analisis proposal secara detail beserta *Explainable AI* (XAI) yang memperlihatkan alasan mengapa dosen tertentu direkomendasikan.
 2. **Batch Recommendation**: Proses banyak data sekaligus menggunakan unggahan file Excel. Sangat membantu dalam menjadwalkan alokasi dosen pembimbing/penguji secara massal.
