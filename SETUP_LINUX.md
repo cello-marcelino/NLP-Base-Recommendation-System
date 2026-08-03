@@ -37,7 +37,16 @@ Dokumen ini adalah panduan lengkap untuk melakukan pengujian dan deployment sist
 
 ---
 
-## 📋 Langkah-Langkah Eksekusi di Linux
+## 📋 Langkah-Langkah Eksekusi di Linux Debian (No-GUI)
+
+### Langkah 0: Prasyarat Sistem Debian (CLI Murni)
+Jika Anda menggunakan server Debian yang masih baru/fresh, pasang paket-paket penting berikut melalui terminal SSH:
+```bash
+sudo apt update && sudo apt install -y docker.io docker-compose-v2 git curl tmux
+sudo systemctl enable --now docker
+```
+
+---
 
 ### Langkah 1: Clone / Tarik Cabang Git di Linux
 Buka terminal Linux Anda dan masuk ke repositori proyek:
