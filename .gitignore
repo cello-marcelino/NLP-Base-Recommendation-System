@@ -6,6 +6,7 @@
 .DS_Store
 Thumbs.db
 .antigravity/
+docs/
 
 # ==========================================
 # 2. Lingkungan Python & Backend (Flask)
