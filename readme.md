@@ -1,109 +1,287 @@
-# SiReDo — Sistem Rekomendasi Dosen (NLP-Base-Recommendation-System)
+# SiReDo — Sistem Rekomendasi Dosen (Politeknik Negeri Batam)
 
-SiReDo (Sistem Rekomendasi Dosen) adalah aplikasi web berbasis *Machine Learning* yang dirancang untuk membantu mahasiswa menemukan dosen pembimbing skripsi yang paling relevan. Sistem ini bekerja dengan membandingkan teks "Judul" dan "Abstrak" proposal mahasiswa dengan profil, keahlian, dan riwayat penelitian dosen menggunakan pendekatan *Natural Language Processing* (NLP) berarsitektur Hibrida (*Hybrid*).
+**SiReDo (Sistem Rekomendasi Dosen)** adalah platform berbasis kecerdasan artifisial (*Natural Language Processing*) yang dirancang khusus untuk memetakan dan merekomendasikan dosen pembimbing serta penguji tugas akhir / skripsi / *Project-Based Learning* (PBL) yang paling relevan dengan topik proyek mahasiswa di lingkungan **Politeknik Negeri Batam (Polibatam)**.
 
-Pendekatan hibrida mengkombinasikan:
-- **Okapi BM25** (Leksikal) untuk pencocokan kemiripan kata kunci secara persis.
-- **Sentence-BERT (SBERT)** (Semantik) dengan model `paraphrase-multilingual-MiniLM-L12-v2` untuk memahami konteks dan kemiripan makna.
+Sistem menganalisis keselarasan antara teks masukan (*Judul* dan *Abstrak* proposal) dengan korpus kepakaran dosen (keahlian, publikasi ilmiah, riwayat bimbingan, riwayat pengujian, dan latar belakang pendidikan) menggunakan pendekatan **Hibrida (*Hybrid Retrieval*)**: **Leksikal (Okapi BM25)** dan **Semantik (Sentence-BERT)**.
 
 ---
 
-## 🌟 Fitur Utama Terbaru (V2 Refactored)
+## 🌟 Fitur Utama
 
-Sistem telah dirombak (*refactor*) menjadi jauh lebih cepat, modular, dan interaktif:
-
-1. **Rekomendasi Skripsi Hibrida**: Hasil direkomendasikan dengan pencampuran (skor *hybrid*) berdasarkan persentase adaptif atau manual (α BM25 + β SBERT).
-2. **Real-time Progress Streaming (SSE)**: UI menampilkan *progress bar* analisis secara waktu nyata (*real-time*), dari prapemrosesan hingga kalkulasi vektor matriks menggunakan *Server-Sent Events*.
-3. **Admin Panel Manajemen Dosen**: Administrator dapat menambah, mengedit, dan menghapus dosen.
-4. **Penyelarasan Cache Inkremental (Delta Sync)**: Mengubah data dosen sekarang hanya butuh 1-2 detik karena sistem SBERT AI tidak lagi memuat ulang keseluruhan dataset dari awal, melainkan hanya menyisipkan *patch* secara spesifik pada dosen yang dimodifikasi.
-5. **Dashboard Riwayat Uji Log**: Panel lengkap untuk melihat riwayat seluruh rekomendasi yang pernah dicari mahasiswa.
-6. **XAI (Explainable AI)**: Modal pop-up menjelaskan mengapa AI memilih dosen tersebut (Breakdown skor BM25 dan Semantik).
+1. **Rekomendasi Hibrida Adaptif & Manual**:
+   - Menghitung skor gabungan (*Hybrid Score*) dari kemiripan kata kunci persis (*Lexical*) dan kedekatan makna kontekstual (*Semantic*).
+   - Menyediakan mode **Manual** (slider bobot $\alpha$ & $\beta$) serta mode **Adaptif** (sistem otomatis menghitung bobot optimal berdasarkan tingkat kelangkaan istilah teknis pada proposal mahasiswa).
+2. **Streaming Progres Real-Time (Server-Sent Events)**:
+   - Pelacakan progres pencarian secara *live* dari tahap prapemrosesan teks, kalkulasi BM25, inferensi SBERT, hingga pemeringkatan akhir melalui protokol SSE (`/api/rekomendasi/stream`).
+3. **Explainable AI (XAI) Modal**:
+   - Transparansi keputusan AI: Menampilkan *breakdown* skor, irisan kata kunci persis (*Lexical Intersections*), serta frasa representatif dosen hasil ekstraksi **KeyBERT**.
+4. **Admin Panel & Sinkronisasi Cache Inkremental (*Delta Sync*)**:
+   - Manajemen CRUD data dosen secara dinamis.
+   - Menggunakan mekanisme *Delta Patching* berorientasi *thread-safe* (`threading.RLock()`) pada matriks vektor `.npy`, sehingga pembaruan data dosen hanya memakan waktu **1–2 detik** tanpa perlu komputasi ulang seluruh dataset.
+5. **Dashboard Riwayat & Analisis**:
+   - Rekapitulasi histori pencarian mahasiswa lengkap dengan ringkasan statistik (total kueri, topik terbanyak, dan detail hasil rekomendasi).
+6. **Direktori & Profil Akademik Dosen**:
+   - Katalog pencarian profil dosen Polibatam beserta visualisasi keahlian dan riwayat akademik.
+7. **Dynamic Server Status & Data Source Indicator**:
+   - *Top bar* cerdas yang memantau kesiapan mesin AI secara *real-time* serta mendeteksi sumber alokasi data yang sedang aktif (**MySQL Database** atau **Excel Fallback**).
 
 ---
 
-## 🏗️ Struktur Proyek dan Arsitektur
+## 🏗️ Struktur dan Arsitektur Proyek
 
-Proyek telah dipisah secara rapi dalam pola arsitektur MVC / *Service-based*:
+Aplikasi dibangun dengan arsitektur modular yang memisahkan *Presentation Layer* (Frontend), *API & Business Logic Layer* (Backend), *Storage/Cache Layer*, serta *Testing Layer*:
 
 ```text
-.
-├── client/                     # Frontend Vue 3 + Vite
-│   ├── src/components/         # Komponen UI (Navbar, ServerWarmupOverlay, ProgressStepper, XaiModal)
-│   ├── src/views/              # Halaman Aplikasi (RecommendationView, AdminDosenView, dll)
-│   ├── src/services/           # Integrasi API (api.js) dan SSE (stream.js)
-│   └── src/assets/main.css     # Konfigurasi Tailwind CSS v4 Theme
+NLP-Base-Recommendation-System/
+├── client/                          # Frontend Application (Vue 3 + Vite)
+│   ├── public/                      # Static Assets & Icons
+│   ├── src/
+│   │   ├── assets/
+│   │   │   └── main.css             # Tailwind CSS v4 Theme (@theme Teal/Slate)
+│   │   ├── components/              # Komponen Reusable (ProgressStepper, XaiModal, DosenCard)
+│   │   ├── router/                  # Vue Router (Page Routing)
+│   │   ├── services/
+│   │   │   ├── api.js               # Axios REST Client
+│   │   │   └── stream.js            # EventSource SSE Client
+│   │   ├── utils/                   # Helper & Toast Notifications
+│   │   ├── views/                   # Halaman Utama (Recommendation, DosenProfile, Admin, Riwayat)
+│   │   ├── App.vue                  # Root Component + Dynamic Server Status Topbar
+│   │   └── main.js                  # Entrypoint Frontend
+│   ├── package.json
+│   └── vite.config.js
 │
-└── server/                     # Backend Flask API
-    ├── app/
-    │   ├── config.py           # Konfigurasi lingkungan & database
-    │   ├── routes/             # Blueprint API (recommend, dosen, health)
-    │   ├── services/           # Logika AI & Bisnis (BM25, SBERT, Hybrid Engine, Data Loader)
-    │   └── utils/              # Pemroses teks, formatter response
-    ├── storage/                # Penyimpanan *Cache* AI (Numpy/JSON) dan Kamus NLP
-    ├── requirements.txt
-    └── run.py                  # Entrypoint peladen (Server)
+├── server/                          # Backend Application (Flask REST API)
+│   ├── app/
+│   │   ├── __init__.py              # Factory Pattern App Initialization
+│   │   ├── config.py                # Konfigurasi Environment & Path Storage
+│   │   ├── routes/                  # Blueprint Controllers
+│   │   │   ├── recommend_routes.py  # Endpoint Rekomendasi (REST & SSE Stream)
+│   │   │   ├── dosen_routes.py      # Endpoint CRUD & Profil Dosen
+│   │   │   └── health_routes.py     # Endpoint Status Kesiapan Server & Sumber Data
+│   │   ├── services/                # Business Logic & NLP Engine
+│   │   │   ├── bm25_service.py      # Lexical Matching Engine (Okapi BM25)
+│   │   │   ├── sbert_service.py     # Semantic Matching & KeyBERT Service
+│   │   │   ├── hybrid_engine.py     # Fusion Engine, Ranking, & Delta Sync
+│   │   │   ├── data_loader.py       # Data Access Object (MySQL + Excel Fallback)
+│   │   │   └── progress_stream.py   # SSE Event Formatter Helper
+│   │   └── utils/                   # Modul Prapemrosesan Teks
+│   │       ├── text_preprocessor.py # Pipeline Tokenisasi N-Gram & Ekspansi
+│   │       ├── stopwords.py         # Korpus Stopwords Bahasa Indonesia
+│   │       ├── kamus_ekspansi.py    # Tesaurus / Kamus Sinonim Domain Khusus
+│   │       └── response_formatter.py# Standarisasi JSON Response
+│   ├── storage/                     # Penyimpanan Data & Cache Terisolasi
+│   │   ├── data/                    # Master Data Excel Fallback
+│   │   ├── cache/                   # Cache Vektor Numpy (.npy) & KeyBERT JSON
+│   │   └── models/                  # Direktori Model Lokal (opsional)
+│   ├── requirements.txt             # Dependensi Python
+│   └── run.py                       # Entrypoint Server Flask
+│
+├── testing/                         # Automated Testing & Benchmark Suite
+│   ├── unitest.py                   # Unit Testing Pipeline NLP & Logika
+│   ├── test_api.py                  # Integration Testing Endpoint API
+│   ├── locustfile.py                # Performance & Load Testing (Locust)
+│   └── confest,py                   # Konfigurasi Test Fixtures
+│
+├── docs/                            # Blueprint & Dokumentasi Arsitektur
+└── readme.md                        # Dokumentasi Utama Proyek
 ```
 
 ---
 
-## 🚀 Panduan Menjalankan Aplikasi
+## ⚙️ Pipeline NLP dan Prapemrosesan
 
-### 1. Prasyarat (*Prerequisites*)
-
-- **Python 3.10+** (disarankan 3.12)
-- **Node.js 20+**
-- **MySQL / MariaDB** (Tersedia via XAMPP)
-
-### 2. Pengaturan Basis Data (Database)
-
-Buat database `db_siredo` di MySQL dan impor tabel (atau jalankan script migrasi awal):
-```powershell
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS db_siredo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p db_siredo -e "CREATE TABLE IF NOT EXISTS dosen (id INT AUTO_INCREMENT PRIMARY KEY, nidn VARCHAR(30) NULL, nama TEXT NOT NULL, program_studi TEXT NOT NULL, bidang_keahlian LONGTEXT, jurnal LONGTEXT, judul_bimbing LONGTEXT, judul_uji LONGTEXT, riwayat_pendidikan LONGTEXT);"
-mysql -u root -p db_siredo -e "CREATE TABLE IF NOT EXISTS log_rekomendasi (id_log INT AUTO_INCREMENT PRIMARY KEY, judul_mhs TEXT, abstrak_mhs TEXT, hasil_rekomendasi_json LONGTEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);"
 ```
-*(Catatan: Kredensial MySQL dapat diubah melalui `server/app/config.py`)*
-
-### 3. Menjalankan Backend (Python Flask)
-
-Buka terminal/PowerShell pertama, masuk ke folder `server`, lalu jalankan:
-
-```powershell
-cd server
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-
-pip install --upgrade pip
-pip install -r requirements.txt
-
-# Menyalakan API pada http://127.0.0.1:5050
-python run.py
+[ Input Proposal: Judul & Abstrak ]
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────────┐
+│ 1. Text Preprocessing Pipeline                          │
+│    • Case Folding & Pembersihan Karakter Khusus         │
+│    • Indonesian Stopword Filtering                      │
+│    • Domain Synonym Expansion (kamus_ekspansi.py)       │
+│    • N-Gram Tokenizer (Unigram + Bigram)                │
+└────────────────┬────────────────────────────────────────┘
+                 │
+        ┌────────┴────────────────────────┐
+        ▼                                 ▼
+┌───────────────────────────┐   ┌───────────────────────────┐
+│ 2. Lexical Engine (BM25)  │   │ 3. Semantic Engine (SBERT)│
+│    • Okapi BM25 Scoring   │   │    • 768-D Dense Vectors  │
+│    • Min-Max Normalization│   │    • Cosine Similarity    │
+└───────────────┬───────────┘   └─────────────┬─────────────┘
+                │                             │
+                └──────────────┬──────────────┘
+                               ▼
+┌─────────────────────────────────────────────────────────┐
+│ 4. Hard Constraint & Pruning Layer                      │
+│    • Jika Skor BM25 == 0 -> Skor Semantik di-drop ke 0  │
+└──────────────────────────────┬──────────────────────────┘
+                               ▼
+┌─────────────────────────────────────────────────────────┐
+│ 5. Hybrid Fusion & Weighting Scheme                     │
+│    • Mode Manual  : Score = (α * Lexical) + (β * Semantic)│
+│    • Mode Adaptif : Bobot dihitung dinamis via IDF      │
+└──────────────────────────────┬──────────────────────────┘
+                               ▼
+┌─────────────────────────────────────────────────────────┐
+│ 6. Explainable AI (XAI) & Final K-Ranking               │
+│    • Ekstraksi Frasa Representatif Dosen (KeyBERT)      │
+│    • Irisan Kata Kunci Persis (Lexical Matching)        │
+│    • Top-K Ranked Lecturers Response                    │
+└─────────────────────────────────────────────────────────┘
 ```
-*(Saat pertama kali `run.py` dijalankan, model AI SBERT akan menghidupkan mesinnya secara otomatis, memuat korpus dari database, dan membuat cache lokal di folder `storage/`)*
-
-### 4. Menjalankan Frontend (Vue 3 + Vite)
-
-Buka terminal/PowerShell kedua, biarkan Backend tetap hidup, masuk ke folder `client`:
-
-```powershell
-cd client
-npm install
-npm run dev
-```
-Buka tautan lokal yang ditampilkan (biasanya `http://localhost:5173`). UI aplikasi akan menyala dan *Server Warmup Overlay* akan mendeteksi kesiapan mesin AI.
 
 ---
 
-## 🧩 Modul Ekstraksi AI
+## 🛠️ Tools dan Library Utama
 
-Sistem ini bergantung pada *Natural Language Processing*, dengan metode pra-pemrosesan berikut yang di-handle oleh `server/app/utils/text_preprocessor.py`:
-- *Case Folding* (Penyeragaman huruf)
-- *Stopwords Removal* (Menghapus kata tidak penting Bahasa Indonesia dari `storage/stopwords.txt`)
-- *Synonym Expansion* (Ekspansi makna khusus dari `storage/kamus_ekspansi.json`)
-- Pembuatan N-Gram (Unigram & Bigram) untuk meningkatkan pembacaan frasa skripsi.
+### Backend
+- **Python 3.10+** (disarankan 3.11 atau 3.12)
+- **Flask**: Web framework micro untuk REST API dan SSE.
+- **sentence-transformers**: Menggunakan model `paraphrase-multilingual-MiniLM-L12-v2` untuk *semantic text embedding*.
+- **rank-bm25**: Algoritma Okapi BM25 untuk *lexical keyword matching*.
+- **KeyBERT**: Ekstraksi kata kunci kontekstual profil dosen.
+- **scikit-learn**: Komputasi *cosine similarity* dan fungsi matriks.
+- **NumPy & Pandas**: Pengolahan array multi-dimensi dan parsing data tabel.
+- **PyMySQL & Cryptography**: Konektivitas database relasional MySQL.
 
-## ✨ Manajemen Kontribusi
-Seluruh basis kode telah dirapihkan. Apabila Anda ingin mengembangkan sistem ini lebih jauh:
-- Pastikan tidak mengubah rute `/api/recommend/stream` karena menggunakan spesifikasi `text/event-stream`.
-- Jika menambahkan library JS, instal menggunakan `npm install`.
-- Jika menambahkan library Python, ingat untuk melakukan `pip freeze > requirements.txt`.
+### Frontend
+- **Vue 3** (Composition API `<script setup>`): Reaktif dan terstruktur.
+- **Vite**: Build tool modern berkecepatan tinggi.
+- **Tailwind CSS v4**: Utility-first CSS framework dengan kustomisasi tema `@theme`.
+- **Axios**: HTTP client untuk request data asinkron.
+- **Server-Sent Events (EventSource)**: Protokol streaming progres *real-time*.
+
+### Database & Testing
+- **MySQL / MariaDB**: Penyimpanan relasional master data profil dosen dan log pencarian.
+- **Pytest & Unittest**: Pengujian unit dan integrasi.
+- **Locust**: Pengujian beban (*load/stress testing*) konkurensi API.
+
+---
+
+## 🚀 Panduan Menjalankan Aplikasi (Lokal)
+
+### 1. Prasyarat Sistem
+Pastikan perangkat Anda telah terinstal:
+- **Node.js**: v18+ atau v20+ ([Unduh Node.js](https://nodejs.org/))
+- **Python**: v3.10, v3.11, atau v3.12 ([Unduh Python](https://www.python.org/))
+- **MySQL Server**: (Bisa menggunakan paket **XAMPP** atau MySQL Community Server)
+
+---
+
+### 2. Konfigurasi Basis Data (Database)
+
+1. Pastikan layanan MySQL Anda aktif (misalnya via *XAMPP Control Panel*).
+2. Buka terminal atau konsol MySQL, lalu buat database dan tabel yang diperlukan:
+
+```sql
+CREATE DATABASE IF NOT EXISTS db_siredo CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE db_siredo;
+
+-- Tabel Profil Dosen
+CREATE TABLE IF NOT EXISTS dosen (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nidn VARCHAR(30) NULL,
+    nama TEXT NOT NULL,
+    program_studi TEXT NOT NULL,
+    bidang_keahlian LONGTEXT,
+    jurnal LONGTEXT,
+    judul_bimbing LONGTEXT,
+    judul_uji LONGTEXT,
+    riwayat_pendidikan LONGTEXT
+);
+
+-- Tabel Log Histori Rekomendasi
+CREATE TABLE IF NOT EXISTS log_rekomendasi (
+    id_log INT AUTO_INCREMENT PRIMARY KEY,
+    judul_mhs TEXT,
+    abstrak_mhs TEXT,
+    hasil_rekomendasi_json LONGTEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+> **Catatan Ketersediaan Data (Fallback)**:
+> Jika MySQL tidak diaktifkan, backend **secara otomatis beralih** menggunakan dataset cadangan di `server/storage/data/dataset_profiles_terintegrasi.xlsx` sehingga aplikasi tetap dapat berjalan normal.
+> Pengaturan koneksi MySQL dapat disesuaikan pada berkas `server/app/config.py` atau `server/app/services/data_loader.py`.
+
+---
+
+### 3. Menjalankan Backend (Flask API)
+
+1. Buka terminal pertama, arahkan ke direktori `server`:
+   ```powershell
+   cd server
+   ```
+2. Buat dan aktifkan *Virtual Environment*:
+   ```powershell
+   python -m venv .venv
+   # Windows (PowerShell):
+   .\.venv\Scripts\Activate.ps1
+   # Linux/macOS:
+   source .venv/bin/activate
+   ```
+3. Pasang seluruh dependensi Python:
+   ```powershell
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+4. Jalankan server backend:
+   ```powershell
+   python run.py
+   ```
+   *Peladen backend akan aktif pada `http://127.0.0.1:5050`. Mesin AI akan memanaskan cache vektor secara otomatis di latar belakang.*
+
+---
+
+### 4. Menjalankan Frontend (Vue 3)
+
+1. Buka terminal kedua, arahkan ke direktori `client`:
+   ```powershell
+   cd client
+   ```
+2. Pasang paket dependensi Node.js:
+   ```powershell
+   npm install
+   ```
+3. Jalankan server pengembangan Vite:
+   ```powershell
+   npm run dev
+   ```
+4. Buka peramban (*browser*) dan akses URL yang tertera (biasanya `http://localhost:5173`).
+
+---
+
+### 5. Menjalankan Pengujian (*Testing Suite*)
+
+Untuk menjalankan rangkaian uji otomatis:
+```powershell
+# Unit Testing
+python -m unittest testing/unitest.py
+
+# API Integration Testing
+pytest testing/test_api.py
+
+# Load Testing (Locust Web UI pada http://localhost:8089)
+locust -f testing/locustfile.py
+```
+
+---
+
+## 👥 Tim Pengembang (Developers)
+
+Proyek ini dikembangkan oleh:
+- **Hamdan Azmi** (331241004)
+- **Christian Marcelino** (3312411008)
+
+---
+
+## 🔧 Pemeliharaan & Kontribusi
+
+- **Pembaruan Data Dosen**: Disarankan melalui antarmuka **Admin Panel** di web agar cache inkremental (*Delta Sync*) diperbarui secara otomatis.
+- **Konsistensi Preprocessing**: Jangan mengubah alur tokenisasi pada `text_preprocessor.py` tanpa menguji dampaknya pada matriks kemiripan leksikal dan semantik.
+
+---
+
+*Dikembangkan untuk Program Studi dan Sivitas Akademika Politeknik Negeri Batam.*
+
