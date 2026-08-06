@@ -1,6 +1,8 @@
 # SiReDo — Sistem Rekomendasi Dosen (Politeknik Negeri Batam)
 
-**SiReDo (Sistem Rekomendasi Dosen)** adalah platform berbasis kecerdasan artifisial (*Natural Language Processing*) yang dirancang khusus untuk memetakan dan merekomendasikan dosen pembimbing serta penguji tugas akhir / skripsi / *Project-Based Learning* (PBL) yang paling relevan dengan topik proyek mahasiswa di lingkungan **Politeknik Negeri Batam (Polibatam)**.
+**SiReDo (Sistem Rekomendasi Dosen)** adalah platform berbasis kecerdasan artifisial (*Natural Language Processing*) yang ditujukan bagi **seluruh akademisi di lingkungan Politeknik Negeri Batam (Polibatam)** yang memerlukan rekomendasi dosen yang akurat, terukur, dan objektif. Sistem ini dirancang untuk melayani dua kebutuhan utama:
+- **Mahasiswa**: Membantu menemukan calon **Dosen Pembimbing** yang paling relevan dengan ide/topik proposal tugas akhir, skripsi, atau proyek *Project-Based Learning* (PBL).
+- **Admin & Tim Penjadwal Akademik**: Membantu memetakan dan menyelaraskan topik proyek/PBL mahasiswa dengan **Dosen Penguji** yang memiliki bidang kepakaran yang sesuai saat pelaksanaan sidang ujian.
 
 Sistem menganalisis keselarasan antara teks masukan (*Judul* dan *Abstrak* proposal) dengan korpus kepakaran dosen (keahlian, publikasi ilmiah, riwayat bimbingan, riwayat pengujian, dan latar belakang pendidikan) menggunakan pendekatan **Hibrida (*Hybrid Retrieval*)**: **Leksikal (Okapi BM25)** dan **Semantik (Sentence-BERT)**.
 
