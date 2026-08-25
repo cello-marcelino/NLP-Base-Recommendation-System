@@ -8,7 +8,6 @@ class Config:
     """Centralized configuration class loaded from environment variables."""
     
     # Base paths
-    # Base dir: server root directory (2 levels up from server/src/core)
     BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
     STORAGE_DIR = os.path.join(BASE_DIR, 'storage')
     CACHE_DIR = os.path.join(STORAGE_DIR, 'cache')
@@ -21,6 +20,7 @@ class Config:
     APP_DEBUG = os.getenv('APP_DEBUG', 'false').lower() in ('true', '1', 't', 'yes')
     APP_HOST = os.getenv('APP_HOST', '0.0.0.0')
     APP_PORT = int(os.getenv('APP_PORT', 5000))
+    APP_URL = os.getenv('APP_URL', 'http://localhost:5000')
     SECRET_KEY = os.getenv('SECRET_KEY', 'default-siredo-insecure-secret-key')
     
     # Security & CORS
@@ -34,9 +34,17 @@ class Config:
     # Database (MySQL)
     DB_HOST = os.getenv('DB_HOST', 'localhost')
     DB_PORT = int(os.getenv('DB_PORT', 3306))
-    DB_USER = os.getenv('DB_USER', 'root')
+    DB_USER = os.getenv('DB_USERNAME', os.getenv('DB_USER', 'root'))
     DB_PASSWORD = os.getenv('DB_PASSWORD', '')
-    DB_NAME = os.getenv('DB_NAME', 'db_siredo')
+    DB_NAME = os.getenv('DB_DATABASE', os.getenv('DB_NAME', 'db_siredo'))
+    
+    # AI / LLM (Untuk pengembangan masa depan: OpenAI, Gemini, Claude, dll)
+    AI_PROVIDER = os.getenv('AI_PROVIDER', 'openai')
+    AI_API_KEY = os.getenv('AI_API_KEY', '')
+    AI_MODEL = os.getenv('AI_MODEL', 'gpt-4o-mini')
+    
+    # Cache & Storage
+    CACHE_ENABLED = os.getenv('CACHE_ENABLED', 'true').lower() in ('true', '1', 't', 'yes')
     
     # Excel fallback data path
     EXCEL_FALLBACK_PATH = os.path.join(DATASET_DIR, 'dataset_profiles_terintegrasi.xlsx')
