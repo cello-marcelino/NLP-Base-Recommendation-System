@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const props = defineProps({
   isOpen: Boolean,
@@ -9,34 +9,81 @@ const props = defineProps({
 
 defineEmits(['close'])
 
+const showAllRecords = ref(false)
+
 const parseListItems = (str) => {
   if (!str || typeof str !== 'string') return []
   const trimmed = str.trim()
   if (!trimmed || trimmed === '-' || trimmed.toLowerCase() === 'nan' || trimmed.toLowerCase() === 'null') {
     return []
   }
+  // Quoted items
   const matches = trimmed.match(/"([^"]+)"/g)
   if (matches && matches.length > 0) {
     return matches
       .map(m => m.replace(/(^"|"$)/g, '').trim())
       .filter(j => j.length > 0 && j !== '-')
   }
+  // Array-like
   if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
     try {
       const parsed = JSON.parse(trimmed.replace(/'/g, '"'))
       if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean)
     } catch {}
   }
+  // Semicolon / newline separated
   return trimmed
     .split(/\n|;|•|\r/)
     .map(s => s.replace(/^[0-9]+[.)]\s*/, '').trim())
     .filter(s => s.length > 0 && s !== '-')
 }
 
-const jurnalList = computed(() => parseListItems(props.dosen?.jurnal))
-const bimbinganList = computed(() => parseListItems(props.dosen?.judul_bimbing))
-const ujiList = computed(() => parseListItems(props.dosen?.judul_uji))
+const matchTerms = computed(() => {
+  const terms = new Set()
+  if (Array.isArray(props.xai?.irisan_kata)) {
+    props.xai.irisan_kata.forEach(k => {
+      if (k && k.trim().length >= 3) terms.add(k.trim().toLowerCase())
+    })
+  }
+  if (Array.isArray(props.xai?.topik_dosen)) {
+    props.xai.topik_dosen.forEach(t => {
+      if (t && t.trim().length >= 3) {
+        t.trim().toLowerCase().split(/\s+/).forEach(word => {
+          if (word.length >= 3) terms.add(word)
+        })
+      }
+    })
+  }
+  return Array.from(terms)
+})
+
+const filterRelevant = (items) => {
+  if (matchTerms.value.length === 0) return items
+  return items.filter(item => {
+    const lower = item.toLowerCase()
+    return matchTerms.value.some(term => lower.includes(term))
+  })
+}
+
+const allJurnalList = computed(() => parseListItems(props.dosen?.jurnal))
+const allBimbinganList = computed(() => parseListItems(props.dosen?.judul_bimbing))
+const allUjiList = computed(() => parseListItems(props.dosen?.judul_uji))
 const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
+
+const displayJurnalList = computed(() => {
+  if (showAllRecords.value) return allJurnalList.value
+  return filterRelevant(allJurnalList.value)
+})
+
+const displayBimbinganList = computed(() => {
+  if (showAllRecords.value) return allBimbinganList.value
+  return filterRelevant(allBimbinganList.value)
+})
+
+const displayUjiList = computed(() => {
+  if (showAllRecords.value) return allUjiList.value
+  return filterRelevant(allUjiList.value)
+})
 </script>
 
 <template>
@@ -80,14 +127,23 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
 
         <!-- 2. XAI Explainability (BM25 + KeyBERT) -->
         <div class="xai-card xai-card--brand">
-          <h4 class="xai-label text-indigo-900">Alasan Rekomendasi (Explainable AI)</h4>
+          <div class="xai-header-flex">
+            <h4 class="xai-label text-indigo-900">Alasan Rekomendasi (Explainable AI)</h4>
+            <button 
+              type="button" 
+              class="filter-toggle-btn"
+              @click="showAllRecords = !showAllRecords"
+            >
+              {{ showAllRecords ? 'Tampilkan Hanya Yang Relevan' : 'Tampilkan Semua Riwayat' }}
+            </button>
+          </div>
           
           <div class="xai-reasons-grid">
             <div>
               <div class="xai-sub-label">Irisan Kata Kunci Eksak (BM25 Match):</div>
               <div class="xai-tags">
                 <span v-for="kata in xai?.irisan_kata" :key="kata" class="xai-tag xai-tag--blue">
-                  <span class="xai-check">✓</span> {{ kata }}
+                  <span class="xai-check">v</span> {{ kata }}
                 </span>
                 <span v-if="!xai?.irisan_kata?.length" class="xai-empty">Tidak ada kata kunci yang cocok secara eksak.</span>
               </div>
@@ -105,49 +161,61 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
           </div>
         </div>
 
-        <!-- 3. Riwayat Publikasi Jurnal -->
+        <!-- 3. Riwayat Publikasi Jurnal Relevan -->
         <div class="xai-section">
           <div class="xai-section-header">
-            <h4 class="xai-label">Riwayat Publikasi Jurnal</h4>
-            <span class="count-badge count-badge--brand">{{ jurnalList.length }} Publikasi</span>
+            <h4 class="xai-label">
+              {{ showAllRecords ? 'Seluruh Riwayat Publikasi Jurnal' : 'Riwayat Publikasi Jurnal Relevan' }}
+            </h4>
+            <span class="count-badge count-badge--brand">
+              {{ displayJurnalList.length }} / {{ allJurnalList.length }}
+            </span>
           </div>
-          <ul v-if="jurnalList.length" class="xai-list-group">
-            <li v-for="(jurnal, idx) in jurnalList" :key="'j'+idx" class="xai-list-item">
+          <ul v-if="displayJurnalList.length" class="xai-list-group">
+            <li v-for="(jurnal, idx) in displayJurnalList" :key="'j'+idx" class="xai-list-item">
               <span class="item-num">{{ idx + 1 }}</span>
               <span class="item-text">{{ jurnal }}</span>
             </li>
           </ul>
-          <p v-else class="xai-empty">Belum ada riwayat publikasi jurnal yang terdata.</p>
+          <p v-else class="xai-empty">Tidak ada riwayat publikasi jurnal yang memuat kata kunci topik input.</p>
         </div>
 
-        <!-- 4. Riwayat Bimbingan Mahasiswa -->
+        <!-- 4. Riwayat Bimbingan Mahasiswa Relevan -->
         <div class="xai-section">
           <div class="xai-section-header">
-            <h4 class="xai-label">Riwayat Bimbingan Tugas Akhir / Skripsi</h4>
-            <span class="count-badge count-badge--green">{{ bimbinganList.length }} Bimbingan</span>
+            <h4 class="xai-label">
+              {{ showAllRecords ? 'Seluruh Riwayat Bimbingan' : 'Riwayat Bimbingan Mahasiswa Relevan' }}
+            </h4>
+            <span class="count-badge count-badge--green">
+              {{ displayBimbinganList.length }} / {{ allBimbinganList.length }}
+            </span>
           </div>
-          <ul v-if="bimbinganList.length" class="xai-list-group">
-            <li v-for="(bimbing, idx) in bimbinganList" :key="'b'+idx" class="xai-list-item">
+          <ul v-if="displayBimbinganList.length" class="xai-list-group">
+            <li v-for="(bimbing, idx) in displayBimbinganList" :key="'b'+idx" class="xai-list-item">
               <span class="item-num item-num--green">{{ idx + 1 }}</span>
               <span class="item-text">{{ bimbing }}</span>
             </li>
           </ul>
-          <p v-else class="xai-empty">Belum ada riwayat bimbingan yang terdata.</p>
+          <p v-else class="xai-empty">Tidak ada riwayat bimbingan mahasiswa yang memuat kata kunci topik input.</p>
         </div>
 
-        <!-- 5. Riwayat Pengujian Mahasiswa -->
+        <!-- 5. Riwayat Pengujian Mahasiswa Relevan -->
         <div class="xai-section">
           <div class="xai-section-header">
-            <h4 class="xai-label">Riwayat Pengujian / Sidang Mahasiswa</h4>
-            <span class="count-badge count-badge--blue">{{ ujiList.length }} Pengujian</span>
+            <h4 class="xai-label">
+              {{ showAllRecords ? 'Seluruh Riwayat Pengujian' : 'Riwayat Pengujian Sidang Relevan' }}
+            </h4>
+            <span class="count-badge count-badge--blue">
+              {{ displayUjiList.length }} / {{ allUjiList.length }}
+            </span>
           </div>
-          <ul v-if="ujiList.length" class="xai-list-group">
-            <li v-for="(uji, idx) in ujiList" :key="'u'+idx" class="xai-list-item">
+          <ul v-if="displayUjiList.length" class="xai-list-group">
+            <li v-for="(uji, idx) in displayUjiList" :key="'u'+idx" class="xai-list-item">
               <span class="item-num item-num--blue">{{ idx + 1 }}</span>
               <span class="item-text">{{ uji }}</span>
             </li>
           </ul>
-          <p v-else class="xai-empty">Belum ada riwayat pengujian yang terdata.</p>
+          <p v-else class="xai-empty">Tidak ada riwayat pengujian sidang yang memuat kata kunci topik input.</p>
         </div>
         
       </div>
@@ -169,7 +237,7 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
-  width: 100%; max-width: 820px; max-height: 88vh;
+  width: 100%; max-width: 820px; max-height: 85vh; height: 85vh;
   display: flex; flex-direction: column; overflow: hidden;
   animation: modal-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -233,6 +301,20 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
 .xai-card--brand {
   background: #fcfaff;
   border-color: #ddd6fe;
+}
+
+.xai-header-flex {
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.filter-toggle-btn {
+  font-size: 0.72rem; font-weight: 600;
+  color: var(--brand); background: var(--bg);
+  border: 1px solid #c4b5fd; border-radius: var(--radius-sm);
+  padding: 0.25rem 0.6rem; cursor: pointer; transition: all 0.15s;
+}
+.filter-toggle-btn:hover {
+  background: var(--brand); color: white;
 }
 
 .xai-label {
