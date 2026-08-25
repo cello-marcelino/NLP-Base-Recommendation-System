@@ -5,7 +5,7 @@ import { useRecommendationStore } from '../stores/recommendation'
 const recStore = useRecommendationStore()
 
 const file = ref(null)
-const kRank = ref(5)
+const kRank = ref(2)
 
 const handleFileChange = (e) => {
   file.value = e.target.files[0]
@@ -87,8 +87,8 @@ const downloadJson = () => {
             </div>
 
             <div class="bp-options">
-              <label class="bp-opt-label">Top K-Rank <span class="bp-opt-hint">(opsional, default: 5)</span></label>
-              <input type="number" v-model.number="kRank" min="1" max="20" class="bp-opt-input" placeholder="Misal: 5">
+              <label class="bp-opt-label">Top K-Rank <span class="bp-opt-hint">(opsional, default: 2)</span></label>
+              <input type="number" v-model.number="kRank" min="1" max="20" class="bp-opt-input" placeholder="Misal: 2">
             </div>
             
             <button 

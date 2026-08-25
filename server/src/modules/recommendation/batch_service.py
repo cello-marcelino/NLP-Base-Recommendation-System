@@ -7,6 +7,8 @@ from server.src.modules.recommendation.recommendation_service import Recommendat
 class BatchService:
     """Processes bulk recommendation requests with batch limit constraints."""
     
+    DEFAULT_BATCH_K_RANK = 2
+    
     @staticmethod
     def process_batch(proposals: List[Dict[str, Any]], global_k_rank: Optional[int] = None) -> List[Dict[str, Any]]:
         if not isinstance(proposals, list):
@@ -28,7 +30,7 @@ class BatchService:
             id_ = str(p.get('id', index + 1))
             judul = str(p.get('judul', '') or '')
             abstrak = str(p.get('abstrak', '') or '')
-            k_rank = p.get('k_rank') or global_k_rank
+            k_rank = p.get('k_rank') or global_k_rank or BatchService.DEFAULT_BATCH_K_RANK
             
             recom = RecommendationService.get_recommendations(judul, abstrak, k_rank)
             
