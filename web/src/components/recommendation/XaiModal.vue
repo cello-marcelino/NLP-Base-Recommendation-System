@@ -15,21 +15,18 @@ const parseListItems = (str) => {
   if (!trimmed || trimmed === '-' || trimmed.toLowerCase() === 'nan' || trimmed.toLowerCase() === 'null') {
     return []
   }
-  // Case 1: Quoted items like "Item 1", "Item 2"
   const matches = trimmed.match(/"([^"]+)"/g)
   if (matches && matches.length > 0) {
     return matches
       .map(m => m.replace(/(^"|"$)/g, '').trim())
       .filter(j => j.length > 0 && j !== '-')
   }
-  // Case 2: Array-like string [ 'Item 1', 'Item 2' ]
   if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
     try {
       const parsed = JSON.parse(trimmed.replace(/'/g, '"'))
       if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean)
     } catch {}
   }
-  // Case 3: Semicolon, newline, bullet point, or pipe separated
   return trimmed
     .split(/\n|;|•|\r/)
     .map(s => s.replace(/^[0-9]+[.)]\s*/, '').trim())
@@ -67,11 +64,11 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
         <!-- 1. Bidang Keahlian & Pendidikan -->
         <div class="xai-grid-2">
           <div class="xai-card">
-            <h4 class="xai-label">🎯 Bidang Keahlian</h4>
+            <h4 class="xai-label">Bidang Keahlian</h4>
             <p class="xai-text font-medium">{{ dosen.bidang_keahlian || '-' }}</p>
           </div>
           <div class="xai-card">
-            <h4 class="xai-label">🎓 Riwayat Pendidikan</h4>
+            <h4 class="xai-label">Riwayat Pendidikan</h4>
             <div v-if="pendidikanList.length" class="xai-edu-list">
               <span v-for="(edu, idx) in pendidikanList" :key="'edu'+idx" class="edu-chip">
                 {{ edu }}
@@ -83,7 +80,7 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
 
         <!-- 2. XAI Explainability (BM25 + KeyBERT) -->
         <div class="xai-card xai-card--brand">
-          <h4 class="xai-label text-indigo-900">💡 Alasan Rekomendasi (Explainable AI)</h4>
+          <h4 class="xai-label text-indigo-900">Alasan Rekomendasi (Explainable AI)</h4>
           
           <div class="xai-reasons-grid">
             <div>
@@ -111,7 +108,7 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
         <!-- 3. Riwayat Publikasi Jurnal -->
         <div class="xai-section">
           <div class="xai-section-header">
-            <h4 class="xai-label">📚 Riwayat Publikasi Jurnal</h4>
+            <h4 class="xai-label">Riwayat Publikasi Jurnal</h4>
             <span class="count-badge count-badge--brand">{{ jurnalList.length }} Publikasi</span>
           </div>
           <ul v-if="jurnalList.length" class="xai-list-group">
@@ -126,7 +123,7 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
         <!-- 4. Riwayat Bimbingan Mahasiswa -->
         <div class="xai-section">
           <div class="xai-section-header">
-            <h4 class="xai-label">👥 Riwayat Bimbingan Tugas Akhir / Skripsi</h4>
+            <h4 class="xai-label">Riwayat Bimbingan Tugas Akhir / Skripsi</h4>
             <span class="count-badge count-badge--green">{{ bimbinganList.length }} Bimbingan</span>
           </div>
           <ul v-if="bimbinganList.length" class="xai-list-group">
@@ -141,7 +138,7 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
         <!-- 5. Riwayat Pengujian Mahasiswa -->
         <div class="xai-section">
           <div class="xai-section-header">
-            <h4 class="xai-label">⚖️ Riwayat Pengujian / Sidang Mahasiswa</h4>
+            <h4 class="xai-label">Riwayat Pengujian / Sidang Mahasiswa</h4>
             <span class="count-badge count-badge--blue">{{ ujiList.length }} Pengujian</span>
           </div>
           <ul v-if="ujiList.length" class="xai-list-group">

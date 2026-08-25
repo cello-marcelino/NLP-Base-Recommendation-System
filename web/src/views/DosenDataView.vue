@@ -13,21 +13,18 @@ const parseListItems = (str) => {
   if (!trimmed || trimmed === '-' || trimmed.toLowerCase() === 'nan' || trimmed.toLowerCase() === 'null') {
     return []
   }
-  // Quoted items
   const matches = trimmed.match(/"([^"]+)"/g)
   if (matches && matches.length > 0) {
     return matches
       .map(m => m.replace(/(^"|"$)/g, '').trim())
       .filter(j => j.length > 0 && j !== '-')
   }
-  // Array-like
   if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
     try {
       const parsed = JSON.parse(trimmed.replace(/'/g, '"'))
       if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean)
     } catch {}
   }
-  // Semicolon / newline separated
   return trimmed
     .split(/\n|;|•|\r/)
     .map(s => s.replace(/^[0-9]+[.)]\s*/, '').trim())
@@ -98,13 +95,17 @@ onMounted(() => {
 
       <!-- State: Error -->
       <div v-else-if="systemStore.error" class="state-box error-box">
-        <div class="error-icon">⚠</div>
+        <svg class="w-8 h-8 text-red-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
         <p>{{ systemStore.error }}</p>
       </div>
 
       <!-- State: Empty Search -->
       <div v-else-if="filteredDosen.length === 0" class="state-box">
-        <div class="empty-icon">🔍</div>
+        <svg class="w-8 h-8 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
         <p>Tidak ada dosen yang cocok dengan kata kunci "<strong>{{ searchQuery }}</strong>"</p>
       </div>
 
@@ -151,13 +152,13 @@ onMounted(() => {
               <td class="td-counts">
                 <div class="counts-badges-wrap">
                   <span class="badge-mini badge-mini--brand" :title="`${getCount(dosen.jurnal)} Publikasi Jurnal`">
-                    📚 {{ getCount(dosen.jurnal) }}
+                    Jurnal: {{ getCount(dosen.jurnal) }}
                   </span>
                   <span class="badge-mini badge-mini--green" :title="`${getCount(dosen.judul_bimbing)} Bimbingan Mahasiswa`">
-                    👥 {{ getCount(dosen.judul_bimbing) }}
+                    Bimbingan: {{ getCount(dosen.judul_bimbing) }}
                   </span>
                   <span class="badge-mini badge-mini--blue" :title="`${getCount(dosen.judul_uji)} Pengujian Sidang`">
-                    ⚖️ {{ getCount(dosen.judul_uji) }}
+                    Pengujian: {{ getCount(dosen.judul_uji) }}
                   </span>
                 </div>
               </td>
@@ -186,7 +187,7 @@ onMounted(() => {
               <span v-if="selectedDosenDetail.nidn" class="nidn-pill">NIDN: {{ selectedDosenDetail.nidn }}</span>
             </div>
             <h3 class="dm-title">{{ selectedDosenDetail.nama }}</h3>
-            <p class="dm-keahlian">🎯 {{ selectedDosenDetail.bidang_keahlian || '-' }}</p>
+            <p class="dm-keahlian">{{ selectedDosenDetail.bidang_keahlian || '-' }}</p>
           </div>
           <button @click="selectedDosenDetail = null" class="dm-close" aria-label="Tutup modal">
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -203,7 +204,7 @@ onMounted(() => {
             :class="{ 'dm-tab-btn--active': activeModalTab === 'jurnal' }"
             @click="activeModalTab = 'jurnal'"
           >
-            📚 Publikasi Jurnal ({{ getCount(selectedDosenDetail.jurnal) }})
+            Publikasi Jurnal ({{ getCount(selectedDosenDetail.jurnal) }})
           </button>
           <button 
             type="button" 
@@ -211,7 +212,7 @@ onMounted(() => {
             :class="{ 'dm-tab-btn--active': activeModalTab === 'bimbingan' }"
             @click="activeModalTab = 'bimbingan'"
           >
-            👥 Riwayat Bimbingan ({{ getCount(selectedDosenDetail.judul_bimbing) }})
+            Riwayat Bimbingan ({{ getCount(selectedDosenDetail.judul_bimbing) }})
           </button>
           <button 
             type="button" 
@@ -219,7 +220,7 @@ onMounted(() => {
             :class="{ 'dm-tab-btn--active': activeModalTab === 'uji' }"
             @click="activeModalTab = 'uji'"
           >
-            ⚖️ Riwayat Pengujian ({{ getCount(selectedDosenDetail.judul_uji) }})
+            Riwayat Pengujian ({{ getCount(selectedDosenDetail.judul_uji) }})
           </button>
           <button 
             type="button" 
@@ -227,7 +228,7 @@ onMounted(() => {
             :class="{ 'dm-tab-btn--active': activeModalTab === 'profil' }"
             @click="activeModalTab = 'profil'"
           >
-            🎓 Profil & Pendidikan
+            Profil & Pendidikan
           </button>
         </div>
 
@@ -270,10 +271,10 @@ onMounted(() => {
           <!-- TAB 4: PROFIL & PENDIDIKAN -->
           <div v-if="activeModalTab === 'profil'" class="dm-profil-view">
             <div class="profil-card">
-              <div class="profil-label">🎓 Riwayat Pendidikan</div>
+              <div class="profil-label">Riwayat Pendidikan</div>
               <div v-if="parseListItems(selectedDosenDetail.pendidikan).length" class="edu-list-wrap">
                 <div v-for="(edu, idx) in parseListItems(selectedDosenDetail.pendidikan)" :key="idx" class="edu-item">
-                  <span class="edu-dot">•</span>
+                  <span class="edu-dot">-</span>
                   <span>{{ edu }}</span>
                 </div>
               </div>
@@ -281,7 +282,7 @@ onMounted(() => {
             </div>
 
             <div class="profil-card">
-              <div class="profil-label">🎯 Bidang Keahlian Utama</div>
+              <div class="profil-label">Bidang Keahlian Utama</div>
               <div class="profil-val">{{ selectedDosenDetail.bidang_keahlian || '-' }}</div>
             </div>
           </div>
@@ -385,7 +386,7 @@ onMounted(() => {
 .th-prodi { width: 15%; }
 .th-keahlian { width: 20%; }
 .th-pendidikan { width: 20%; }
-.th-counts { width: 130px; }
+.th-counts { width: 160px; }
 .th-action { width: 110px; }
 
 .data-row {
@@ -412,11 +413,11 @@ onMounted(() => {
 }
 
 .counts-badges-wrap {
-  display: flex; gap: 4px; justify-content: center;
+  display: flex; flex-direction: column; gap: 3px;
 }
 .badge-mini {
-  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
-  padding: 2px 6px; border-radius: var(--radius-sm);
+  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600;
+  padding: 2px 6px; border-radius: var(--radius-sm); white-space: nowrap;
 }
 .badge-mini--brand { background: var(--brand-light); color: var(--brand); }
 .badge-mini--green { background: var(--green-bg); color: var(--green); }
