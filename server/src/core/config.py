@@ -31,14 +31,18 @@ class Config:
     ]
     ADMIN_API_KEY = os.getenv('ADMIN_API_KEY', 'siredo-admin-secret-key')
     
-    # Database (MySQL)
+    # Database Configuration (Driver: 'sqlite' | 'mysql')
+    DB_DRIVER = os.getenv('DB_DRIVER', 'sqlite').lower().strip()
+    DB_SQLITE_PATH = os.getenv('DB_SQLITE_PATH', os.path.join(DATA_DIR, 'siredo.db'))
+    
+    # MySQL Configuration (Used if DB_DRIVER=mysql)
     DB_HOST = os.getenv('DB_HOST', 'localhost')
     DB_PORT = int(os.getenv('DB_PORT', 3306))
     DB_USER = os.getenv('DB_USERNAME', os.getenv('DB_USER', 'root'))
     DB_PASSWORD = os.getenv('DB_PASSWORD', '')
     DB_NAME = os.getenv('DB_DATABASE', os.getenv('DB_NAME', 'db_siredo'))
     
-    # AI / LLM (Untuk pengembangan masa depan: OpenAI, Gemini, Claude, dll)
+    # AI / LLM (Untuk integrasi masa depan: OpenAI, Gemini, Claude, dll)
     AI_PROVIDER = os.getenv('AI_PROVIDER', 'openai')
     AI_API_KEY = os.getenv('AI_API_KEY', '')
     AI_MODEL = os.getenv('AI_MODEL', 'gpt-4o-mini')

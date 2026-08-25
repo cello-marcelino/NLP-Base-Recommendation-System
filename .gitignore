@@ -19,6 +19,8 @@ storage_test/
 server/storage/cache/*
 !server/storage/cache/.gitkeep
 server/storage/data/*.json
+server/storage/data/*.db
+server/storage/data/*.sqlite*
 !server/storage/data/.gitkeep
 
 # Environment & Secrets (NEVER commit .env)

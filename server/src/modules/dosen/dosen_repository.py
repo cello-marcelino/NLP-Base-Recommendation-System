@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Dict
 import os
 import pandas as pd
-from mysql.connector import Error
+from collections import defaultdict
 
 from server.src.core.config import Config
 from server.src.core.database import DatabaseManager
@@ -16,42 +16,97 @@ class BaseDosenRepository(ABC):
     def get_all(self) -> List[Dosen]:
         pass
 
-class MySQLDosenRepository(BaseDosenRepository):
-    """Retrieves lecturer profile data from MySQL."""
+class SQLDosenRepository(BaseDosenRepository):
+    """Retrieves normalized relational lecturer profile data from SQLite or MySQL without N+1 queries."""
     
     def get_all(self) -> List[Dosen]:
-        connection = DatabaseManager.get_connection()
-        if not connection or not connection.is_connected():
+        conn = DatabaseManager.get_connection()
+        if not conn:
             return []
             
         cursor = None
         try:
-            cursor = connection.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM dosen")
-            records = cursor.fetchall()
+            driver = DatabaseManager.get_driver()
+            cursor = conn.cursor(dictionary=True) if driver == 'mysql' else conn.cursor()
             
+            # 1. Fetch all lecturers
+            cursor.execute("SELECT id, nidn, nama, program_studi, bidang_keahlian, pendidikan FROM dosen ORDER BY id ASC")
+            dosen_rows = cursor.fetchall()
+            
+            if not dosen_rows:
+                return []
+                
+            # 2. Batch fetch child relational tables (zero N+1 queries)
+            cursor.execute("SELECT dosen_id, judul FROM publikasi ORDER BY id ASC")
+            pub_rows = cursor.fetchall()
+            publikasi_map: Dict[int, List[str]] = defaultdict(list)
+            for r in pub_rows:
+                d_id = r['dosen_id'] if isinstance(r, dict) or hasattr(r, 'keys') else r[0]
+                j_title = r['judul'] if isinstance(r, dict) or hasattr(r, 'keys') else r[1]
+                if j_title:
+                    publikasi_map[d_id].append(str(j_title))
+                    
+            cursor.execute("SELECT dosen_id, judul_tugas_akhir FROM riwayat_bimbingan ORDER BY id ASC")
+            bimb_rows = cursor.fetchall()
+            bimbingan_map: Dict[int, List[str]] = defaultdict(list)
+            for r in bimb_rows:
+                d_id = r['dosen_id'] if isinstance(r, dict) or hasattr(r, 'keys') else r[0]
+                b_title = r['judul_tugas_akhir'] if isinstance(r, dict) or hasattr(r, 'keys') else r[1]
+                if b_title:
+                    bimbingan_map[d_id].append(str(b_title))
+                    
+            cursor.execute("SELECT dosen_id, judul_sidang FROM riwayat_pengujian ORDER BY id ASC")
+            uji_rows = cursor.fetchall()
+            pengujian_map: Dict[int, List[str]] = defaultdict(list)
+            for r in uji_rows:
+                d_id = r['dosen_id'] if isinstance(r, dict) or hasattr(r, 'keys') else r[0]
+                u_title = r['judul_sidang'] if isinstance(r, dict) or hasattr(r, 'keys') else r[1]
+                if u_title:
+                    pengujian_map[d_id].append(str(u_title))
+
+            # 3. Assemble Dosen domain models
+            def format_list_to_quoted_str(items: List[str]) -> str:
+                if not items:
+                    return ""
+                return ', '.join([f'"{item}"' for item in items])
+
             dosen_list = []
-            for row in records:
+            for row in dosen_rows:
+                d_id = row['id'] if isinstance(row, dict) or hasattr(row, 'keys') else row[0]
+                nidn = row['nidn'] if isinstance(row, dict) or hasattr(row, 'keys') else row[1]
+                nama = row['nama'] if isinstance(row, dict) or hasattr(row, 'keys') else row[2]
+                prodi = row['program_studi'] if isinstance(row, dict) or hasattr(row, 'keys') else row[3]
+                keahlian = row['bidang_keahlian'] if isinstance(row, dict) or hasattr(row, 'keys') else row[4]
+                pendidikan = row['pendidikan'] if isinstance(row, dict) or hasattr(row, 'keys') else row[5]
+                
+                jurnal_str = format_list_to_quoted_str(publikasi_map.get(d_id, []))
+                bimb_str = format_list_to_quoted_str(bimbingan_map.get(d_id, []))
+                uji_str = format_list_to_quoted_str(pengujian_map.get(d_id, []))
+                
                 dosen_list.append(Dosen(
-                    nidn=str(row.get('nidn', '') or ''),
-                    nama=str(row.get('nama', '') or ''),
-                    program_studi=str(row.get('program_studi', '') or ''),
-                    bidang_keahlian=str(row.get('bidang_keahlian', '') or ''),
-                    jurnal=str(row.get('jurnal', '') or ''),
-                    judul_bimbing=str(row.get('judul_bimbing', '') or ''),
-                    judul_uji=str(row.get('judul_uji', '') or ''),
-                    pendidikan=str(row.get('pendidikan', '') or '')
+                    nidn=str(nidn or ''),
+                    nama=str(nama or ''),
+                    program_studi=str(prodi or ''),
+                    bidang_keahlian=str(keahlian or ''),
+                    jurnal=jurnal_str,
+                    judul_bimbing=bimb_str,
+                    judul_uji=uji_str,
+                    pendidikan=str(pendidikan or '')
                 ))
-            logger.info(f"Berhasil memuat {len(dosen_list)} data dosen dari MySQL.")
+                
+            logger.info(f"Berhasil memuat {len(dosen_list)} data dosen dari database relasional ({driver}).")
             return dosen_list
-        except Error as e:
-            logger.error(f"Error query MySQL tabel dosen: {e}")
+        except Exception as e:
+            logger.error(f"Error query database relasional tabel dosen: {e}")
             return []
         finally:
             if cursor:
                 cursor.close()
-            if connection and connection.is_connected():
-                connection.close()
+            if conn:
+                conn.close()
+
+# Backward compatibility alias
+MySQLDosenRepository = SQLDosenRepository
 
 class ExcelDosenRepository(BaseDosenRepository):
     """Retrieves lecturer profile data from fallback Excel file."""
@@ -87,7 +142,7 @@ class ExcelDosenRepository(BaseDosenRepository):
                     judul_uji=get_val(row, ['judul uji', 'riwayat uji', 'judul ujian', 'judul_uji']),
                     pendidikan=get_val(row, ['pendidikan', 'riwayat pendidikan', 'riwayat_pendidikan'])
                 )
-                if dosen.nama:  # Only add valid rows with lecturer name
+                if dosen.nama:
                     dosen_list.append(dosen)
                     
             logger.info(f"Berhasil memuat {len(dosen_list)} data dosen dari Excel fallback ({self.excel_path}).")
@@ -97,15 +152,15 @@ class ExcelDosenRepository(BaseDosenRepository):
             return []
 
 class CompositeDosenRepository(BaseDosenRepository):
-    """Composite repository that tries MySQL first and gracefully falls back to Excel."""
+    """Composite repository that queries relational SQL database first and gracefully falls back to Excel."""
     
-    def __init__(self, mysql_repo: BaseDosenRepository = None, excel_repo: BaseDosenRepository = None):
-        self.mysql_repo = mysql_repo or MySQLDosenRepository()
+    def __init__(self, sql_repo: BaseDosenRepository = None, excel_repo: BaseDosenRepository = None):
+        self.sql_repo = sql_repo or SQLDosenRepository()
         self.excel_repo = excel_repo or ExcelDosenRepository()
 
     def get_all(self) -> List[Dosen]:
-        # 1. Try MySQL
-        dosen_list = self.mysql_repo.get_all()
+        # 1. Try SQL database (SQLite/MySQL)
+        dosen_list = self.sql_repo.get_all()
         if dosen_list:
             return dosen_list
             
