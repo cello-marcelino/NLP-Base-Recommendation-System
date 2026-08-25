@@ -62,9 +62,9 @@ onMounted(() => {
     <!-- Header -->
     <div class="dp-header">
       <span class="page-badge">Data Master</span>
-      <h1 class="dp-title">Data Dosen & Rekam Jejak Akademik</h1>
+      <h1 class="dp-title">Data Dosen</h1>
       <p class="dp-lead">
-        Database profil seluruh dosen, keahlian bidang riset, riwayat pendidikan, publikasi jurnal ilmiah, bimbingan tugas akhir, dan riwayat pengujian sidang.
+        Daftar seluruh dosen pembimbing dan penguji yang terdaftar di dalam sistem rekomendasi.
       </p>
     </div>
 
@@ -82,9 +82,9 @@ onMounted(() => {
           v-model="searchQuery" 
           type="text" 
           class="search-input" 
-          placeholder="Cari berdasarkan nama dosen, program studi, keahlian, atau riwayat pendidikan..." 
+          placeholder="Cari berdasarkan nama, program studi, atau bidang keahlian..." 
         />
-        <div class="search-badge" v-if="!systemStore.isLoading">{{ filteredDosen.length }} dosen terdaftar</div>
+        <div class="search-badge" v-if="!systemStore.isLoading">{{ filteredDosen.length }} dosen</div>
       </div>
 
       <!-- State: Loading -->
@@ -118,9 +118,7 @@ onMounted(() => {
               <th class="th-nama">Nama & NIDN</th>
               <th class="th-prodi">Program Studi</th>
               <th class="th-keahlian">Bidang Keahlian</th>
-              <th class="th-pendidikan">Riwayat Pendidikan</th>
-              <th class="th-counts text-center">Rekam Jejak</th>
-              <th class="th-action text-center">Aksi</th>
+              <th class="th-action text-center">Detail</th>
             </tr>
           </thead>
           <tbody>
@@ -141,26 +139,6 @@ onMounted(() => {
               <!-- Bidang Keahlian -->
               <td class="td-keahlian">
                 <div class="keahlian-text" :title="dosen.bidang_keahlian">{{ dosen.bidang_keahlian || '-' }}</div>
-              </td>
-
-              <!-- Riwayat Pendidikan -->
-              <td class="td-pendidikan">
-                <div class="pendidikan-text" :title="dosen.pendidikan">{{ dosen.pendidikan || '-' }}</div>
-              </td>
-              
-              <!-- Counts Badges -->
-              <td class="td-counts">
-                <div class="counts-badges-wrap">
-                  <span class="badge-mini badge-mini--brand" :title="`${getCount(dosen.jurnal)} Publikasi Jurnal`">
-                    Jurnal: {{ getCount(dosen.jurnal) }}
-                  </span>
-                  <span class="badge-mini badge-mini--green" :title="`${getCount(dosen.judul_bimbing)} Bimbingan Mahasiswa`">
-                    Bimbingan: {{ getCount(dosen.judul_bimbing) }}
-                  </span>
-                  <span class="badge-mini badge-mini--blue" :title="`${getCount(dosen.judul_uji)} Pengujian Sidang`">
-                    Pengujian: {{ getCount(dosen.judul_uji) }}
-                  </span>
-                </div>
               </td>
 
               <!-- Action Button -->
@@ -382,12 +360,10 @@ onMounted(() => {
   background: var(--bg-subtle); border-bottom: 1px solid var(--border);
 }
 .th-no { width: 45px; text-align: center; }
-.th-nama { width: 22%; }
-.th-prodi { width: 15%; }
-.th-keahlian { width: 20%; }
-.th-pendidikan { width: 20%; }
-.th-counts { width: 160px; }
-.th-action { width: 110px; }
+.th-nama { width: 30%; }
+.th-prodi { width: 25%; }
+.th-keahlian { width: auto; }
+.th-action { width: 130px; text-align: center; }
 
 .data-row {
   border-bottom: 1px solid var(--border);
@@ -407,27 +383,17 @@ onMounted(() => {
   padding: 2px 8px; border-radius: var(--radius-sm);
 }
 
-.keahlian-text, .pendidikan-text {
+.keahlian-text {
   font-size: 0.8rem; color: var(--text-secondary);
   line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 
-.counts-badges-wrap {
-  display: flex; flex-direction: column; gap: 3px;
-}
-.badge-mini {
-  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 600;
-  padding: 2px 6px; border-radius: var(--radius-sm); white-space: nowrap;
-}
-.badge-mini--brand { background: var(--brand-light); color: var(--brand); }
-.badge-mini--green { background: var(--green-bg); color: var(--green); }
-.badge-mini--blue { background: var(--blue-bg); color: var(--blue); }
-
+.td-action { text-align: center; }
 .btn-detail {
   font-size: 0.75rem; font-weight: 600;
   color: var(--brand); background: var(--brand-light);
   border: 1px solid #c4b5fd; border-radius: var(--radius-sm);
-  padding: 0.35rem 0.65rem; cursor: pointer; transition: all 0.15s;
+  padding: 0.35rem 0.75rem; cursor: pointer; transition: all 0.15s;
   white-space: nowrap;
 }
 .btn-detail:hover { background: var(--brand); color: white; }
