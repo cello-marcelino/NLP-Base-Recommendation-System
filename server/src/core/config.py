@@ -1,24 +1,19 @@
 import os
 from dotenv import load_dotenv
 
-# Base paths
+# Base & Root paths
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
 
-# Load .env: prioritas server/.env, fallback ke root .env
-server_env = os.path.join(BASE_DIR, '.env')
-root_env = os.path.abspath(os.path.join(BASE_DIR, '..', '.env'))
-
-if os.path.exists(server_env):
-    load_dotenv(server_env)
-elif os.path.exists(root_env):
-    load_dotenv(root_env)
-else:
-    load_dotenv()
+# Load .env tunggal dari root proyek
+ROOT_ENV = os.path.join(ROOT_DIR, '.env')
+load_dotenv(ROOT_ENV)
 
 class Config:
     """Centralized configuration class loaded from environment variables."""
     
     # Base paths
+    ROOT_DIR = ROOT_DIR
     BASE_DIR = BASE_DIR
     STORAGE_DIR = os.path.join(BASE_DIR, 'storage')
     CACHE_DIR = os.path.join(STORAGE_DIR, 'cache')
