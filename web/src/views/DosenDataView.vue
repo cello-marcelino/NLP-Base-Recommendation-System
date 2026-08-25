@@ -165,7 +165,6 @@ onMounted(() => {
               <span v-if="selectedDosenDetail.nidn" class="nidn-pill">NIDN: {{ selectedDosenDetail.nidn }}</span>
             </div>
             <h3 class="dm-title">{{ selectedDosenDetail.nama }}</h3>
-            <p class="dm-keahlian">{{ selectedDosenDetail.bidang_keahlian || '-' }}</p>
           </div>
           <button @click="selectedDosenDetail = null" class="dm-close" aria-label="Tutup modal">
             <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
