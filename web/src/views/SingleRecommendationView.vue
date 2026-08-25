@@ -9,6 +9,7 @@ import XaiModal from '../components/recommendation/XaiModal.vue'
 
 const recStore = useRecommendationStore()
 const isXaiModalOpen = ref(false)
+const activeViewTab = ref('all') // 'all', 'results', 'pipeline'
 
 const openXai = (rec) => {
   recStore.selectedDosenXai = rec
@@ -52,8 +53,36 @@ const closeXai = () => {
           <div class="sp-ph-desc">Masukkan judul atau rencana penelitian pada formulir di sebelah kiri, lalu tekan tombol <strong>Analisis & Rekomendasikan</strong>.</div>
         </div>
 
+        <!-- Section Navigation Segmented Control when Results Available -->
+        <div v-if="recStore.recommendations.length > 0" class="sp-nav-segment">
+          <button 
+            type="button" 
+            class="sp-segment-btn" 
+            :class="{ 'sp-segment-btn--active': activeViewTab === 'all' }"
+            @click="activeViewTab = 'all'"
+          >
+            🌟 Tampilan Lengkap
+          </button>
+          <button 
+            type="button" 
+            class="sp-segment-btn" 
+            :class="{ 'sp-segment-btn--active': activeViewTab === 'results' }"
+            @click="activeViewTab = 'results'"
+          >
+            🏆 Rekomendasi Dosen ({{ recStore.recommendations.length }})
+          </button>
+          <button 
+            type="button" 
+            class="sp-segment-btn" 
+            :class="{ 'sp-segment-btn--active': activeViewTab === 'pipeline' }"
+            @click="activeViewTab = 'pipeline'"
+          >
+            🔍 Rincian Pipeline NLP
+          </button>
+        </div>
+
         <!-- Processing Stepper Progress -->
-        <div v-if="recStore.isProcessing || recStore.recommendations.length > 0" class="sp-stepper-container">
+        <div v-if="recStore.isProcessing || (recStore.recommendations.length > 0 && activeViewTab !== 'results')" class="sp-stepper-container">
           <ProgressStepper :steps="recStore.steps">
             <template #step-0>
               <div v-if="recStore.pipeline?.preprocessing" class="text-xs space-y-1">
@@ -84,13 +113,8 @@ const closeXai = () => {
           </ProgressStepper>
         </div>
 
-        <!-- Pipeline Log Accordion -->
-        <div v-if="recStore.pipeline" class="mt-6">
-          <PipelineLogAccordion :pipeline="recStore.pipeline" />
-        </div>
-
         <!-- Recommendation Results Table -->
-        <div v-if="recStore.recommendations.length > 0" class="sp-results-card mt-6">
+        <div v-if="recStore.recommendations.length > 0 && (activeViewTab === 'all' || activeViewTab === 'results')" class="sp-results-card">
           <div class="sp-results-header">
             <div>
               <h2 class="sp-results-title">Peringkat Rekomendasi Dosen</h2>
@@ -128,6 +152,12 @@ const closeXai = () => {
             </table>
           </div>
         </div>
+
+        <!-- Pipeline Log Accordion -->
+        <div v-if="recStore.pipeline && (activeViewTab === 'all' || activeViewTab === 'pipeline')" class="mt-6">
+          <PipelineLogAccordion :pipeline="recStore.pipeline" />
+        </div>
+
       </main>
     </div>
 
@@ -197,7 +227,39 @@ const closeXai = () => {
 .sp-right {
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
   min-width: 0;
+}
+
+/* Nav Segment */
+.sp-nav-segment {
+  display: flex;
+  background: var(--bg-muted);
+  padding: 4px;
+  border-radius: var(--radius-lg);
+  gap: 4px;
+  border: 1px solid var(--border);
+}
+.sp-segment-btn {
+  flex: 1;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sp-segment-btn:hover {
+  color: var(--text-primary);
+}
+.sp-segment-btn--active {
+  background: var(--bg);
+  color: var(--brand);
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
 }
 
 .sp-placeholder {
