@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   isOpen: Boolean,
   dosen: Object,
   xai: Object
@@ -7,72 +9,148 @@ defineProps({
 
 defineEmits(['close'])
 
-const parseStringList = (str) => {
-  if (!str || str.trim() === 'nan') return []
-  const matches = str.match(/"([^"]+)"/g)
-  if (matches) {
-    return matches.map(m => m.replace(/(^"|"$)/g, '').trim()).filter(j => j.length > 0)
+const parseListItems = (str) => {
+  if (!str || typeof str !== 'string') return []
+  const trimmed = str.trim()
+  if (!trimmed || trimmed === '-' || trimmed.toLowerCase() === 'nan' || trimmed.toLowerCase() === 'null') {
+    return []
   }
-  return str.split(/\n|;/).map(j => j.trim()).filter(j => j.length > 3)
+  // Case 1: Quoted items like "Item 1", "Item 2"
+  const matches = trimmed.match(/"([^"]+)"/g)
+  if (matches && matches.length > 0) {
+    return matches
+      .map(m => m.replace(/(^"|"$)/g, '').trim())
+      .filter(j => j.length > 0 && j !== '-')
+  }
+  // Case 2: Array-like string [ 'Item 1', 'Item 2' ]
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(trimmed.replace(/'/g, '"'))
+      if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean)
+    } catch {}
+  }
+  // Case 3: Semicolon, newline, bullet point, or pipe separated
+  return trimmed
+    .split(/\n|;|•|\r/)
+    .map(s => s.replace(/^[0-9]+[.)]\s*/, '').trim())
+    .filter(s => s.length > 0 && s !== '-')
 }
+
+const jurnalList = computed(() => parseListItems(props.dosen?.jurnal))
+const bimbinganList = computed(() => parseListItems(props.dosen?.judul_bimbing))
+const ujiList = computed(() => parseListItems(props.dosen?.judul_uji))
+const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
 </script>
 
 <template>
   <div v-if="isOpen && dosen" class="modal-overlay" @click.self="$emit('close')">
     <div class="modal-box">
+      <!-- Modal Header -->
       <div class="modal-header">
-        <div>
+        <div class="modal-header-info">
+          <div class="modal-badges">
+            <span class="prodi-badge">{{ dosen.program_studi }}</span>
+            <span v-if="dosen.nidn" class="nidn-badge">NIDN: {{ dosen.nidn }}</span>
+          </div>
           <h3 class="modal-title">{{ dosen.nama }}</h3>
-          <p class="modal-subtitle">{{ dosen.program_studi }}</p>
         </div>
-        <button @click="$emit('close')" class="modal-close-btn">
+        <button @click="$emit('close')" class="modal-close-btn" aria-label="Tutup modal">
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
 
+      <!-- Modal Body -->
       <div class="modal-body">
         
-        <div class="xai-section">
-          <h4 class="xai-label">Bidang Keahlian Utama</h4>
-          <p class="xai-text">{{ dosen.bidang_keahlian || '-' }}</p>
-        </div>
-        
-        <div class="xai-section">
-          <h4 class="xai-label">Topik Semantic Dosen (KeyBERT)</h4>
-          <div class="xai-tags">
-            <span v-for="topik in xai?.topik_dosen" :key="topik" class="xai-tag xai-tag--fuchsia">
-              {{ topik }}
-            </span>
-            <span v-if="!xai?.topik_dosen?.length" class="xai-empty">Belum ada data topik semantic.</span>
+        <!-- 1. Bidang Keahlian & Pendidikan -->
+        <div class="xai-grid-2">
+          <div class="xai-card">
+            <h4 class="xai-label">🎯 Bidang Keahlian</h4>
+            <p class="xai-text font-medium">{{ dosen.bidang_keahlian || '-' }}</p>
+          </div>
+          <div class="xai-card">
+            <h4 class="xai-label">🎓 Riwayat Pendidikan</h4>
+            <div v-if="pendidikanList.length" class="xai-edu-list">
+              <span v-for="(edu, idx) in pendidikanList" :key="'edu'+idx" class="edu-chip">
+                {{ edu }}
+              </span>
+            </div>
+            <p v-else class="xai-empty">Belum ada data pendidikan.</p>
           </div>
         </div>
 
-        <div class="xai-section">
-          <h4 class="xai-label">Kata Yang Sama (BM25 Match)</h4>
-          <div class="xai-tags">
-            <span v-for="kata in xai?.irisan_kata" :key="kata" class="xai-tag xai-tag--blue">
-              <span class="xai-check">✓</span> {{ kata }}
-            </span>
-            <span v-if="!xai?.irisan_kata?.length" class="xai-empty">Tidak ada kata yang cocok secara leksikal.</span>
+        <!-- 2. XAI Explainability (BM25 + KeyBERT) -->
+        <div class="xai-card xai-card--brand">
+          <h4 class="xai-label text-indigo-900">💡 Alasan Rekomendasi (Explainable AI)</h4>
+          
+          <div class="xai-reasons-grid">
+            <div>
+              <div class="xai-sub-label">Irisan Kata Kunci Eksak (BM25 Match):</div>
+              <div class="xai-tags">
+                <span v-for="kata in xai?.irisan_kata" :key="kata" class="xai-tag xai-tag--blue">
+                  <span class="xai-check">✓</span> {{ kata }}
+                </span>
+                <span v-if="!xai?.irisan_kata?.length" class="xai-empty">Tidak ada kata kunci yang cocok secara eksak.</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="xai-sub-label">Topik Semantik Dosen (KeyBERT):</div>
+              <div class="xai-tags">
+                <span v-for="topik in xai?.topik_dosen" :key="topik" class="xai-tag xai-tag--fuchsia">
+                  {{ topik }}
+                </span>
+                <span v-if="!xai?.topik_dosen?.length" class="xai-empty">Belum ada topik semantik terdeteksi.</span>
+              </div>
+            </div>
           </div>
         </div>
 
+        <!-- 3. Riwayat Publikasi Jurnal -->
         <div class="xai-section">
-          <h4 class="xai-label">Riwayat Jurnal</h4>
-          <ul v-if="parseStringList(dosen.jurnal).length" class="xai-bullet-list">
-            <li v-for="(jurnal, idx) in parseStringList(dosen.jurnal)" :key="'j'+idx">{{ jurnal }}</li>
+          <div class="xai-section-header">
+            <h4 class="xai-label">📚 Riwayat Publikasi Jurnal</h4>
+            <span class="count-badge count-badge--brand">{{ jurnalList.length }} Publikasi</span>
+          </div>
+          <ul v-if="jurnalList.length" class="xai-list-group">
+            <li v-for="(jurnal, idx) in jurnalList" :key="'j'+idx" class="xai-list-item">
+              <span class="item-num">{{ idx + 1 }}</span>
+              <span class="item-text">{{ jurnal }}</span>
+            </li>
           </ul>
-          <p v-else class="xai-empty">Belum ada riwayat jurnal.</p>
+          <p v-else class="xai-empty">Belum ada riwayat publikasi jurnal yang terdata.</p>
         </div>
-        
+
+        <!-- 4. Riwayat Bimbingan Mahasiswa -->
         <div class="xai-section">
-          <h4 class="xai-label">Riwayat Bimbingan</h4>
-          <ul v-if="parseStringList(dosen.judul_bimbing).length" class="xai-bullet-list">
-            <li v-for="(bimbing, idx) in parseStringList(dosen.judul_bimbing)" :key="'b'+idx">{{ bimbing }}</li>
+          <div class="xai-section-header">
+            <h4 class="xai-label">👥 Riwayat Bimbingan Tugas Akhir / Skripsi</h4>
+            <span class="count-badge count-badge--green">{{ bimbinganList.length }} Bimbingan</span>
+          </div>
+          <ul v-if="bimbinganList.length" class="xai-list-group">
+            <li v-for="(bimbing, idx) in bimbinganList" :key="'b'+idx" class="xai-list-item">
+              <span class="item-num item-num--green">{{ idx + 1 }}</span>
+              <span class="item-text">{{ bimbing }}</span>
+            </li>
           </ul>
-          <p v-else class="xai-empty">Belum ada riwayat bimbingan.</p>
+          <p v-else class="xai-empty">Belum ada riwayat bimbingan yang terdata.</p>
+        </div>
+
+        <!-- 5. Riwayat Pengujian Mahasiswa -->
+        <div class="xai-section">
+          <div class="xai-section-header">
+            <h4 class="xai-label">⚖️ Riwayat Pengujian / Sidang Mahasiswa</h4>
+            <span class="count-badge count-badge--blue">{{ ujiList.length }} Pengujian</span>
+          </div>
+          <ul v-if="ujiList.length" class="xai-list-group">
+            <li v-for="(uji, idx) in ujiList" :key="'u'+idx" class="xai-list-item">
+              <span class="item-num item-num--blue">{{ idx + 1 }}</span>
+              <span class="item-text">{{ uji }}</span>
+            </li>
+          </ul>
+          <p v-else class="xai-empty">Belum ada riwayat pengujian yang terdata.</p>
         </div>
         
       </div>
@@ -83,24 +161,24 @@ const parseStringList = (str) => {
 <style scoped>
 .modal-overlay {
   position: fixed; inset: 0;
-  background: rgba(17, 17, 24, 0.4);
+  background: rgba(17, 17, 24, 0.45);
   backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
-  padding: 1.5rem; z-index: 50;
+  padding: 1.5rem; z-index: 200;
 }
 
 .modal-box {
   background: var(--bg);
   border-radius: var(--radius-xl);
   border: 1px solid var(--border);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-  width: 100%; max-width: 760px; max-height: 85vh;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+  width: 100%; max-width: 820px; max-height: 88vh;
   display: flex; flex-direction: column; overflow: hidden;
   animation: modal-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes modal-up {
-  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
@@ -110,8 +188,17 @@ const parseStringList = (str) => {
   display: flex; justify-content: space-between; align-items: flex-start;
   background: var(--bg);
 }
-.modal-title { font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 0 0 0.25rem; }
-.modal-subtitle { font-size: 0.875rem; font-weight: 600; color: var(--brand); margin: 0; }
+.modal-header-info { display: flex; flex-direction: column; gap: 0.35rem; }
+.modal-badges { display: flex; align-items: center; gap: 0.5rem; }
+.prodi-badge {
+  font-size: 0.72rem; font-weight: 700; color: var(--brand);
+  background: var(--brand-light); padding: 2px 8px; border-radius: var(--radius-sm);
+}
+.nidn-badge {
+  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
+  color: var(--text-muted); background: var(--bg-muted); padding: 2px 6px; border-radius: var(--radius-sm);
+}
+.modal-title { font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 0; }
 
 .modal-close-btn {
   background: var(--bg-muted);
@@ -127,17 +214,48 @@ const parseStringList = (str) => {
   padding: 2rem;
   overflow-y: auto;
   background: var(--bg-subtle);
-  display: flex; flex-direction: column; gap: 2rem;
+  display: flex; flex-direction: column; gap: 1.5rem;
 }
 
-.xai-section { display: flex; flex-direction: column; gap: 0.5rem; }
+.xai-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.xai-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.xai-card--brand {
+  background: #fcfaff;
+  border-color: #ddd6fe;
+}
+
 .xai-label {
-  font-size: 0.68rem; font-weight: 700; font-family: var(--font-mono);
-  text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);
+  font-size: 0.72rem; font-weight: 700; font-family: var(--font-mono);
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);
   margin: 0;
 }
-.xai-text { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; margin: 0; }
-.xai-empty { font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+.xai-sub-label {
+  font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.35rem;
+}
+.xai-text { font-size: 0.85rem; color: var(--text-primary); line-height: 1.5; margin: 0; }
+.xai-empty { font-size: 0.78rem; color: var(--text-muted); font-style: italic; margin: 0; }
+
+.xai-edu-list { display: flex; flex-direction: column; gap: 0.35rem; }
+.edu-chip {
+  font-size: 0.78rem; color: var(--text-secondary);
+  background: var(--bg-subtle); padding: 3px 8px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.xai-reasons-grid {
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
 
 .xai-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .xai-tag {
@@ -146,16 +264,58 @@ const parseStringList = (str) => {
 }
 .xai-tag--fuchsia { background: var(--fuchsia-bg); border-color: var(--fuchsia-border); color: var(--fuchsia); }
 .xai-tag--blue {
-  background: var(--blue); border-color: #1d4ed8; color: white;
-  transform: scale(1.02); display: flex; align-items: center; gap: 4px;
+  background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue);
+  display: flex; align-items: center; gap: 4px;
 }
-.xai-check { font-size: 0.6rem; }
+.xai-check { font-size: 0.65rem; }
 
-.xai-bullet-list {
-  margin: 0; padding-left: 1.2rem;
+.xai-section {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.xai-section-header {
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.count-badge {
+  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+  padding: 2px 8px; border-radius: 99px;
+}
+.count-badge--brand { background: var(--brand-light); color: var(--brand); }
+.count-badge--green { background: var(--green-bg); color: var(--green); }
+.count-badge--blue { background: var(--blue-bg); color: var(--blue); }
+
+.xai-list-group {
+  list-style: none; padding: 0; margin: 0;
   display: flex; flex-direction: column; gap: 0.5rem;
 }
-.xai-bullet-list li {
-  font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;
+.xai-list-item {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.item-num {
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--brand-light); color: var(--brand);
+  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
+  flex-shrink: 0; margin-top: 1px;
+}
+.item-num--green { background: var(--green-bg); color: var(--green); }
+.item-num--blue { background: var(--blue-bg); color: var(--blue); }
+
+.item-text {
+  font-size: 0.825rem; color: var(--text-primary); line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .xai-grid-2 { grid-template-columns: 1fr; }
+  .modal-header { padding: 1.25rem 1.5rem; }
+  .modal-body { padding: 1.25rem; }
 }
 </style>
