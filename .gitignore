@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Pytest / Testing
+.pytest_cache/
+.coverage
+htmlcov/
+storage_test/
+
+# Application Storage & Cache
+server/storage/cache/*
+!server/storage/cache/.gitkeep
+server/storage/data/*.json
+!server/storage/data/.gitkeep
+
+# Environment & Secrets (NEVER commit .env)
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Node / Frontend
+web/node_modules/
+web/dist/
+web/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
