@@ -424,7 +424,7 @@ onMounted(() => {
 .detail-modal-box {
   background: var(--bg); border-radius: var(--radius-xl);
   border: 1px solid var(--border); box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
-  width: 100%; max-width: 860px; max-height: 88vh;
+  width: 100%; max-width: 860px; max-height: 85vh; height: 85vh;
   display: flex; flex-direction: column; overflow: hidden;
   animation: modal-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -436,7 +436,7 @@ onMounted(() => {
 .detail-modal-header {
   padding: 1.5rem 2rem; border-bottom: 1px solid var(--border);
   display: flex; justify-content: space-between; align-items: flex-start;
-  background: var(--bg);
+  background: var(--bg); flex-shrink: 0;
 }
 .dm-badges { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.25rem; }
 .nidn-pill { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-muted); background: var(--bg-muted); padding: 2px 6px; border-radius: var(--radius-sm); }
@@ -452,7 +452,8 @@ onMounted(() => {
 
 .dm-tabs {
   display: flex; background: var(--bg-muted); border-bottom: 1px solid var(--border);
-  padding: 4px 1.5rem 0; gap: 4px; overflow-x: auto;
+  padding: 4px 1.5rem 0; gap: 4px; overflow-x: auto; flex-shrink: 0;
+  position: sticky; top: 0; z-index: 10;
 }
 .dm-tab-btn {
   padding: 0.65rem 1rem; font-size: 0.78rem; font-weight: 600;
@@ -467,8 +468,8 @@ onMounted(() => {
 }
 
 .detail-modal-body {
-  padding: 1.5rem 2rem; overflow-y: auto; background: var(--bg-subtle);
-  display: flex; flex-direction: column; gap: 1rem;
+  padding: 1.5rem 2rem; flex: 1; min-height: 0; overflow-y: auto;
+  background: var(--bg-subtle); display: flex; flex-direction: column; gap: 1rem;
 }
 
 .dm-list {

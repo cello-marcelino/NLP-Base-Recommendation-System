@@ -184,6 +184,7 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
   border-bottom: 1px solid var(--border);
   display: flex; justify-content: space-between; align-items: flex-start;
   background: var(--bg);
+  flex-shrink: 0;
 }
 .modal-header-info { display: flex; flex-direction: column; gap: 0.35rem; }
 .modal-badges { display: flex; align-items: center; gap: 0.5rem; }
@@ -210,6 +211,8 @@ const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
 .modal-body {
   padding: 2rem;
   overflow-y: auto;
+  flex: 1;
+  min-height: 0;
   background: var(--bg-subtle);
   display: flex; flex-direction: column; gap: 1.5rem;
 }
