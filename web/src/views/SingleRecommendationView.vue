@@ -3,13 +3,11 @@ import { ref } from 'vue'
 import { useRecommendationStore } from '../stores/recommendation'
 import RecommendationInputForm from '../components/recommendation/RecommendationInputForm.vue'
 import ProgressStepper from '../components/recommendation/ProgressStepper.vue'
-import PipelineLogAccordion from '../components/recommendation/PipelineLogAccordion.vue'
 import DosenCard from '../components/recommendation/DosenCard.vue'
 import XaiModal from '../components/recommendation/XaiModal.vue'
 
 const recStore = useRecommendationStore()
 const isXaiModalOpen = ref(false)
-const activeViewTab = ref('all') // 'all', 'results', 'pipeline'
 
 const openXai = (rec) => {
   recStore.selectedDosenXai = rec
@@ -23,141 +21,218 @@ const closeXai = () => {
 </script>
 
 <template>
-  <div class="sp-wrap">
-    <!-- Page header -->
+  <div class="single-page">
+    <!-- Header -->
     <div class="sp-header">
-      <span class="sp-badge">Live Tool</span>
-      <h1 class="sp-title">Single Recommendation</h1>
-      <p class="sp-lead">
-        Analisis satu topik penelitian secara real-time — lihat skor <strong>BM25</strong>, <strong>SBERT</strong>, dan <strong>Hybrid</strong> beserta Pipeline Log dan XAI Explanation.
-      </p>
+      <div class="sp-header__inner">
+        <span class="page-badge">Live Tool</span>
+        <h1 class="sp-title">Single Recommendation</h1>
+        <p class="sp-lead">
+          Analisis satu topik penelitian secara real-time — lihat skor <strong>BM25</strong>, <strong>SBERT</strong>, dan <strong>Hybrid</strong> beserta Pipeline Log dan XAI Explanation.
+        </p>
+      </div>
     </div>
 
-    <!-- Two-column layout -->
+    <!-- Body Layout -->
     <div class="sp-body">
       <!-- Left: Input Panel -->
       <aside class="sp-left">
         <RecommendationInputForm @submit="recStore.executeSingleRecommendation()" />
       </aside>
 
-      <!-- Right: Processing & Results Panel -->
+      <!-- Right: Results Panel -->
       <main class="sp-right">
-        <!-- Initial empty state -->
-        <div v-if="!recStore.isProcessing && recStore.recommendations.length === 0" class="sp-placeholder">
-          <div class="sp-ph-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+        <!-- Empty State -->
+        <div v-if="!recStore.isProcessing && recStore.recommendations.length === 0" class="sp-empty">
+          <div class="sp-empty__icon">
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
             </svg>
           </div>
-          <div class="sp-ph-title">Belum Ada Analisis Berjalan</div>
-          <div class="sp-ph-desc">Masukkan judul atau rencana penelitian pada formulir di sebelah kiri, lalu tekan tombol <strong>Analisis & Rekomendasikan</strong>.</div>
+          <p class="sp-empty__title">Panel Analisis AI</p>
+          <p class="sp-empty__sub">Isi data penelitian di sebelah kiri, lalu klik <em>Mulai Analisis</em>.</p>
         </div>
 
-        <!-- Section Navigation Segmented Control when Results Available -->
-        <div v-if="recStore.recommendations.length > 0" class="sp-nav-segment">
-          <button 
-            type="button" 
-            class="sp-segment-btn" 
-            :class="{ 'sp-segment-btn--active': activeViewTab === 'all' }"
-            @click="activeViewTab = 'all'"
-          >
-            🌟 Tampilan Lengkap
-          </button>
-          <button 
-            type="button" 
-            class="sp-segment-btn" 
-            :class="{ 'sp-segment-btn--active': activeViewTab === 'results' }"
-            @click="activeViewTab = 'results'"
-          >
-            🏆 Rekomendasi Dosen ({{ recStore.recommendations.length }})
-          </button>
-          <button 
-            type="button" 
-            class="sp-segment-btn" 
-            :class="{ 'sp-segment-btn--active': activeViewTab === 'pipeline' }"
-            @click="activeViewTab = 'pipeline'"
-          >
-            🔍 Rincian Pipeline NLP
-          </button>
-        </div>
+        <div v-else class="sp-results">
+          <!-- Pipeline Log section (Legacy Visual Style) -->
+          <div class="sp-card">
+            <div class="sp-section-label">Pipeline Log</div>
+            <ProgressStepper :steps="recStore.steps">
+              <!-- Step 0: Preprocessing -->
+              <template #step-0>
+                <div v-if="recStore.pipeline?.preprocessing" class="plog-body">
+                  <div class="plog-block">
+                    <div class="plog-block-label">Input Query</div>
+                    <code class="plog-code">{{ recStore.pipeline.preprocessing.raw_query }}</code>
+                  </div>
+                  <div class="plog-row">
+                    <div class="plog-block">
+                      <div class="plog-block-label plog-label--gray">🔡 Setelah Case Fold <span class="plog-count">{{ recStore.pipeline.preprocessing.after_case_fold?.length || 0 }} kata</span></div>
+                      <div class="plog-tags">
+                        <span v-for="t in recStore.pipeline.preprocessing.after_case_fold" :key="t" class="plog-tag plog-tag--gray">{{ t }}</span>
+                      </div>
+                    </div>
+                    <div class="plog-block">
+                      <div class="plog-block-label plog-label--red">🚫 Setelah Stopword <span class="plog-count">{{ recStore.pipeline.preprocessing.after_stopword?.length || 0 }} tersisa</span></div>
+                      <div class="plog-tags">
+                        <span v-for="t in recStore.pipeline.preprocessing.after_stopword" :key="t" class="plog-tag plog-tag--red">{{ t }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="recStore.pipeline.preprocessing.bigrams?.length > 0" class="plog-block">
+                    <div class="plog-block-label plog-label--blue">🔗 Bigram Terbentuk</div>
+                    <div class="plog-tags">
+                      <span v-for="t in recStore.pipeline.preprocessing.bigrams" :key="t" class="plog-tag plog-tag--blue">{{ t }}</span>
+                    </div>
+                  </div>
+                  <div class="plog-footer">Total token BM25: <strong>{{ recStore.pipeline.preprocessing.total_tokens }}</strong></div>
+                </div>
+                <div v-else class="plog-wait">Menunggu data...</div>
+              </template>
 
-        <!-- Processing Stepper Progress -->
-        <div v-if="recStore.isProcessing || (recStore.recommendations.length > 0 && activeViewTab !== 'results')" class="sp-stepper-container">
-          <ProgressStepper :steps="recStore.steps">
-            <template #step-0>
-              <div v-if="recStore.pipeline?.preprocessing" class="text-xs space-y-1">
-                <div><strong>Tokens:</strong> {{ recStore.pipeline.preprocessing.total_tokens }} token terdeteksi.</div>
-                <div class="text-gray-500 font-mono">{{ recStore.pipeline.preprocessing.final_tokens?.join(', ') }}</div>
-              </div>
-            </template>
-            <template #step-1>
-              <div v-if="recStore.pipeline?.ekspansi" class="text-xs">
-                <div><strong>Frasa ditemukan:</strong> {{ recStore.pipeline.ekspansi.num_frasa_ditemukan }}</div>
-              </div>
-            </template>
-            <template #step-2>
-              <div v-if="recStore.pipeline?.bm25" class="text-xs">
-                <div><strong>Kandidat lolos BM25:</strong> {{ recStore.pipeline.bm25.num_candidates }} dosen.</div>
-              </div>
-            </template>
-            <template #step-3>
-              <div v-if="recStore.pipeline?.sbert" class="text-xs">
-                <div><strong>SBERT dihitung:</strong> {{ recStore.pipeline.sbert.num_computed }} embeddings.</div>
-              </div>
-            </template>
-            <template #step-4>
-              <div v-if="recStore.pipeline?.hybrid" class="text-xs">
-                <div><strong>Mode:</strong> {{ recStore.pipeline.hybrid.mode }} (α: {{ recStore.pipeline.hybrid.alpha }}, β: {{ recStore.pipeline.hybrid.beta }})</div>
-              </div>
-            </template>
-          </ProgressStepper>
-        </div>
+              <!-- Step 1: Ekspansi -->
+              <template #step-1>
+                <div v-if="recStore.pipeline?.ekspansi" class="plog-body">
+                  <div v-if="recStore.pipeline.ekspansi.num_frasa_ditemukan > 0">
+                    <div class="plog-section-title">{{ recStore.pipeline.ekspansi.num_frasa_ditemukan }} frasa ditemukan dalam kamus</div>
+                    <div class="plog-expand-list">
+                      <div v-for="(sinonim, frasa) in recStore.pipeline.ekspansi.log" :key="frasa" class="plog-expand-row">
+                        <span class="plog-tag plog-tag--amber plog-tag--bold">{{ frasa }}</span>
+                        <span class="plog-arrow">→</span>
+                        <template v-for="s in sinonim.split(' ')" :key="s">
+                          <span class="plog-tag plog-tag--green">+ {{ s }}</span>
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="plog-empty-msg">
+                    <div class="plog-empty-icon">🔍</div>
+                    <p>Tidak ada frasa yang cocok dengan kamus ontologi.</p>
+                    <p class="plog-empty-sub">Query diproses tanpa ekspansi sinonim.</p>
+                  </div>
+                </div>
+                <div v-else class="plog-wait">Menunggu data...</div>
+              </template>
 
-        <!-- Recommendation Results Table -->
-        <div v-if="recStore.recommendations.length > 0 && (activeViewTab === 'all' || activeViewTab === 'results')" class="sp-results-card">
-          <div class="sp-results-header">
-            <div>
-              <h2 class="sp-results-title">Peringkat Rekomendasi Dosen</h2>
-              <p class="sp-results-subtitle">Klik baris dosen untuk melihat detail Explainable AI (XAI) & Riwayat.</p>
-            </div>
-            <div v-if="recStore.metadata" class="sp-results-meta">
-              <span class="sp-meta-tag">Top-{{ recStore.metadata.k_rank }}</span>
-              <span class="sp-meta-tag sp-meta-tag--brand">α: {{ recStore.metadata.alpha }} / β: {{ recStore.metadata.beta }}</span>
-            </div>
+              <!-- Step 2: BM25 -->
+              <template #step-2>
+                <div v-if="recStore.pipeline?.bm25" class="plog-body">
+                  <div class="plog-stats-row">
+                    <div class="plog-stat plog-stat--blue">
+                      <div class="plog-stat-val">{{ recStore.pipeline.bm25.num_candidates }}</div>
+                      <div class="plog-stat-lbl">dosen lolos filter</div>
+                    </div>
+                    <div class="plog-stat plog-stat--gray">
+                      <div class="plog-stat-val">{{ recStore.pipeline.bm25.num_total_dosen - recStore.pipeline.bm25.num_candidates }}</div>
+                      <div class="plog-stat-lbl">BM25 = 0 (difilter)</div>
+                    </div>
+                  </div>
+                  <div v-if="recStore.pipeline.bm25.top_candidates?.length > 0" class="plog-ranklist">
+                    <div class="plog-ranklist-header">Top Kandidat BM25</div>
+                    <div v-for="(c, i) in recStore.pipeline.bm25.top_candidates" :key="i" class="plog-rankrow">
+                      <span class="plog-rank-num">{{ i + 1 }}</span>
+                      <span class="plog-rank-name">{{ c.nama }}</span>
+                      <div class="plog-score-bar">
+                        <div class="plog-score-fill plog-score-fill--blue" :style="`width:${c.skor * 100}%`"></div>
+                      </div>
+                      <span class="plog-score-val plog-score-val--blue">{{ c.skor.toFixed(4) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="plog-wait">Menunggu data...</div>
+              </template>
+
+              <!-- Step 3: SBERT -->
+              <template #step-3>
+                <div v-if="recStore.pipeline?.sbert" class="plog-body">
+                  <div class="plog-block plog-block--fuchsia">
+                    <div class="plog-block-label plog-label--fuchsia">Teks Query yang Di-encode SBERT</div>
+                    <code class="plog-code plog-code--fuchsia">{{ recStore.pipeline.sbert.query_text || '-' }}</code>
+                  </div>
+                  <div class="plog-info-row">
+                    Cosine Similarity dihitung untuk <strong>{{ recStore.pipeline.sbert.num_computed }} dosen</strong> yang lolos BM25 filter.
+                  </div>
+                  <div v-if="recStore.pipeline.sbert.top_candidates?.length > 0" class="plog-ranklist">
+                    <div class="plog-ranklist-header">Top Kandidat SBERT</div>
+                    <div v-for="(c, i) in recStore.pipeline.sbert.top_candidates" :key="i" class="plog-rankrow">
+                      <span class="plog-rank-num">{{ i + 1 }}</span>
+                      <span class="plog-rank-name">{{ c.nama }}</span>
+                      <div class="plog-score-bar">
+                        <div class="plog-score-fill plog-score-fill--fuchsia" :style="`width:${c.skor * 100}%`"></div>
+                      </div>
+                      <span class="plog-score-val plog-score-val--fuchsia">{{ c.skor.toFixed(4) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="plog-wait">Menunggu data...</div>
+              </template>
+
+              <!-- Step 4: Hybrid -->
+              <template #step-4>
+                <div v-if="recStore.pipeline?.hybrid" class="plog-body">
+                  <div class="plog-stats-row plog-stats-row--3">
+                    <div class="plog-stat plog-stat--blue">
+                      <div class="plog-stat-val">{{ Math.round(recStore.pipeline.hybrid.alpha * 100) }}%</div>
+                      <div class="plog-stat-lbl">Bobot BM25 (α)</div>
+                    </div>
+                    <div class="plog-stat plog-stat--fuchsia">
+                      <div class="plog-stat-val">{{ Math.round(recStore.pipeline.hybrid.beta * 100) }}%</div>
+                      <div class="plog-stat-lbl">Bobot SBERT (β)</div>
+                    </div>
+                    <div class="plog-stat plog-stat--green">
+                      <div class="plog-stat-val">{{ recStore.pipeline.hybrid.num_results }}</div>
+                      <div class="plog-stat-lbl">Hasil Final</div>
+                    </div>
+                  </div>
+                  <div class="plog-formula">
+                    <span class="plog-formula-blue">{{ Math.round(recStore.pipeline.hybrid.alpha * 100) }}%</span> × BM25
+                    + <span class="plog-formula-fuchsia">{{ Math.round(recStore.pipeline.hybrid.beta * 100) }}%</span> × SBERT
+                    = <span class="plog-formula-brand">Hybrid Score</span>
+                  </div>
+                  <div class="plog-mode-badge" :class="recStore.pipeline.hybrid.mode === 'manual' ? 'plog-mode--manual' : (recStore.pipeline.hybrid.mode === 'keyword' ? 'plog-mode--blue' : 'plog-mode--fuchsia')">
+                    {{ recStore.pipeline.hybrid.mode === 'manual' ? '⚙️ Manual Mode' : (recStore.pipeline.hybrid.mode === 'keyword' ? '⌨️ Keyword Mode (BM25 dominan)' : '📄 Abstrak Mode (SBERT dominan)') }}
+                  </div>
+                </div>
+                <div v-else class="plog-wait">Menunggu data...</div>
+              </template>
+            </ProgressStepper>
           </div>
 
-          <div class="sp-table-wrap">
-            <table class="sp-table">
-              <thead>
-                <tr>
-                  <th style="width: 50px; text-align: center;">Rank</th>
-                  <th>Dosen & Keyword Irisan</th>
-                  <th>Program Studi</th>
-                  <th style="text-align: center;">BM25</th>
-                  <th style="text-align: center;">SBERT</th>
-                  <th style="text-align: center; width: 120px;">Hybrid</th>
-                </tr>
-              </thead>
-              <tbody>
-                <DosenCard
-                  v-for="(rec, idx) in recStore.recommendations"
-                  :key="idx"
-                  :index="idx"
-                  :dosen="rec.dosen"
-                  :scores="rec.scores"
-                  :xai="rec.xai"
-                  @click="openXai(rec)"
-                />
-              </tbody>
-            </table>
+          <!-- Results table -->
+          <div v-if="recStore.recommendations.length > 0" class="sp-card res-section">
+            <div class="res-header">
+              <div class="sp-section-label" style="margin:0">Hasil Rekomendasi · Top {{ recStore.metadata?.k_rank }}</div>
+              <div v-if="recStore.metadata" class="res-meta-badge">
+                α={{ Math.round(recStore.metadata.alpha * 100) }}% BM25 · β={{ Math.round(recStore.metadata.beta * 100) }}% SBERT
+              </div>
+            </div>
+            <div class="res-table-wrap">
+              <table class="res-table">
+                <thead>
+                  <tr>
+                    <th class="res-th res-th--center">#</th>
+                    <th class="res-th">Nama Dosen</th>
+                    <th class="res-th">Program Studi</th>
+                    <th class="res-th res-th--center res-th--blue">BM25</th>
+                    <th class="res-th res-th--center res-th--fuchsia">SBERT</th>
+                    <th class="res-th res-th--center res-th--brand">Hybrid</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <DosenCard
+                    v-for="(rec, index) in recStore.recommendations"
+                    :key="index"
+                    :index="index"
+                    :dosen="rec.dosen"
+                    :scores="rec.scores"
+                    :xai="rec.xai"
+                    @click="openXai(rec)"
+                  />
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-
-        <!-- Pipeline Log Accordion -->
-        <div v-if="recStore.pipeline && (activeViewTab === 'all' || activeViewTab === 'pipeline')" class="mt-6">
-          <PipelineLogAccordion :pipeline="recStore.pipeline" />
-        </div>
-
       </main>
     </div>
 
@@ -172,185 +247,204 @@ const closeXai = () => {
 </template>
 
 <style scoped>
-.sp-wrap {
-  padding: 2rem;
+.single-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* ─── Header ─────────────────────────── */
+.sp-header {
+  padding: 2.5rem 2.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sp-header__inner {
   max-width: 1400px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
 }
-
-.sp-header {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.sp-badge {
-  align-self: flex-start;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: #16a34a;
-  background: #dcfce7;
-  padding: 3px 8px;
-  border-radius: 99px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+.page-badge {
+  display: inline-block; font-size: 0.68rem; font-weight: 700;
+  font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--green); background: var(--green-bg); border: 1px solid var(--green-border);
+  padding: 2px 10px; border-radius: 99px; margin-bottom: 0.75rem;
 }
 .sp-title {
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin: 0;
+  font-size: 1.85rem; font-weight: 700; letter-spacing: -0.03em;
+  color: var(--text-primary); margin: 0 0 0.5rem;
 }
 .sp-lead {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin: 0;
-  line-height: 1.5;
+  font-size: 1rem; color: var(--text-secondary); line-height: 1.65; margin: 0;
+  max-width: 800px;
 }
 
+/* ─── Body ─────────────────────────── */
 .sp-body {
   display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 360px 1fr;
+  gap: 2rem;
+  padding: 2.5rem;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
   align-items: start;
+  box-sizing: border-box;
 }
 
 .sp-left {
   position: sticky;
-  top: 1.5rem;
+  top: 2rem;
 }
 
 .sp-right {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 2rem;
   min-width: 0;
 }
 
-/* Nav Segment */
-.sp-nav-segment {
-  display: flex;
-  background: var(--bg-muted);
-  padding: 4px;
-  border-radius: var(--radius-lg);
-  gap: 4px;
-  border: 1px solid var(--border);
-}
-.sp-segment-btn {
-  flex: 1;
-  padding: 0.5rem 0.85rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  background: transparent;
-  border: none;
-  border-radius: var(--radius);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.sp-segment-btn:hover {
-  color: var(--text-primary);
-}
-.sp-segment-btn--active {
+.sp-card {
   background: var(--bg);
-  color: var(--brand);
-  box-shadow: var(--shadow-sm);
-  font-weight: 700;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
-.sp-placeholder {
-  background: var(--bg);
-  border: 2px dashed var(--border-strong);
-  border-radius: var(--radius-xl);
-  padding: 4rem 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.sp-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 320px; border: 2px dashed var(--border-strong); border-radius: var(--radius-xl);
+  background: var(--bg-subtle); text-align: center; padding: 3rem 2rem;
+}
+.sp-empty__icon { width: 56px; height: 56px; color: var(--border-strong); margin-bottom: 1rem; }
+.sp-empty__icon svg { width: 100%; height: 100%; }
+.sp-empty__title { font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin: 0 0 0.35rem; }
+.sp-empty__sub { font-size: 0.825rem; color: var(--text-muted); margin: 0; }
+
+.sp-results { display: flex; flex-direction: column; gap: 1.25rem; }
+.sp-section-label {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 0.65rem;
+}
+
+/* ─── Pipeline Log content (Legacy Styling) ─────────────────────────── */
+.plog-body { display: flex; flex-direction: column; gap: 0.75rem; }
+.plog-wait { font-size: 0.8rem; color: var(--text-muted); padding: 0.25rem 0; }
+
+.plog-block { display: flex; flex-direction: column; gap: 0.4rem; }
+.plog-block--fuchsia { background: #fdf4ff; border: 1px solid #f0abfc; border-radius: var(--radius); padding: 0.65rem 0.85rem; }
+.plog-block-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+.plog-label--gray { color: #6b7280; }
+.plog-label--red { color: var(--red); }
+.plog-label--blue { color: var(--blue); }
+.plog-label--fuchsia { color: var(--fuchsia); }
+.plog-count { font-weight: 400; font-size: 0.65rem; color: var(--text-muted); }
+
+.plog-code {
+  font-family: var(--font-mono); font-size: 0.78rem;
+  background: var(--bg-muted); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 0.5rem 0.75rem;
+  word-break: break-all; line-height: 1.5; color: var(--text-primary);
+}
+.plog-code--fuchsia { background: white; border-color: #f0abfc; color: #7e22ce; }
+
+.plog-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+.plog-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.plog-tag { font-family: var(--font-mono); font-size: 0.7rem; padding: 2px 6px; border-radius: var(--radius-sm); border: 1px solid; }
+.plog-tag--gray { background: var(--bg-muted); border-color: var(--border); color: var(--text-secondary); }
+.plog-tag--red { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+.plog-tag--blue { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue); }
+.plog-tag--amber { background: var(--amber-bg); border-color: var(--amber-border); color: var(--amber); }
+.plog-tag--amber.plog-tag--bold { font-weight: 700; }
+.plog-tag--green { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+
+.plog-footer { font-size: 0.72rem; color: var(--text-muted); text-align: right; font-family: var(--font-mono); }
+.plog-footer strong { color: var(--brand); }
+
+.plog-section-title { font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+.plog-expand-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.plog-expand-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.75rem; }
+.plog-arrow { font-size: 0.8rem; color: var(--border-strong); }
+
+.plog-empty-msg { text-align: center; padding: 1rem; }
+.plog-empty-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.plog-empty-msg p { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.25rem; }
+.plog-empty-sub { font-size: 0.72rem !important; }
+.plog-info-row { font-size: 0.8rem; color: var(--text-secondary); background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.6rem 0.85rem; }
+.plog-info-row strong { color: var(--fuchsia); }
+
+.plog-stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+.plog-stats-row--3 { grid-template-columns: 1fr 1fr 1fr; }
+.plog-stat { border: 1px solid; border-radius: var(--radius); padding: 0.65rem; text-align: center; }
+.plog-stat--blue { background: var(--blue-bg); border-color: var(--blue-border); }
+.plog-stat--fuchsia { background: var(--fuchsia-bg); border-color: var(--fuchsia-border); }
+.plog-stat--gray { background: var(--bg-subtle); border-color: var(--border); }
+.plog-stat--green { background: var(--green-bg); border-color: var(--green-border); }
+.plog-stat-val { font-size: 1.25rem; font-weight: 800; }
+.plog-stat--blue .plog-stat-val { color: var(--blue); }
+.plog-stat--fuchsia .plog-stat-val { color: var(--fuchsia); }
+.plog-stat--gray .plog-stat-val { color: var(--text-muted); }
+.plog-stat--green .plog-stat-val { color: var(--green); }
+.plog-stat-lbl { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+
+.plog-ranklist { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.plog-ranklist-header { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); padding: 0.5rem 0.75rem; background: var(--bg-subtle); border-bottom: 1px solid var(--border); }
+.plog-rankrow { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); }
+.plog-rankrow:last-child { border-bottom: none; }
+.plog-rank-num { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); width: 14px; text-align: center; flex-shrink: 0; }
+.plog-rank-name { font-size: 0.82rem; font-weight: 500; color: var(--text-primary); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plog-score-bar { width: 64px; height: 5px; background: var(--bg-muted); border-radius: 99px; overflow: hidden; flex-shrink: 0; }
+.plog-score-fill { height: 100%; border-radius: 99px; }
+.plog-score-fill--blue { background: var(--blue); }
+.plog-score-fill--fuchsia { background: var(--fuchsia); }
+.plog-score-val { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; width: 46px; text-align: right; flex-shrink: 0; }
+.plog-score-val--blue { color: var(--blue); }
+.plog-score-val--fuchsia { color: var(--fuchsia); }
+
+.plog-formula {
+  font-family: var(--font-mono); font-size: 0.85rem;
+  background: #0f0f14; color: #e4e4f0;
+  border-radius: var(--radius); padding: 0.75rem 1rem;
   text-align: center;
-  gap: 0.75rem;
 }
-.sp-ph-icon {
-  width: 56px; height: 56px;
-  background: var(--bg-muted);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted);
-}
-.sp-ph-icon svg { width: 28px; height: 28px; }
-.sp-ph-title { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
-.sp-ph-desc { font-size: 0.85rem; color: var(--text-secondary); max-width: 420px; line-height: 1.5; }
+.plog-formula-blue { color: #60a5fa; font-weight: 700; }
+.plog-formula-fuchsia { color: #e879f9; font-weight: 700; }
+.plog-formula-brand { color: #a78bfa; font-weight: 700; }
 
-.sp-results-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
+.plog-mode-badge {
+  font-size: 0.8rem; font-weight: 600;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid; border-radius: var(--radius);
+  text-align: center;
 }
+.plog-mode--blue { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue); }
+.plog-mode--fuchsia { background: var(--fuchsia-bg); border-color: var(--fuchsia-border); color: var(--fuchsia); }
+.plog-mode--manual { background: var(--bg-muted); border-color: var(--border-strong); color: var(--text-primary); }
 
-.sp-results-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* ─── Results Table ─────────────────────────── */
+.res-section { margin-top: 0; }
+.res-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.res-meta-badge {
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
+  background: var(--brand-light); color: var(--brand);
+  border: 1px solid #c4b5fd; padding: 3px 10px; border-radius: 99px;
 }
-.sp-results-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
+.res-table-wrap { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.res-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.res-th {
+  background: var(--bg-subtle); border-bottom: 1px solid var(--border);
+  padding: 0.6rem 0.85rem;
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--text-muted); text-align: left;
+  white-space: nowrap;
 }
-.sp-results-subtitle {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  margin: 0.15rem 0 0;
-}
+.res-th--center { text-align: center; }
+.res-th--blue { color: var(--blue); }
+.res-th--fuchsia { color: var(--fuchsia); }
+.res-th--brand { color: var(--brand); }
 
-.sp-results-meta { display: flex; gap: 0.5rem; }
-.sp-meta-tag {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 2px 8px;
-  background: var(--bg-muted);
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-}
-.sp-meta-tag--brand {
-  background: var(--brand-light);
-  color: var(--brand);
-}
-
-.sp-table-wrap {
-  overflow-x: auto;
-}
-.sp-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-}
-.sp-table th {
-  padding: 0.75rem 0.75rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  background: var(--bg-subtle);
-  border-bottom: 1px solid var(--border);
-}
-
-@media (max-width: 1024px) {
-  .sp-body {
-    grid-template-columns: 1fr;
-  }
-  .sp-left {
-    position: static;
-  }
+@media (max-width: 900px) {
+  .sp-body { grid-template-columns: 1fr; padding: 1.5rem; }
+  .sp-header { padding: 1.5rem 1.5rem 1.25rem; }
 }
 </style>
