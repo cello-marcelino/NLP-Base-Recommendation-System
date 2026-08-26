@@ -54,9 +54,11 @@ siredo/
 SiReDo dilengkapi CLI mandiri untuk mempermudah operasional dan development:
 
 ```powershell
-python siredo serve                 # Menjalankan API server
+python siredo serve                 # Menjalankan API server (background by default)
+python siredo serve --foreground    # Menjalankan API server (foreground / blocking)
 python siredo reload                # Hot reload NLP cache pada server aktif
 python siredo shutdown              # Menghentikan server yang sedang aktif
+python siredo logs -f               # Memantau aliran file log secara live
 python siredo db:migrate            # Migrasi skema database relasional
 python siredo db:export             # Ekspor database ke file Excel (.xlsx)
 python siredo db:import             # Impor dataset Excel ke database relasional
