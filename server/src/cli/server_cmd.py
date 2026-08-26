@@ -17,11 +17,9 @@ def get_running_pid():
         try:
             with open(PID_FILE, 'r') as f:
                 pid = int(f.read().strip())
-            # Check if process is still running
             if is_pid_alive(pid):
                 return pid
             else:
-                # Stale PID file
                 os.remove(PID_FILE)
         except Exception:
             pass
@@ -30,7 +28,6 @@ def get_running_pid():
 def is_pid_alive(pid: int) -> bool:
     if os.name == 'nt':
         try:
-            # Query tasklist for PID on Windows
             output = subprocess.check_output(f'tasklist /FI "PID eq {pid}" /NH', shell=True).decode()
             return str(pid) in output
         except Exception:
@@ -54,40 +51,30 @@ def remove_pid():
         except Exception:
             pass
 
-def serve(host: str = None, port: int = None, debug: bool = None):
-    """Starts the SiReDo API server."""
-    host = host or Config.APP_HOST
-    port = port or Config.APP_PORT
-    debug = debug if debug is not None else Config.APP_DEBUG
-    
-    current_pid = get_running_pid()
-    if current_pid:
-        print(f"[ERROR] Server SiReDo sudah berjalan dengan PID {current_pid}.")
-        print("Gunakan 'python siredo reload' atau 'python siredo shutdown' terlebih dahulu.")
-        sys.exit(1)
-        
-    # Save PID
+def check_server_healthy(host: str, port: int) -> bool:
+    target_host = "127.0.0.1" if host in ("0.0.0.0", "") else host
+    url = f"http://{target_host}:{port}/health"
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=1) as res:
+            return res.status == 200
+    except Exception:
+        return False
+
+def _run_server_worker(host: str, port: int, debug: bool):
+    """Internal blocking worker that warms cache and runs Flask."""
     save_pid(os.getpid())
     
     from server.src.app import create_app
     from server.src.modules.system.cache_service import CacheService
     
-    print("=" * 60)
-    print(f" SiReDo Server v3.0.0")
-    print(f" Environment : {Config.APP_ENV}")
-    print(f" Database    : {Config.DB_DRIVER}")
-    print(f" Host & Port : http://{host}:{port}")
-    print(f" Process PID : {os.getpid()}")
-    print("=" * 60)
-    print("[INFO] Memanaskan NLP cache & embedding model...")
-    
-    # Initialize cache and models
+    # 1. Warm up in-memory cache and NLP models
     CacheService.get_instance().initialize_cache()
     
+    # 2. Build Flask App
     app = create_app(Config)
     
     def cleanup_handler(*args):
-        print("\n[INFO] Menerima sinyal stop, mematikan server...")
         remove_pid()
         sys.exit(0)
         
@@ -96,15 +83,105 @@ def serve(host: str = None, port: int = None, debug: bool = None):
         signal.signal(signal.SIGTERM, cleanup_handler)
         
     try:
-        print(f"[OK] Server aktif dan siap menerima request di http://{host}:{port}")
-        app.run(host=host, port=port, debug=debug, use_reloader=False)
+        app.run(host=host, port=port, debug=debug, use_reloader=False, threaded=True)
     finally:
         remove_pid()
+
+def serve(host: str = None, port: int = None, debug: bool = None, foreground: bool = False, is_worker: bool = False):
+    """Starts the SiReDo API server in background (default) or foreground."""
+    host = host or Config.APP_HOST
+    port = port or Config.APP_PORT
+    debug = debug if debug is not None else Config.APP_DEBUG
+    
+    # Check if already running
+    current_pid = get_running_pid()
+    if current_pid:
+        print(f"[ERROR] Server SiReDo sudah berjalan dengan PID {current_pid}.")
+        print("Gunakan 'python siredo reload' atau 'python siredo shutdown' terlebih dahulu.")
+        sys.exit(1)
+        
+    # If running directly as worker or in foreground mode
+    if is_worker or foreground:
+        if foreground:
+            print("=" * 60)
+            print(f" SiReDo Server v3.0.0 (Foreground Mode)")
+            print(f" Host & Port : http://{host}:{port}")
+            print(f" Process PID : {os.getpid()}")
+            print(f" Log File    : {Config.LOG_FILE}")
+            print("=" * 60)
+            print("[INFO] Tekan Ctrl+C untuk menghentikan server.")
+        _run_server_worker(host=host, port=port, debug=debug)
+        return
+
+    # Background / Daemon Launcher mode
+    print(f"[INFO] Memulai server SiReDo di background (warming up NLP cache)...")
+    
+    python_exe = sys.executable
+    script_path = os.path.abspath(os.path.join(Config.ROOT_DIR, 'siredo'))
+    
+    cmd = [
+        python_exe,
+        script_path,
+        "serve",
+        "--host", host,
+        "--port", str(port),
+        "--worker"
+    ]
+    if debug:
+        cmd.append("--debug")
+        
+    os.makedirs(Config.LOGS_DIR, exist_ok=True)
+    
+    if os.name == 'nt':
+        # Windows detached process flags
+        DETACHED_PROCESS = 0x00000008
+        CREATE_NEW_PROCESS_GROUP = 0x00000200
+        proc = subprocess.Popen(
+            cmd,
+            creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
+            close_fds=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL
+        )
+    else:
+        # Unix detached process
+        proc = subprocess.Popen(
+            cmd,
+            start_new_session=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL
+        )
+        
+    # Wait until health check responds OK (or timeout 60s)
+    started = False
+    for _ in range(60):
+        time.sleep(0.5)
+        pid = get_running_pid()
+        if pid and check_server_healthy(host, port):
+            started = True
+            break
+            
+    if started:
+        pid = get_running_pid()
+        print("=" * 60)
+        print(f"[OK] Server SiReDo berhasil berjalan di background!")
+        print(f"     URL         : http://{host}:{port}")
+        print(f"     Process PID : {pid}")
+        print(f"     Log File    : {Config.LOG_FILE}")
+        print("=" * 60)
+        print("Terminal siap digunakan.")
+        print("- Pantau log live : python siredo logs -f")
+        print("- Hentikan server : python siredo shutdown")
+    else:
+        print("[WARN] Server dimulai di background. Sedang menyelesaikan warm-up model.")
+        print("       Periksa status dengan: python siredo logs")
 
 def reload(host: str = None, port: int = None):
     """Hot-reloads configuration and caches on running server."""
     host = host or Config.APP_HOST
-    if host == '0.0.0.0':
+    if host in ('0.0.0.0', ''):
         host = '127.0.0.1'
     port = port or Config.APP_PORT
     
@@ -117,7 +194,7 @@ def reload(host: str = None, port: int = None):
     print(f"[INFO] Mengirim sinyal reload ke {url}...")
     req = urllib.request.Request(url, data=b"{}", headers=headers, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=10) as res:
+        with urllib.request.urlopen(req, timeout=15) as res:
             res_body = res.read().decode('utf-8')
             data = json.loads(res_body)
             print("[OK] " + data.get("message", "Reload berhasil diselesaikan."))

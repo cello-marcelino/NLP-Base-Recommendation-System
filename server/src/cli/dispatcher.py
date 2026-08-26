@@ -13,7 +13,8 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Contoh Penggunaan:
-  python siredo serve                 Menjalankan API server SiReDo
+  python siredo serve                 Menjalankan API server di background (terminal langsung bebas)
+  python siredo serve --foreground    Menjalankan API server di foreground (blocking)
   python siredo serve --port 8000     Menjalankan API server pada port 8000
   python siredo reload                Hot reload NLP cache pada server aktif
   python siredo shutdown              Mematikan proses server yang sedang aktif
@@ -31,10 +32,12 @@ Contoh Penggunaan:
     subparsers = parser.add_subparsers(dest="command", help="Perintah yang tersedia:")
     
     # 1. serve
-    p_serve = subparsers.add_parser("serve", help="Menjalankan server backend SiReDo")
+    p_serve = subparsers.add_parser("serve", help="Menjalankan server backend SiReDo (background by default)")
     p_serve.add_argument("--host", type=str, default=None, help="Host address (default dari .env/0.0.0.0)")
     p_serve.add_argument("--port", type=int, default=None, help="Port server (default dari .env/5000)")
     p_serve.add_argument("--debug", action="store_true", default=None, help="Aktifkan debug mode")
+    p_serve.add_argument("--foreground", "--fg", action="store_true", help="Jalankan di foreground (blocking mode)")
+    p_serve.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     
     # 2. reload
     p_reload = subparsers.add_parser("reload", help="Memuat ulang konfigurasi & NLP cache pada server aktif")
@@ -86,7 +89,7 @@ def main():
     args = parser.parse_args()
     
     if args.command == "serve":
-        serve(host=args.host, port=args.port, debug=args.debug)
+        serve(host=args.host, port=args.port, debug=args.debug, foreground=args.foreground, is_worker=args.worker)
     elif args.command == "reload":
         reload(host=args.host, port=args.port)
     elif args.command == "shutdown":
