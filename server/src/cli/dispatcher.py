@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from server.src.cli.server_cmd import serve, reload, shutdown
-from server.src.cli.db_cmd import db_migrate, db_export, db_import
+from server.src.cli.db_cmd import db_migrate, db_export, db_import, db_drop, db_truncate
 from server.src.cli.cache_cmd import cache_clear
 
 def build_parser() -> argparse.ArgumentParser:
@@ -18,8 +18,9 @@ Contoh Penggunaan:
   python siredo shutdown              Mematikan proses server yang sedang aktif
   python siredo db:migrate            Menjalankan migrasi skema database
   python siredo db:export             Mengekspor seluruh tabel database ke Excel
-  python siredo db:export --format json Mengekspor tabel database ke JSON
   python siredo db:import             Mengimpor dataset Excel ke database
+  python siredo db:truncate           Mengosongkan seluruh isi data tabel database
+  python siredo db:drop               Menghapus seluruh database
   python siredo cache:clear           Membersihkan cache embedding di disk
         """
     )
@@ -52,7 +53,15 @@ Contoh Penggunaan:
     p_import = subparsers.add_parser("db:import", help="Mengimpor dataset Excel master ke database relasional")
     p_import.add_argument("-f", "--file", type=str, default=None, help="Path file Excel dataset sumber")
     
-    # 7. cache:clear
+    # 7. db:truncate / db:empty
+    p_trunc = subparsers.add_parser("db:truncate", aliases=["db:empty"], help="Mengosongkan seluruh data tabel database")
+    p_trunc.add_argument("-f", "--force", action="store_true", help="Lewati prompt konfirmasi")
+
+    # 8. db:drop
+    p_drop = subparsers.add_parser("db:drop", help="Menghapus seluruh database")
+    p_drop.add_argument("-f", "--force", action="store_true", help="Lewati prompt konfirmasi")
+
+    # 9. cache:clear
     subparsers.add_parser("cache:clear", help="Membersihkan file cache embedding SBERT/KeyBERT di disk")
     
     return parser
@@ -79,6 +88,10 @@ def main():
         db_export(output_path=args.output, export_format=args.format)
     elif args.command == "db:import":
         db_import(file_path=args.file)
+    elif args.command in ("db:truncate", "db:empty"):
+        db_truncate(force=args.force)
+    elif args.command == "db:drop":
+        db_drop(force=args.force)
     elif args.command == "cache:clear":
         cache_clear()
     else:
