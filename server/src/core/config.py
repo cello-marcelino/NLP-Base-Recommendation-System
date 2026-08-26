@@ -18,7 +18,12 @@ class Config:
     STORAGE_DIR = os.path.join(BASE_DIR, 'storage')
     CACHE_DIR = os.path.join(STORAGE_DIR, 'cache')
     DATA_DIR = os.path.join(STORAGE_DIR, 'data')
+    LOGS_DIR = os.path.join(STORAGE_DIR, 'logs')
     DATASET_DIR = os.path.join(BASE_DIR, 'dataset')
+    
+    # Logging Configuration
+    LOG_FILE = os.getenv('LOG_FILE', os.path.join(LOGS_DIR, 'siredo.log'))
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
     
     # Application settings
     APP_NAME = os.getenv('APP_NAME', 'SiReDo')

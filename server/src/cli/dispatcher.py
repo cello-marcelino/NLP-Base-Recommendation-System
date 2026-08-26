@@ -4,6 +4,7 @@ import sys
 from server.src.cli.server_cmd import serve, reload, shutdown
 from server.src.cli.db_cmd import db_migrate, db_export, db_import, db_drop, db_truncate
 from server.src.cli.cache_cmd import cache_clear
+from server.src.cli.log_cmd import show_logs
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
@@ -16,6 +17,8 @@ Contoh Penggunaan:
   python siredo serve --port 8000     Menjalankan API server pada port 8000
   python siredo reload                Hot reload NLP cache pada server aktif
   python siredo shutdown              Mematikan proses server yang sedang aktif
+  python siredo logs -f               Memantau stream log server secara real-time
+  python siredo logs -n 50            Melihat 50 baris log terakhir
   python siredo db:migrate            Menjalankan migrasi skema database
   python siredo db:export             Mengekspor seluruh tabel database ke Excel
   python siredo db:import             Mengimpor dataset Excel ke database
@@ -40,28 +43,34 @@ Contoh Penggunaan:
     
     # 3. shutdown
     subparsers.add_parser("shutdown", help="Menghentikan proses server SiReDo yang sedang berjalan")
+
+    # 4. logs
+    p_logs = subparsers.add_parser("logs", help="Menampilkan atau memantau file log real-time server")
+    p_logs.add_argument("-f", "--follow", action="store_true", help="Memantau log secara real-time (live tail)")
+    p_logs.add_argument("-n", "--lines", type=int, default=30, help="Jumlah baris terakhir yang ditampilkan (default: 30)")
+    p_logs.add_argument("--clear", action="store_true", help="Membersihkan isi file log")
     
-    # 4. db:migrate
+    # 5. db:migrate
     subparsers.add_parser("db:migrate", help="Menjalankan migrasi DDL skema database (SQLite/MySQL)")
     
-    # 5. db:export
+    # 6. db:export
     p_export = subparsers.add_parser("db:export", help="Mengekspor seluruh data database ke Excel/JSON")
     p_export.add_argument("-o", "--output", type=str, default=None, help="Path file output tujuan")
     p_export.add_argument("-f", "--format", type=str, choices=["xlsx", "json"], default="xlsx", help="Format ekspor (default: xlsx)")
     
-    # 6. db:import
+    # 7. db:import
     p_import = subparsers.add_parser("db:import", help="Mengimpor dataset Excel master ke database relasional")
     p_import.add_argument("-f", "--file", type=str, default=None, help="Path file Excel dataset sumber")
     
-    # 7. db:truncate / db:empty
+    # 8. db:truncate / db:empty
     p_trunc = subparsers.add_parser("db:truncate", aliases=["db:empty"], help="Mengosongkan seluruh data tabel database")
     p_trunc.add_argument("-f", "--force", action="store_true", help="Lewati prompt konfirmasi")
 
-    # 8. db:drop
+    # 9. db:drop
     p_drop = subparsers.add_parser("db:drop", help="Menghapus seluruh database")
     p_drop.add_argument("-f", "--force", action="store_true", help="Lewati prompt konfirmasi")
 
-    # 9. cache:clear
+    # 10. cache:clear
     subparsers.add_parser("cache:clear", help="Membersihkan file cache embedding SBERT/KeyBERT di disk")
     
     return parser
@@ -82,6 +91,8 @@ def main():
         reload(host=args.host, port=args.port)
     elif args.command == "shutdown":
         shutdown()
+    elif args.command == "logs":
+        show_logs(lines=args.lines, follow=args.follow, clear=args.clear)
     elif args.command == "db:migrate":
         db_migrate()
     elif args.command == "db:export":

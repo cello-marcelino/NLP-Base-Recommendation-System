@@ -1,6 +1,6 @@
 # Dokumentasi SiReDo CLI Framework
 
-**SiReDo CLI** adalah antarmuka baris perintah (*Command Line Interface*) untuk mengelola siklus hidup server, operasi database relasional, ekspor/impor data, dan manajemen cache NLP pada sistem SiReDo.
+**SiReDo CLI** adalah antarmuka baris perintah (*Command Line Interface*) untuk mengelola siklus hidup server, operasi database relasional, ekspor/impor data, pembersihan cache NLP, dan pemantauan log real-time pada sistem SiReDo.
 
 ---
 
@@ -24,7 +24,7 @@ python siredo --help
 ### A. Manajemen Siklus Hidup Server
 
 #### `serve`
-Menjalankan API server backend SiReDo. Perintah ini otomatis melakukan *warm-up* cache memori & model Sentence-BERT/KeyBERT sebelum menerima *traffic*, serta mencatat Process ID (PID) ke `server/storage/data/siredo.pid`.
+Menjalankan API server backend SiReDo. Perintah ini otomatis melakukan *warm-up* cache memori & model Sentence-BERT/KeyBERT sebelum menerima *traffic*, serta mencatat Process ID (PID) ke `server/storage/data/siredo.pid`. Output terminal dijaga tetap bersih, sedangkan seluruh log request dicatat secara *real-time* ke `server/storage/logs/siredo.log`.
 
 ```powershell
 # Menjalankan server default (host: 0.0.0.0, port: 5000 dari .env)
@@ -56,7 +56,28 @@ python siredo shutdown
 
 ---
 
-### B. Operasi Database
+### B. Pemantauan Log Real-Time
+
+#### `logs`
+Menampilkan isi file log terdedikasi (`server/storage/logs/siredo.log`) atau memantau aliran log secara langsung (*live tailing*).
+
+```powershell
+# Melihat 30 baris log terakhir (default)
+python siredo logs
+
+# Melihat 100 baris log terakhir
+python siredo logs -n 100
+
+# Memantau aliran log secara real-time (live stream / tail -f)
+python siredo logs -f
+
+# Membersihkan isi file log
+python siredo logs --clear
+```
+
+---
+
+### C. Operasi Database
 
 #### `db:migrate`
 Menjalankan skrip migrasi DDL (*Data Definition Language*) untuk membuat database (jika belum ada) beserta seluruh tabel relasional (`dosen`, `publikasi`, `riwayat_bimbingan`, `riwayat_pengujian`), indeks, dan konstrain foreign key.
@@ -115,7 +136,7 @@ python siredo db:drop --force
 
 ---
 
-### C. Pembersihan Cache
+### D. Pembersihan Cache
 
 #### `cache:clear`
 Membersihkan file cache hasil pra-proses embedding Sentence-BERT (`.npy`) dan ekstraksi topik KeyBERT (`.json`) di direktori `server/storage/cache/`.
@@ -140,17 +161,14 @@ python siredo db:import
 python siredo serve
 ```
 
-### Skenario Reset & Perbaruan Data
+### Skenario Pemantauan Log & Reset Data
 ```powershell
-# 1. Bersihkan cache embedding lama
+# Buka terminal kedua untuk live monitoring
+python siredo logs -f
+
+# Di terminal pertama jika ingin melakukan reset data
 python siredo cache:clear
-
-# 2. Kosongkan database
 python siredo db:truncate --force
-
-# 3. Impor data terbaru
 python siredo db:import
-
-# 4. Reload server aktif
 python siredo reload
 ```

@@ -24,6 +24,8 @@ server/storage/data/*.sqlite*
 server/storage/data/*.pid
 server/storage/data/*.xlsx
 !server/storage/data/.gitkeep
+server/storage/logs/*
+!server/storage/logs/.gitkeep
 
 # Environment & Secrets (NEVER commit .env)
 .env
