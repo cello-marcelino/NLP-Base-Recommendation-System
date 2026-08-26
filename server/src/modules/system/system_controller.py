@@ -48,3 +48,15 @@ class SystemController:
             
         updated = ConfigService.update_config(data)
         return ResponseFormatter.success(data=updated, message="Konfigurasi sistem berhasil diperbarui")
+
+    @staticmethod
+    def reload_system():
+        cache = CacheService.get_instance()
+        cache.initialize_cache(force_refresh=True)
+        return ResponseFormatter.success(
+            data={
+                "cache_ready": cache.is_ready,
+                "total_dosen": len(cache.dosen_list)
+            },
+            message="Sistem dan cache berhasil dimuat ulang (reloaded)"
+        )

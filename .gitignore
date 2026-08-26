@@ -21,6 +21,8 @@ server/storage/cache/*
 server/storage/data/*.json
 server/storage/data/*.db
 server/storage/data/*.sqlite*
+server/storage/data/*.pid
+server/storage/data/*.xlsx
 !server/storage/data/.gitkeep
 
 # Environment & Secrets (NEVER commit .env)

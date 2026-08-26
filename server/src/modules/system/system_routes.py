@@ -26,3 +26,9 @@ def get_config():
 @require_admin_key
 def update_config():
     return SystemController.update_config()
+
+# System reload endpoint
+@system_bp.route('/system/reload', methods=['POST'])
+@require_admin_key
+def reload_system():
+    return SystemController.reload_system()
