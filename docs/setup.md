@@ -3,7 +3,7 @@
 ## 1. Kebutuhan Sistem
 - **Python**: 3.10 atau 3.11
 - **Node.js**: 18+ atau 20+
-- **MySQL** (Opsional, otomatis fallback ke file Excel jika MySQL tidak aktif)
+- **Database**: SQLite (default, zero-setup) atau MySQL (opsional via `.env`)
 - **RAM**: Minimal 4GB (direkomendasikan 8GB untuk cache model SBERT & KeyBERT)
 
 ---
@@ -25,13 +25,21 @@
    ```bash
    pip install -r requirements.txt
    ```
-4. Salin file environment:
+4. Salin file environment di root proyek:
    ```bash
+   cd ..
    copy .env.example .env
    ```
-5. Jalankan server:
+5. Inisialisasi database dan jalankan server via SiReDo CLI:
    ```bash
-   python run.py
+   # Migrasi skema database
+   python siredo db:migrate
+
+   # Impor data master profil dosen
+   python siredo db:import
+
+   # Jalankan server
+   python siredo serve
    ```
 
 ---
@@ -53,3 +61,10 @@
    ```bash
    npm run build
    ```
+
+---
+
+## 4. Dokumentasi Lanjutan
+- [Dokumentasi SiReDo CLI](cli.md)
+- [Spesifikasi Kontrak REST API](api.md)
+- [Arsitektur & Desain Sistem](architecture.md)
