@@ -117,6 +117,11 @@ def serve(host: str = None, port: int = None, debug: bool = None, foreground: bo
     print(f"[INFO] Memulai server SiReDo di background (warming up NLP cache)...")
     
     python_exe = sys.executable
+    if os.name == 'nt':
+        pythonw = os.path.join(os.path.dirname(python_exe), 'pythonw.exe')
+        if os.path.exists(pythonw):
+            python_exe = pythonw
+            
     script_path = os.path.abspath(os.path.join(Config.ROOT_DIR, 'siredo'))
     
     cmd = [
@@ -133,12 +138,11 @@ def serve(host: str = None, port: int = None, debug: bool = None, foreground: bo
     os.makedirs(Config.LOGS_DIR, exist_ok=True)
     
     if os.name == 'nt':
-        # Windows detached process flags
-        DETACHED_PROCESS = 0x00000008
-        CREATE_NEW_PROCESS_GROUP = 0x00000200
+        # CREATE_NO_WINDOW prevents Windows from opening any new terminal/console window
+        CREATE_NO_WINDOW = 0x08000000
         proc = subprocess.Popen(
             cmd,
-            creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
+            creationflags=CREATE_NO_WINDOW,
             close_fds=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
