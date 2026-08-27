@@ -15,6 +15,7 @@ class Config:
     # Base paths
     ROOT_DIR = ROOT_DIR
     BASE_DIR = BASE_DIR
+    DATABASE_DIR = os.path.join(BASE_DIR, 'database')
     STORAGE_DIR = os.path.join(BASE_DIR, 'storage')
     CACHE_DIR = os.path.join(STORAGE_DIR, 'cache')
     DATA_DIR = os.path.join(STORAGE_DIR, 'data')
@@ -44,7 +45,16 @@ class Config:
     
     # Database Configuration (Driver: 'sqlite' | 'mysql')
     DB_DRIVER = os.getenv('DB_DRIVER', 'sqlite').lower().strip()
-    DB_SQLITE_PATH = os.getenv('DB_SQLITE_PATH', os.path.join(DATA_DIR, 'siredo.db'))
+    
+    # SQLite file located in server/database/siredo.db
+    _raw_sqlite = os.getenv('DB_SQLITE_PATH', os.path.join(DATABASE_DIR, 'siredo.db'))
+    if not os.path.isabs(_raw_sqlite):
+        if _raw_sqlite.startswith('server/'):
+            DB_SQLITE_PATH = os.path.abspath(os.path.join(ROOT_DIR, _raw_sqlite))
+        else:
+            DB_SQLITE_PATH = os.path.abspath(os.path.join(BASE_DIR, _raw_sqlite))
+    else:
+        DB_SQLITE_PATH = _raw_sqlite
     
     # MySQL Configuration (Used if DB_DRIVER=mysql)
     DB_HOST = os.getenv('DB_HOST', 'localhost')
@@ -60,7 +70,6 @@ class Config:
     AI_PROVIDER = os.getenv('AI_PROVIDER', 'openai')
     AI_API_KEY = os.getenv('AI_API_KEY', '')
     AI_MODEL = os.getenv('AI_MODEL', 'gpt-4o-mini')
-
     
     # Cache & Storage
     CACHE_ENABLED = os.getenv('CACHE_ENABLED', 'true').lower() in ('true', '1', 't', 'yes')

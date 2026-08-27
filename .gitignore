@@ -22,7 +22,11 @@ server/storage/data/*.json
 server/storage/data/*.db
 server/storage/data/*.sqlite*
 server/storage/data/*.pid
+server/database/*.db
+server/database/*.sqlite*
+server/database/*.sqlite3
 server/storage/data/*.xlsx
+
 !server/storage/data/dataset_profiles_terintegrasi.xlsx
 !server/storage/data/.gitkeep
 server/storage/logs/*

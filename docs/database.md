@@ -171,6 +171,7 @@ Pada proses pembacaan seluruh data dosen (`SQLDosenRepository.get_all()`), siste
 ## 6. Dukungan Dual-Driver (SQLite & MySQL)
 
 Sistem SiReDo mendukung dua driver database relasional yang dapat diganti sewaktu-waktu melalui variabel environment `DB_DRIVER` pada file `.env`:
-- **SQLite** (`DB_DRIVER=sqlite`): Zero-setup, disimpan di `server/storage/data/siredo.db`. Cocok untuk development lokal dan pengujian.
+- **SQLite** (`DB_DRIVER=sqlite`): Zero-setup, disimpan di `server/database/siredo.db`. Cocok untuk development lokal dan pengujian.
 - **MySQL** (`DB_DRIVER=mysql`): Menghubungkan ke MySQL server (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE`).
+
 - **Resilience Fallback**: Jika konfigurasi diatur ke MySQL namun server MySQL sedang tidak aktif, sistem secara otomatis mengalihkan koneksi ke SQLite lokal agar server tetap dapat beroperasi normal.
