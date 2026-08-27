@@ -1,15 +1,79 @@
 import argparse
 import sys
+import re
+import difflib
 
 from server.src.cli.server_cmd import serve, reload, shutdown
 from server.src.cli.db_cmd import db_migrate, db_seed, db_export, db_import, db_drop, db_truncate
 from server.src.cli.cache_cmd import cache_clear
 from server.src.cli.log_cmd import show_logs
 
+KNOWN_COMMANDS = [
+    "serve", "reload", "shutdown", "logs", 
+    "db:migrate", "db:seed", "db:export", "db:import", 
+    "db:truncate", "db:empty", "db:drop", "cache:clear"
+]
+
+class SiReDoArgumentParser(argparse.ArgumentParser):
+    """Custom parser with formatted error presentation and intelligent typo suggestions."""
+    
+    def error(self, message):
+        clean_msg = message
+        cmd_suggestion = None
+        
+        # 1. Handle invalid flag option choices (e.g., --device gpu, --format txt)
+        if "invalid choice:" in message and ("argument --" in message or "argument -" in message):
+            match = re.search(r"argument ([^:]+): invalid choice: '([^']+)' \(choose from ([^\)]+)\)", message)
+            if match:
+                opt, val, choices = match.groups()
+                clean_msg = f"Nilai '{val}' untuk opsi {opt} tidak valid.\nPilihan yang tersedia: {choices}."
+            else:
+                clean_msg = message
+                
+        # 2. Handle invalid subcommands / typos (e.g., sreve, db:migrat)
+        elif "invalid choice:" in message:
+            match = re.search(r"invalid choice: '([^']+)'", message)
+            if match:
+                bad_cmd = match.group(1)
+                clean_msg = f"Perintah '{bad_cmd}' tidak dikenali."
+                matches = difflib.get_close_matches(bad_cmd, KNOWN_COMMANDS, n=2, cutoff=0.5)
+                if matches:
+                    cmd_suggestion = " atau ".join([f"'{m}'" for m in matches])
+                    
+        # 3. Handle type errors (e.g., --port abc, --lines xyz)
+        elif "invalid int value:" in message:
+            match = re.search(r"argument ([^:]+): invalid int value: '([^']+)'", message)
+            if match:
+                opt, val = match.groups()
+                clean_msg = f"Nilai untuk opsi {opt} harus berupa angka (integer), bukan: '{val}'."
+                
+        # 4. Handle unrecognized arguments / extra flags
+        elif "unrecognized arguments:" in message:
+            match = re.search(r"unrecognized arguments: (.+)", message)
+            if match:
+                clean_msg = f"Opsi atau argumen tambahan tidak dikenali: {match.group(1)}."
+                
+        # 5. Handle missing arguments
+        elif "the following arguments are required:" in message:
+            match = re.search(r"the following arguments are required: (.+)", message)
+            if match:
+                clean_msg = f"Argumen wajib belum disertakan: {match.group(1)}."
+                
+        print("=" * 60)
+        print(f"[ERROR] Permintaan CLI Tidak Sesuai:")
+        print(f"        {clean_msg}")
+        
+        if cmd_suggestion:
+            print(f"\n[SARAN] Apakah maksud Anda: {cmd_suggestion}?")
+            
+        print("=" * 60)
+        print("Gunakan 'python siredo --help' untuk melihat panduan dan daftar perintah yang valid.\n")
+        sys.exit(2)
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
+    parser = SiReDoArgumentParser(
         prog="python siredo",
-        description="SiReDo CLI Framework - Manajemen server, database, dan utilitas sistem.",
+        description="SiReDo CLI Framework — Manajemen server, database, cache, dan utilitas sistem.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Contoh Penggunaan:
@@ -31,21 +95,25 @@ Contoh Penggunaan:
         """
     )
     
-    subparsers = parser.add_subparsers(dest="command", help="Perintah yang tersedia:")
+    subparsers = parser.add_subparsers(
+        dest="command",
+        parser_class=SiReDoArgumentParser,
+        help="Perintah yang tersedia:"
+    )
     
     # 1. serve
     p_serve = subparsers.add_parser("serve", help="Menjalankan server backend SiReDo (background by default)")
-    p_serve.add_argument("--host", type=str, default=None, help="Host address (default dari .env/0.0.0.0)")
-    p_serve.add_argument("--port", type=int, default=None, help="Port server (default dari .env/5000)")
+    p_serve.add_argument("--host", type=str, default=None, help="Host address (default: dari .env / 0.0.0.0)")
+    p_serve.add_argument("--port", type=int, default=None, help="Port server (default: dari .env / 5000)")
     p_serve.add_argument("--device", type=str, choices=["cpu", "cuda", "auto"], default=None, help="Target perangkat komputasi AI/NLP (default: cpu)")
-    p_serve.add_argument("--debug", action="store_true", default=None, help="Aktifkan debug mode")
+    p_serve.add_argument("--debug", action="store_true", default=None, help="Aktifkan mode debug")
     p_serve.add_argument("--foreground", "--fg", action="store_true", help="Jalankan di foreground (blocking mode)")
     p_serve.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     
     # 2. reload
     p_reload = subparsers.add_parser("reload", help="Memuat ulang konfigurasi & NLP cache pada server aktif")
-    p_reload.add_argument("--host", type=str, default=None, help="Host server target (default 127.0.0.1)")
-    p_reload.add_argument("--port", type=int, default=None, help="Port server target (default 5000)")
+    p_reload.add_argument("--host", type=str, default=None, help="Host server target (default: 127.0.0.1)")
+    p_reload.add_argument("--port", type=int, default=None, help="Port server target (default: 5000)")
     
     # 3. shutdown
     subparsers.add_parser("shutdown", help="Menghentikan proses server SiReDo yang sedang berjalan")
@@ -86,35 +154,49 @@ Contoh Penggunaan:
     return parser
 
 def main():
-    parser = build_parser()
-    
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(0)
+    try:
+        parser = build_parser()
         
-    args = parser.parse_args()
-    
-    if args.command == "serve":
-        serve(host=args.host, port=args.port, debug=args.debug, foreground=args.foreground, is_worker=args.worker, device=args.device)
-    elif args.command == "reload":
-        reload(host=args.host, port=args.port)
-    elif args.command == "shutdown":
-        shutdown()
-    elif args.command == "logs":
-        show_logs(lines=args.lines, follow=args.follow, clear=args.clear)
-    elif args.command == "db:migrate":
-        db_migrate()
-    elif args.command == "db:seed":
-        db_seed()
-    elif args.command == "db:export":
-        db_export(output_path=args.output, export_format=args.format)
-    elif args.command == "db:import":
-        db_import(file_path=args.file)
-    elif args.command in ("db:truncate", "db:empty"):
-        db_truncate(force=args.force)
-    elif args.command == "db:drop":
-        db_drop(force=args.force)
-    elif args.command == "cache:clear":
-        cache_clear()
-    else:
-        parser.print_help()
+        if len(sys.argv) == 1:
+            parser.print_help()
+            sys.exit(0)
+            
+        args = parser.parse_args()
+        
+        if args.command == "serve":
+            serve(host=args.host, port=args.port, debug=args.debug, foreground=args.foreground, is_worker=args.worker, device=args.device)
+        elif args.command == "reload":
+            reload(host=args.host, port=args.port)
+        elif args.command == "shutdown":
+            shutdown()
+        elif args.command == "logs":
+            show_logs(lines=args.lines, follow=args.follow, clear=args.clear)
+        elif args.command == "db:migrate":
+            db_migrate()
+        elif args.command == "db:seed":
+            db_seed()
+        elif args.command == "db:export":
+            db_export(output_path=args.output, export_format=args.format)
+        elif args.command == "db:import":
+            db_import(file_path=args.file)
+        elif args.command in ("db:truncate", "db:empty"):
+            db_truncate(force=args.force)
+        elif args.command == "db:drop":
+            db_drop(force=args.force)
+        elif args.command == "cache:clear":
+            cache_clear()
+        else:
+            parser.print_help()
+    except KeyboardInterrupt:
+        print("\n[INFO] Operasi dibatalkan oleh pengguna.")
+        sys.exit(0)
+    except Exception as e:
+        if "--debug" in sys.argv:
+            import traceback
+            traceback.print_exc()
+        else:
+            print("=" * 60)
+            print(f"[ERROR] Terjadi kesalahan saat eksekusi: {e}")
+            print("        Sertakan opsi '--debug' jika ingin melihat stack trace lengkap.")
+            print("=" * 60)
+        sys.exit(1)
