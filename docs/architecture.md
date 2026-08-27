@@ -1,80 +1,148 @@
 # Arsitektur & Desain Sistem — SiReDo v3
 
-## 1. Konsep Desain
-SiReDo v3 dirancang dengan arsitektur **Decoupled Fullstack** yang memisahkan backend engine (*server*) dari frontend presentation (*web*), dilengkapi antarmuka operasional mandiri (**SiReDo CLI Framework**).
+## 1. Konsep Desain & Pola Arsitektur
 
-### Alur Layering Feature-Module (Backend)
+Backend SiReDo mengadopsi **Layered Architecture with Domain Grouping (Monolith-First, Microservice-Ready)** sesuai spesifikasi `rules/architecture.md`.
+
+Setiap level layer terisolasi dengan tanggung jawab tunggal (*Single Responsibility*) dan arah dependensi satu arah yang tegas:
+
 ```
-Routes / CLI Entrypoint
-       │
-       ▼
-Controller / CLI Command Handler (Validasi DTO, Flag CLI, & Response Formatting)
-       │
-       ▼
-Service / Use Case (Orkestrasi Logika Bisnis, Hybrid NLP Pipeline, Hot Reload)
-       │
-       ▼
-Repository / Data Access (Relational Composite SQL Repository: SQLite / MySQL)
-       │
-       ▼
-Data Storage (SQLite DB / MySQL Engine / Excel Importer & Exporter)
+Presentation / Routes / CLI Entrypoint
+                   │
+                   ▼
+Controllers (Parsing HTTP/DTO, Validasi, Response Formatting — Tanpa Business Logic)
+                   │
+                   ▼
+Services (Orkestrasi Logika Bisnis Domain, Hybrid NLP Pipeline, System State)
+                   │
+                   ▼
+Repositories (Akses Data Relasional Runtime, Zero N+1 Queries)
+                   │
+                   ▼
+Database / Persistence Storage (SQLite / MySQL)
 ```
 
 ---
 
-## 2. SiReDo CLI Framework Architecture
+## 2. Struktur Repositori Backend (`server/`)
 
-Framework CLI dibangun di atas `server/src/cli/` dengan entrypoint root `siredo` (dieksekusi: `python siredo <command>`):
-- **Server Lifecycle**: `serve` (background daemon by default via `pythonw.exe` & `CREATE_NO_WINDOW`, `--foreground` mode), `reload` (hot reload in-memory cache via authenticated API), `shutdown` (graceful PID-based termination).
-- **Log Monitoring**: `logs` (real-time stream viewer via `RotatingFileHandler`).
-- **Database Engineering**: `db:migrate` (skema DDL SQLite/MySQL dengan `CREATE DATABASE IF NOT EXISTS`), `db:export` (ekspor relasional ke Excel/JSON), `db:import` (impor dataset Excel ke tabel relasional), `db:truncate` (kosongkan data tabel), `db:drop` (hapus database).
-- **Cache Maintenance**: `cache:clear` (pembersihan disk embedding cache `.npy` dan `.json`).
+```
+server/
+├── src/                          # Application Core Layer (Runtime)
+│   ├── controllers/              # Presentation Layer: Controller HTTP
+│   │   ├── recommendation/       # Controller endpoint rekomendasi
+│   │   ├── dosen/                # Controller endpoint katalog dosen
+│   │   └── system/               # Controller health, status, config, reload
+│   ├── routes/                   # Routing Layer: Blueprint & URL mapping
+│   │   ├── recommendation/       # /api/recommendations*
+│   │   ├── dosen/                # /api/dosen
+│   │   └── system/               # /api/system/*, /health
+│   ├── services/                 # Business Logic Layer
+│   │   ├── recommendation/       # RecommendationService & BatchService
+│   │   ├── dosen/                # DosenService
+│   │   ├── nlp/                  # BM25Engine, SBERTEngine, HybridEngine, Preprocessor
+│   │   └── system/               # CacheService (Singleton) & ConfigService
+│   ├── repositories/             # Data Access Layer
+│   │   ├── dosen/                # SQLDosenRepository, ExcelDosenRepository, CompositeDosenRepository
+│   │   └── cache/                # CacheRepository (Disk cache .npy & .json)
+│   ├── models/                   # Domain Entities
+│   │   ├── dosen/                # Dosen, Publikasi, RiwayatBimbingan, RiwayatPengujian
+│   │   ├── recommendation/       # RecommendationItem, RecommendationResult
+│   │   └── system/               # SystemConfig
+│   ├── dtos/                     # Data Transfer Objects
+│   │   ├── recommendation/       # SingleRecommendationRequestDTO, BatchRecommendationRequestDTO
+│   │   └── system/               # ConfigUpdateDTO
+│   ├── middleware/               # Cross-Cutting Middleware
+│   │   ├── security_middleware.py # Autentikasi ADMIN_API_KEY
+│   │   └── logging_middleware.py  # Request tracing & structured request logging
+│   ├── exceptions/               # Application Exceptions
+│   │   └── app_exceptions.py     # AppException, ValidationError, NotFoundError, etc.
+│   ├── config/                   # Configuration & Infrastructure
+│   │   ├── config.py             # Config object dari root .env
+│   │   ├── logging_config.py     # Setup structured RotatingFileHandler
+│   │   └── response.py           # Standard response envelope
+
+│   ├── cli/                      # SiReDo CLI Framework Handlers
+│   └── app.py                    # Application factory (CORS, Error Handlers, Blueprints)
+│
+├── database/                     # Database Tooling & Lifecycle (Non-Runtime Management)
+│   ├── connection/               # Koneksi & lifecycle database murni
+│   ├── migrations/               # Schema migrations berversi & migration runner
+│   ├── seeders/                  # Seeder data awal & konfigurasi referensi
+│   ├── factories/                # Mock data factory untuk automated testing
+│   └── importers/                # Pipeline import Excel ke database relasional
+│
+├── storage/                      # Penyimpanan Runtime
+│   ├── cache/                    # Disk cache embedding SBERT (.npy) & KeyBERT (.json)
+│   ├── data/                     # Database SQLite (.db), Dataset Excel (.xlsx), config.json
+│   └── logs/                     # File log terdedikasi (siredo.log)
+│
+└── tests/                        # Test Suite
+    ├── unit/                     # Pengujian unit logic & engine
+    ├── integration/              # Pengujian integrasi API & database
+    └── feature/                  # Pengujian flow skenario pengguna
+```
 
 ---
 
-## 3. Database Architecture (Multi-Driver Relasional)
+## 3. Batasan Antar Layer (Layer Boundary Rules)
 
-Skema database dinormalisasi ke dalam 4 tabel relasional:
-- `dosen` (Master: `id`, `nidn`, `nama`, `program_studi`, `bidang_keahlian`, `pendidikan`, `timestamps`)
-- `publikasi` (Child: `id`, `dosen_id`, `judul`, `tahun`, `penerbit`, `created_at`)
-- `riwayat_bimbingan` (Child: `id`, `dosen_id`, `judul_tugas_akhir`, `tahun`, `peran`, `created_at`)
-- `riwayat_pengujian` (Child: `id`, `dosen_id`, `judul_sidang`, `tahun`, `peran`, `created_at`)
+1. **Controller**:
+   - Hanya membaca input request (JSON, form-data, query param).
+   - Memetakan input ke DTO atau parameter Service.
+   - Mengembalikan respon menggunakan `ResponseFormatter`.
+   - Dilarang menjalankan query database langsung atau memproses kalkulasi NLP.
 
-*Optimalisasi Query*: Menggunakan 4-query flat batch fetch dengan *in-memory grouping* (Zero N+1 Query).
+2. **Service**:
+   - Mengorkestrasi seluruh business logic.
+   - Menggabungkan pipeline NLP leksikal (BM25) dan semantik (SBERT).
+   - Memanggil Repository untuk kebutuhan data dan tidak menyentuh driver database mentah.
 
----
+3. **Repository**:
+   - Menangani operasi query ke SQLite atau MySQL.
+   - Mengambil relasi (publikasi, bimbingan, pengujian) menggunakan *batch queries* flat untuk mencegah bottleneck N+1 query.
+   - Menyediakan metode transaksi atomik untuk persistensi batch.
 
-## 4. NLP Pipeline Engineering
-1. **Preprocessing**: Case folding, stopword removal, unigram + bigram n-gram generation.
-2. **Synonym Expansion**: Longest-first ontology matching dari kamus sinonim domain IT.
-3. **Lexical Scoring (BM25Okapi)**:
-   - Z-score Sigmoid Normalization: $z = \frac{x - \mu}{\sigma}$, $\text{Score}_{\text{norm}} = \frac{1}{1 + e^{-z/2}}$.
-   - Hard Constraint Pruning: Hanya dosen dengan $\text{BM25}_{\text{norm}} > 0$ yang diteruskan ke layer semantik.
-4. **Semantic Scoring (Sentence-BERT)**:
-   - Model `paraphrase-multilingual-MiniLM-L12-v2` (768-D embeddings).
-   - Cosine Similarity komputasi vektor.
-5. **Adaptive Hybrid Aggregation**:
-   - Jika query $< 15$ token: Keyword Mode ($\alpha=0.70$ BM25, $\beta=0.30$ SBERT).
-   - Jika query $\ge 15$ token: Abstrak Mode ($\alpha=0.35$ BM25, $\beta=0.65$ SBERT).
-   - Top-K ranking efisien $O(n + k \log k)$ via `np.argpartition`.
-6. **Explainable AI (XAI)**:
-   - Irisan kata kunci leksikal mahasiswa vs korpus dosen.
-   - Ekstraksi topik semantic via KeyBERT.
+4. **Database Tooling (`database/`)**:
+   - Berdiri independen di luar application runtime.
+   - Bertanggung jawab atas migrasi skema, seeding konfigurasi, pembuatan dummy data testing, dan eksekusi pipeline impor file Excel.
 
 ---
 
-## 5. Logging & Observability Architecture
-- **Dedicated File Logger**: `server/storage/logs/siredo.log` menggunakan `RotatingFileHandler` (10 MB x 5 backup).
-- **Structured Fields**: `timestamp`, `level`, `request_id`, `endpoint`, `status`, `duration`, `error`.
-- **Health Monitoring**: Endpoint `GET /health` dan `GET /api/system/status`.
+## 4. Pipeline Natural Language Processing (NLP)
+
+SiReDo mengimplementasikan arsitektur *Hybrid Information Retrieval* yang menggabungkan pencarian leksikal (BM25Okapi) dan pencocokan semantik (Sentence-BERT) dengan pembobotan dinamis dan Explainable AI (XAI).
+
+Tahapan inti pipeline:
+1. **Preprocessing & N-Grams**: Case folding, stopword removal, dan pembuatan unigram + bigram.
+2. **Sinonim Ekspansi**: Pencocokan ontologi sinonim IT berbasis *longest-first matching*.
+3. **Lexical Scoring & Pruning**: Perhitungan BM25Okapi, normalisasi Z-Score Sigmoid, dan pemangkasan kandidat ber-skor nol (*hard pruning*).
+4. **Semantic Scoring**: Vektorisasi Sentence-BERT (768-D) dan kalkulasi *Cosine Similarity*.
+5. **Adaptive Hybrid Aggregation**: Perhitungan bobot dinamis ($\alpha$ & $\beta$) berdasarkan panjang query dan perangkingan Top-K $O(n + k \log k)$.
+6. **Explainable AI (XAI)**: Transparansi irisan kata kunci leksikal dan ekstraksi topik KeyBERT.
+
+> Penjelasan detail formula matematis, kamus ontologi, pseudocode, dan strategi optimasi komputasi didokumentasikan secara mandiri di **[Dokumentasi Pipeline NLP](nlp-pipeline.md)**.
+
 
 ---
 
-## 6. Frontend Architecture (Vue 3 + Pinia)
-- **Pinia State Management**:
-  - `useSystemStore`: Status koneksi server, ketersediaan cache, daftar data dosen.
-  - `useRecommendationStore`: State input query, stepper progress, hasil rekomendasi, pipeline logs, dan batch processing.
-  - `useConfigStore`: State konfigurasi parameter algoritma.
-- **Axios Interceptors**:
-  - Base URL dinamis dari `import.meta.env.VITE_API_BASE_URL`.
-  - Standardized error unwrapping dan timeout handling.
+## 5. Logging & Observabilitas
+
+- **Dedicated Structured File Log**: `server/storage/logs/siredo.log` dikelola oleh `RotatingFileHandler` (kapasitas 10 MB, 5 file rotasi).
+- **Request Tracing**: Setiap request diberikan `X-Request-ID` dan dicatat durasi prosesnya dalam milidetik (`duration=...ms`).
+- **Terminal Isolation**: Eksekusi server berjalan silent di background pada lingkungan Windows via `pythonw.exe` dan `CREATE_NO_WINDOW`, terminal bebas digunakan untuk operasi lain.
+
+---
+
+## 6. Arsitektur Frontend (Vue 3 + Pinia)
+
+- **Komponen Presentasi**:
+  - `InputForm`: Formulir masukan judul, abstrak, dan pemilihan parameter algoritma.
+  - `Stepper`: Indikator progres multi-step pipeline NLP.
+  - `DosenCard`: Tampilan kartu hasil peringkat dosen beserta indikator skor dan badge keahlian.
+  - `XaiModal`: Modal visualisasi transparansi keputusan rekomendasi.
+- **Manajemen State (Pinia)**:
+  - `useSystemStore`: Status konektivitas, ketersediaan cache memori, dan katalog dosen.
+  - `useRecommendationStore`: State input, riwayat pemrosesan, SSE streaming, dan hasil rekomendasi.
+  - `useConfigStore`: State konfigurasi parameter dinamis.
+- **Client HTTP**: Axios terkonfigurasi dengan interceptor error unwrapping dan timeout handling.

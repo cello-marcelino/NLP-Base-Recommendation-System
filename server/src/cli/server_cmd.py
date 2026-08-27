@@ -7,8 +7,8 @@ import urllib.error
 import json
 import subprocess
 
-from server.src.core.config import Config
-from server.src.core.logging import logger
+from server.src.config.config import Config
+from server.src.config.logging_config import logger
 
 PID_FILE = os.path.join(Config.DATA_DIR, 'siredo.pid')
 
@@ -61,12 +61,16 @@ def check_server_healthy(host: str, port: int) -> bool:
     except Exception:
         return False
 
-def _run_server_worker(host: str, port: int, debug: bool):
+def _run_server_worker(host: str, port: int, debug: bool, device: str = None):
     """Internal blocking worker that warms cache and runs Flask."""
     save_pid(os.getpid())
     
+    if device:
+        os.environ['TORCH_DEVICE'] = device
+        Config.TORCH_DEVICE = device
+        
     from server.src.app import create_app
-    from server.src.modules.system.cache_service import CacheService
+    from server.src.services.system.cache_service import CacheService
     
     # 1. Warm up in-memory cache and NLP models
     CacheService.get_instance().initialize_cache()
@@ -87,11 +91,16 @@ def _run_server_worker(host: str, port: int, debug: bool):
     finally:
         remove_pid()
 
-def serve(host: str = None, port: int = None, debug: bool = None, foreground: bool = False, is_worker: bool = False):
-    """Starts the SiReDo API server in background (default) or foreground."""
+def serve(host: str = None, port: int = None, debug: bool = None, foreground: bool = False, is_worker: bool = False, device: str = None):
+    """Starts the SiReDo API server in background (default) or foreground with optional compute device."""
     host = host or Config.APP_HOST
     port = port or Config.APP_PORT
     debug = debug if debug is not None else Config.APP_DEBUG
+    effective_device = (device or Config.TORCH_DEVICE).lower().strip()
+    
+    if device:
+        os.environ['TORCH_DEVICE'] = device
+        Config.TORCH_DEVICE = device
     
     # Check if already running
     current_pid = get_running_pid()
@@ -105,16 +114,17 @@ def serve(host: str = None, port: int = None, debug: bool = None, foreground: bo
         if foreground:
             print("=" * 60)
             print(f" SiReDo Server v3.0.0 (Foreground Mode)")
-            print(f" Host & Port : http://{host}:{port}")
-            print(f" Process PID : {os.getpid()}")
-            print(f" Log File    : {Config.LOG_FILE}")
+            print(f" Host & Port    : http://{host}:{port}")
+            print(f" Compute Device : {effective_device.upper()}")
+            print(f" Process PID    : {os.getpid()}")
+            print(f" Log File       : {Config.LOG_FILE}")
             print("=" * 60)
             print("[INFO] Tekan Ctrl+C untuk menghentikan server.")
-        _run_server_worker(host=host, port=port, debug=debug)
+        _run_server_worker(host=host, port=port, debug=debug, device=device)
         return
 
     # Background / Daemon Launcher mode
-    print(f"[INFO] Memulai server SiReDo di background (warming up NLP cache)...")
+    print(f"[INFO] Memulai server SiReDo di background (device: {effective_device.upper()}, warming up NLP cache)...")
     
     python_exe = sys.executable
     if os.name == 'nt':
@@ -134,6 +144,8 @@ def serve(host: str = None, port: int = None, debug: bool = None, foreground: bo
     ]
     if debug:
         cmd.append("--debug")
+    if device:
+        cmd.extend(["--device", device])
         
     os.makedirs(Config.LOGS_DIR, exist_ok=True)
     
@@ -171,9 +183,10 @@ def serve(host: str = None, port: int = None, debug: bool = None, foreground: bo
         pid = get_running_pid()
         print("=" * 60)
         print(f"[OK] Server SiReDo berhasil berjalan di background!")
-        print(f"     URL         : http://{host}:{port}")
-        print(f"     Process PID : {pid}")
-        print(f"     Log File    : {Config.LOG_FILE}")
+        print(f"     URL            : http://{host}:{port}")
+        print(f"     Compute Device : {effective_device.upper()}")
+        print(f"     Process PID    : {pid}")
+        print(f"     Log File       : {Config.LOG_FILE}")
         print("=" * 60)
         print("Terminal siap digunakan.")
         print("- Pantau log live : python siredo logs -f")

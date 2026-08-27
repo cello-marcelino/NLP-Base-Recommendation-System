@@ -1,14 +1,14 @@
 # SiReDo v3 — Sistem Rekomendasi Dosen
 
-**SiReDo v3** adalah platform rekomendasi dosen pembimbing dan penguji berbasis **Hybrid Natural Language Processing (NLP)** yang menggabungkan pencarian leksikal (**BM25Okapi**) dan pencocokan semantik (**Sentence-BERT**), dilengkapi lapisan **Explainable AI (XAI)** berbasis **KeyBERT** dan irisan kata kunci.
+SiReDo v3 adalah platform rekomendasi dosen pembimbing dan penguji berbasis Hybrid Natural Language Processing (NLP) yang menggabungkan pencarian leksikal (BM25Okapi) dan pencocokan semantik (Sentence-BERT), dilengkapi lapisan Explainable AI (XAI) berbasis KeyBERT dan irisan kata kunci.
 
-Dibangun dengan arsitektur **Decoupled Fullstack**:
-- **Backend (`server/`)**: Flask 3.0 REST API dengan **Feature-Module Architecture**, Z-Score Sigmoid Normalization, Hard Constraint Pruning, Adaptive Weighting, skema database relasional (SQLite/MySQL), dan **SiReDo CLI Framework**.
-- **Frontend (`web/`)**: Vue 3 SPA + Vite + Tailwind CSS 4 + **Pinia State Management** + Axios Interceptors.
+Dibangun dengan arsitektur Decoupled Fullstack:
+- Backend (`server/`): Flask 3.0 REST API dengan Layered Architecture + Domain Grouping, Z-Score Sigmoid Normalization, Hard Constraint Pruning, Adaptive Weighting, skema database relasional (SQLite/MySQL), dan SiReDo CLI Framework.
+- Frontend (`web/`): Vue 3 SPA + Vite + Tailwind CSS 4 + Pinia State Management + Axios Interceptors.
 
 ---
 
-## 🏛️ Arsitektur Sistem (Feature-Module Architecture)
+## Arsitektur Sistem (Layered Architecture with Domain Grouping)
 
 ```
 siredo/
@@ -17,25 +17,35 @@ siredo/
 ├── .env.example                  # Template konfigurasi environment
 ├── server/                       # Backend Flask REST API
 │   ├── src/
-│   │   ├── core/                 # Config, Database, Logging, Security, Response, Exceptions
+│   │   ├── controllers/          # Presentation Layer: Controller HTTP
+│   │   ├── routes/               # Routing Layer: Definisi Blueprint & Endpoint
+│   │   ├── services/             # Business Logic Layer: Service & Engine
+│   │   ├── repositories/         # Data Access Layer: Composite SQL Repository
+│   │   ├── models/               # Domain Models & Data Structures
+│   │   ├── dtos/                 # Kontrak DTO Antar Layer
+│   │   ├── middleware/           # Security & Structured Logging Middleware
+│   │   ├── exceptions/           # Custom Application Exceptions
+│   │   ├── config/               # App Configuration, Logger, Response Formatter
 │   │   ├── cli/                  # SiReDo CLI Modules (serve, reload, shutdown, db, cache)
-│   │   ├── modules/
-│   │   │   ├── dosen/            # Entity Model, Composite SQL Repository, Controller, Routes
-│   │   │   ├── nlp/              # Preprocessor, BM25, SBERT, Hybrid Scorer, Stopwords, Kamus
-│   │   │   ├── recommendation/   # Single & Batch Service, Controller, Routes
-│   │   │   └── system/           # Cache Singleton, Config Service, Status & Health Check
 │   │   └── app.py                # Application Factory (CORS, Error Handlers, Blueprints)
-│   ├── dataset/                  # Dataset profiles dosen (.xlsx)
-│   ├── storage/                  # Runtime cache & data SQLite
-│   ├── tests/                    # Unit & Integration tests (pytest)
-│   ├── requirements.txt          # Python dependencies (pinned)
-│   └── run.py                    # Legacy entry point server
+│   ├── database/                 # Database Tooling & Lifecycle Management
+│   │   ├── connection/           # Database connection & lifecycle
+│   │   ├── migrations/           # Versioned schema migrations & runner
+│   │   ├── seeders/              # Initial reference & static data seeders
+│   │   ├── factories/            # Dummy & mock data factories for testing
+│   │   └── importers/            # Excel dataset import pipeline
+│   ├── storage/                  # Runtime storage (data SQLite, dataset, cache, logs)
+│   │   ├── cache/                # Disk embeddings (.npy, .json, .pkl)
+│   │   ├── data/                 # SQLite DB, Master Dataset Excel (.xlsx), config.json
+│   │   └── logs/                 # Dedicated rotating log file (siredo.log)
+│   ├── tests/                    # Feature, Integration, and Unit tests (pytest)
+│   └── requirements.txt          # Python dependencies (pinned)
 │
 ├── web/                          # Frontend Vue 3 SPA
 │   ├── src/
 │   │   ├── assets/               # CSS styles, design tokens
 │   │   ├── components/           # Stepper, DosenCard, XaiModal, PipelineLog, InputForm
-│   │   ├── router/               # Vue Router 5 configuration
+│   │   ├── router/               # Vue Router configuration
 │   │   ├── services/             # Axios API client with interceptors
 │   │   ├── stores/               # Pinia stores (system, recommendation, config)
 │   │   └── views/                # Single, Batch, Dosen, Config, Preprocessing, Docs, Setup
@@ -49,7 +59,7 @@ siredo/
 
 ---
 
-## 🛠️ SiReDo CLI Framework
+## SiReDo CLI Framework
 
 SiReDo dilengkapi CLI mandiri untuk mempermudah operasional dan development:
 
@@ -60,6 +70,7 @@ python siredo reload                # Hot reload NLP cache pada server aktif
 python siredo shutdown              # Menghentikan server yang sedang aktif
 python siredo logs -f               # Memantau aliran file log secara live
 python siredo db:migrate            # Migrasi skema database relasional
+python siredo db:seed               # Menjalankan seeder data awal / konfigurasi statis
 python siredo db:export             # Ekspor database ke file Excel (.xlsx)
 python siredo db:import             # Impor dataset Excel ke database relasional
 python siredo db:truncate           # Mengosongkan data tabel database
@@ -69,7 +80,7 @@ python siredo cache:clear           # Bersihkan file cache embedding disk
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Backend Setup (`server/`)
 ```bash
@@ -101,15 +112,26 @@ Buka browser di `http://localhost:5173`.
 
 ---
 
-## 🧪 Menjalankan Automated Tests
+## Menjalankan Automated Tests
 ```bash
 & "server/.venv/Scripts/pytest.exe" server/tests/ -v
 ```
 
 ---
 
-## 📖 Dokumentasi Lengkap
+## Dokumentasi Lengkap
 - [Dokumentasi SiReDo CLI](docs/cli.md)
 - [Arsitektur & Desain Sistem](docs/architecture.md)
+- [Desain Sistem & Alur Kerja (System Flow)](docs/system-design.md)
+- [Pipeline Hybrid NLP & XAI](docs/nlp-pipeline.md)
+- [Arsitektur Caching Layer](docs/caching.md)
+- [Akselerasi Hardware (GPU & CPU)](docs/hardware-acceleration.md)
 - [Spesifikasi Kontrak REST API](docs/api.md)
-- [Panduan Instalasi & Deployment](docs/setup.md)
+- [Desain Database & Tooling](docs/database.md)
+- [Strategi & Lapisan Pengujian](docs/testing.md)
+
+
+
+
+
+

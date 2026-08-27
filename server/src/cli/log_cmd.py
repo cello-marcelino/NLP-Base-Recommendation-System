@@ -2,7 +2,7 @@ import os
 import sys
 import time
 
-from server.src.core.config import Config
+from server.src.config.config import Config
 
 def show_logs(lines: int = 30, follow: bool = False, clear: bool = False):
     """Displays or monitors the dedicated SiReDo server log file."""

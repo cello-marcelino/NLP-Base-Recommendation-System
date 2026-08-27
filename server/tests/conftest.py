@@ -7,20 +7,9 @@ import numpy as np
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 
 from server.src.app import create_app
-from server.src.core.config import Config
-from server.src.modules.dosen.dosen_model import Dosen
-from server.src.modules.system.cache_service import CacheService
-
-class TestConfig(Config):
-    TESTING = True
-    APP_DEBUG = False
-    APP_ENV = 'testing'
-    ADMIN_API_KEY = 'test-admin-key'
-    STORAGE_DIR = os.path.join(Config.BASE_DIR, 'storage_test')
-    CACHE_DIR = os.path.join(STORAGE_DIR, 'cache')
-    DATA_DIR = os.path.join(STORAGE_DIR, 'data')
-    CONFIG_JSON_PATH = os.path.join(DATA_DIR, 'config.json')
-    MAX_BATCH_SIZE = 5
+from server.src.config.config import Config
+from server.src.models.dosen.dosen_model import Dosen
+from server.src.services.system.cache_service import CacheService
 
 @pytest.fixture(scope='session')
 def sample_dosen_list():
@@ -58,8 +47,27 @@ def sample_dosen_list():
     ]
 
 @pytest.fixture
-def app(sample_dosen_list):
-    app = create_app(TestConfig)
+def app(sample_dosen_list, tmp_path):
+    storage_dir = str(tmp_path / "storage")
+    cache_dir = str(tmp_path / "storage" / "cache")
+    data_dir = str(tmp_path / "storage" / "data")
+    logs_dir = str(tmp_path / "storage" / "logs")
+    config_json_path = str(tmp_path / "storage" / "data" / "config.json")
+    
+    class RuntimeTestConfig(Config):
+        TESTING = True
+        APP_DEBUG = False
+        APP_ENV = 'testing'
+        ADMIN_API_KEY = 'test-admin-key'
+        STORAGE_DIR = storage_dir
+        CACHE_DIR = cache_dir
+        DATA_DIR = data_dir
+        DATASET_DIR = data_dir
+        LOGS_DIR = logs_dir
+        CONFIG_JSON_PATH = config_json_path
+        MAX_BATCH_SIZE = 5
+
+    app = create_app(RuntimeTestConfig)
     
     # Pre-populate in-memory cache for deterministic testing
     cache = CacheService.get_instance()

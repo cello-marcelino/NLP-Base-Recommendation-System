@@ -1,6 +1,6 @@
 import os
 import glob
-from server.src.core.config import Config
+from server.src.config.config import Config
 
 def cache_clear():
     """Cleans up generated embedding and NLP keyword cache files."""
@@ -11,10 +11,11 @@ def cache_clear():
         
     pattern_npy = os.path.join(cache_dir, "*.npy")
     pattern_json = os.path.join(cache_dir, "*.json")
+    pattern_pkl = os.path.join(cache_dir, "*.pkl")
     
-    files = glob.glob(pattern_npy) + glob.glob(pattern_json)
+    files = glob.glob(pattern_npy) + glob.glob(pattern_json) + glob.glob(pattern_pkl)
     if not files:
-        print("[INFO] Tidak ada file cache (.npy / .json) yang perlu dibersihkan.")
+        print("[INFO] Tidak ada file cache (.npy / .json / .pkl) yang perlu dibersihkan.")
         return
         
     deleted_count = 0

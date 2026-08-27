@@ -1,5 +1,5 @@
 import numpy as np
-from server.src.modules.nlp.bm25_engine import BM25Engine
+from server.src.services.nlp.bm25_engine import BM25Engine
 
 def test_bm25_fit_and_get_scores():
     engine = BM25Engine()

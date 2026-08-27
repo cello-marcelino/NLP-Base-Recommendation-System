@@ -1,6 +1,6 @@
-# Dokumentasi SiReDo CLI Framework
+# Panduan SiReDo CLI Framework
 
-**SiReDo CLI** adalah antarmuka baris perintah (*Command Line Interface*) untuk mengelola siklus hidup server, operasi database relasional, ekspor/impor data, pembersihan cache NLP, dan pemantauan log real-time pada sistem SiReDo.
+**SiReDo CLI** adalah antarmuka baris perintah (*Command Line Interface*) untuk mengelola siklus hidup server, operasi database relasional, migrasi skema, ekspor/impor dataset, pembersihan cache NLP, dan pemantauan log real-time pada sistem SiReDo.
 
 ---
 
@@ -24,11 +24,17 @@ python siredo --help
 ### A. Manajemen Siklus Hidup Server
 
 #### `serve`
-Menjalankan API server backend SiReDo. Perintah ini otomatis melakukan *warm-up* cache memori & model Sentence-BERT/KeyBERT sebelum menerima *traffic*, serta mencatat Process ID (PID) ke `server/storage/data/siredo.pid`. Output terminal dijaga tetap bersih, sedangkan seluruh log request dicatat secara *real-time* ke `server/storage/logs/siredo.log`.
+Menjalankan API server backend SiReDo. Secara default, server berjalan sebagai background daemon (pada Windows menggunakan `pythonw.exe` tanpa jendela konsol tambahan) sehingga terminal langsung bebas digunakan. Server melakukan warm-up cache in-memory dan model Sentence-BERT/KeyBERT sebelum siap melayani request, serta mencatat Process ID ke `server/storage/data/siredo.pid`.
 
 ```powershell
-# Menjalankan server default (host: 0.0.0.0, port: 5000 dari .env)
+# Menjalankan server di background (default: CPU, host: 0.0.0.0, port: 5000 dari .env)
 python siredo serve
+
+# Menjalankan dengan akselerasi GPU (CUDA)
+python siredo serve --device cuda
+
+# Menjalankan di foreground (blocking mode, output langsung terlihat)
+python siredo serve --foreground
 
 # Menjalankan pada host dan port kustom
 python siredo serve --host 127.0.0.1 --port 8000
@@ -37,8 +43,9 @@ python siredo serve --host 127.0.0.1 --port 8000
 python siredo serve --debug
 ```
 
+
 #### `reload`
-Melakukan *hot reload* pada server yang sedang aktif tanpa perlu mematikan proses server. Perintah ini memicu pembaruan konfigurasi runtime dan meregenerasi cache NLP di memori via authenticated endpoint `/api/system/reload`.
+Melakukan *hot reload* pada server yang sedang aktif tanpa perlu mematikan proses server. Perintah ini memperbarui konfigurasi runtime dan meregenerasi cache NLP di memori via endpoint terotentikasi `/api/system/reload`.
 
 ```powershell
 python siredo reload
@@ -48,7 +55,7 @@ python siredo reload --host 127.0.0.1 --port 8000
 ```
 
 #### `shutdown`
-Menghentikan proses server SiReDo yang sedang berjalan secara aman (*graceful termination*) berdasarkan PID yang tersimpan di `siredo.pid`.
+Menghentikan proses server SiReDo yang sedang berjalan secara aman (*graceful termination*) berdasarkan PID yang tercatat di `server/storage/data/siredo.pid`.
 
 ```powershell
 python siredo shutdown
@@ -59,7 +66,7 @@ python siredo shutdown
 ### B. Pemantauan Log Real-Time
 
 #### `logs`
-Menampilkan isi file log terdedikasi (`server/storage/logs/siredo.log`) atau memantau aliran log secara langsung (*live tailing*).
+Menampilkan isi file log server (`server/storage/logs/siredo.log`) atau memantau aliran request log secara langsung (*live tailing*).
 
 ```powershell
 # Melihat 30 baris log terakhir (default)
@@ -80,15 +87,33 @@ python siredo logs --clear
 ### C. Operasi Database
 
 #### `db:migrate`
-Menjalankan skrip migrasi DDL (*Data Definition Language*) untuk membuat database (jika belum ada) beserta seluruh tabel relasional (`dosen`, `publikasi`, `riwayat_bimbingan`, `riwayat_pengujian`), indeks, dan konstrain foreign key.
+Menjalankan skrip migrasi berversi dari `server/database/migrations/` untuk membuat tabel relasional (`dosen`, `publikasi`, `riwayat_bimbingan`, `riwayat_pengujian`), indeks, dan konstrain foreign key (dengan tracking riwayat pada tabel `migrations`).
 
 ```powershell
 python siredo db:migrate
 ```
-*Driver yang digunakan disesuaikan dengan konfigurasi `DB_DRIVER` di file `.env` (`sqlite` atau `mysql`).*
+*Driver database disesuaikan dengan konfigurasi `DB_DRIVER` di file `.env` (`sqlite` atau `mysql`).*
+
+#### `db:seed`
+Menjalankan database seeder dari `server/database/seeders/` untuk mengisi data awal dan inisialisasi konfigurasi sistem default (`config.json`).
+
+```powershell
+python siredo db:seed
+```
+
+#### `db:import`
+Mengimpor dataset profil dosen dari file Excel (`dataset_profiles_terintegrasi.xlsx`) ke dalam 4 tabel database relasional via pipeline validasi `DosenImporter`.
+
+```powershell
+# Impor dataset default dari server/storage/data/dataset_profiles_terintegrasi.xlsx
+python siredo db:import
+
+# Impor dari file Excel kustom
+python siredo db:import --file path/to/dataset.xlsx
+```
 
 #### `db:export`
-Mengekspor seluruh data profil dosen beserta publikasi, riwayat bimbingan, dan riwayat pengujian dari database relasional ke dalam file dataset Excel (`.xlsx`) atau JSON.
+Mengekspor seluruh data profil dosen beserta seluruh riwayat relasional dari database ke dalam file spreadsheet Excel (`.xlsx`) atau JSON.
 
 ```powershell
 # Ekspor default ke server/storage/data/dataset_profiles_exported.xlsx
@@ -97,23 +122,12 @@ python siredo db:export
 # Ekspor dalam format JSON
 python siredo db:export --format json
 
-# Menentukan lokasi file output kustom
+# Menentukan lokasi output kustom
 python siredo db:export --output backup_dataset.xlsx
 ```
 
-#### `db:import`
-Mengimpor data master profil dosen dari file Excel (`dataset_profiles_terintegrasi.xlsx`) ke dalam 4 tabel database relasional.
-
-```powershell
-# Impor file dataset master default
-python siredo db:import
-
-# Impor dari file Excel kustom
-python siredo db:import --file path/to/dataset.xlsx
-```
-
 #### `db:truncate` (alias `db:empty`)
-Mengosongkan seluruh data pada tabel relasional (`riwayat_pengujian`, `riwayat_bimbingan`, `publikasi`, `dosen`) tanpa menghapus struktur skema tabel.
+Mengosongkan seluruh data pada tabel relasional (`riwayat_pengujian`, `riwayat_bimbingan`, `publikasi`, `dosen`) tanpa menghapus skema tabel.
 
 ```powershell
 # Mengosongkan data dengan konfirmasi keamanan interaktif
@@ -139,7 +153,7 @@ python siredo db:drop --force
 ### D. Pembersihan Cache
 
 #### `cache:clear`
-Membersihkan file cache hasil pra-proses embedding Sentence-BERT (`.npy`) dan ekstraksi topik KeyBERT (`.json`) di direktori `server/storage/cache/`.
+Membersihkan file cache hasil komputasi embedding Sentence-BERT (`.npy`), ekstraksi topik KeyBERT (`.json`), dan serialisasi memori (`.pkl`) di direktori `server/storage/cache/`.
 
 ```powershell
 python siredo cache:clear
@@ -147,28 +161,37 @@ python siredo cache:clear
 
 ---
 
-## 3. Alur Kerja Pengembangan (Workflow Scenario)
+## 3. Skenario Alur Kerja Umum
 
-### Skenario Inisialisasi Proyek Baru
+### Skenario Setup Awal Proyek
 ```powershell
-# 1. Migrasi database
+# 1. Migrasi skema database
 python siredo db:migrate
 
-# 2. Impor dataset master awal
+# 2. Inisialisasi konfigurasi seeder
+python siredo db:seed
+
+# 3. Impor dataset profil dosen
 python siredo db:import
 
-# 3. Jalankan server
+# 4. Jalankan server background
 python siredo serve
+
+# 5. Buka stream log (opsional)
+python siredo logs -f
 ```
 
-### Skenario Pemantauan Log & Reset Data
+### Skenario Pembaruan Dataset & Refresh Cache
 ```powershell
-# Buka terminal kedua untuk live monitoring
-python siredo logs -f
-
-# Di terminal pertama jika ingin melakukan reset data
+# 1. Bersihkan cache embedding disk
 python siredo cache:clear
+
+# 2. Kosongkan data tabel database lama
 python siredo db:truncate --force
-python siredo db:import
+
+# 3. Impor dataset baru
+python siredo db:import --file path/to/new_dataset.xlsx
+
+# 4. Hot reload server aktif
 python siredo reload
 ```

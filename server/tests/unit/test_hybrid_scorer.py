@@ -1,5 +1,5 @@
 import numpy as np
-from server.src.modules.nlp.hybrid_scorer import HybridEngine
+from server.src.services.nlp.hybrid_scorer import HybridEngine
 
 def test_compute_adaptive_alpha_short_query():
     alpha, beta = HybridEngine.compute_adaptive_alpha(num_query_tokens=5, threshold=15)

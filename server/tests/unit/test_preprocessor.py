@@ -1,6 +1,6 @@
 import pytest
-from server.src.modules.nlp.preprocessor import Preprocessor
-from server.src.modules.dosen.dosen_model import Dosen
+from server.src.services.nlp.preprocessor import Preprocessor
+from server.src.models.dosen.dosen_model import Dosen
 
 def test_clean_text():
     raw = "Penerapan Algoritma CNN untuk Deteksi Objek! (Versi 2.0)"

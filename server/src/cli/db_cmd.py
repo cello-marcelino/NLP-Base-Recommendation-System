@@ -5,12 +5,13 @@ import pandas as pd
 from typing import Optional
 import mysql.connector
 
-from server.src.core.config import Config
-from server.src.core.database import DatabaseManager
-from server.src.core.logging import logger
-from server.scripts.migrate import run_mysql_migration, run_sqlite_migration
-from server.scripts.import_excel_to_db import import_data
-from server.src.modules.dosen.dosen_repository import SQLDosenRepository
+from server.src.config.config import Config
+from server.database.connection.database import DatabaseManager
+from server.src.config.logging_config import logger
+from server.database.migrations.migration_runner import run_migrations
+from server.database.seeders.database_seeder import DatabaseSeeder
+from server.database.importers.dosen_importer import DosenImporter
+from server.src.repositories.dosen.dosen_repository import SQLDosenRepository
 
 def confirm_action(prompt_text: str, force: bool = False) -> bool:
     if force:
@@ -27,22 +28,36 @@ def db_migrate():
     driver = DatabaseManager.get_driver()
     print(f"[INFO] Menjalankan migrasi database untuk driver: {driver}")
     try:
-        if driver == 'mysql':
-            run_mysql_migration()
+        count = run_migrations()
+        if count > 0:
+            print(f"[OK] Migrasi skema database berhasil diaplikasikan ({count} file migrasi).")
         else:
-            run_sqlite_migration()
-        print("[OK] Migrasi skema database berhasil diselesaikan.")
+            print("[OK] Skema database sudah mutakhir (up to date).")
     except Exception as e:
         print(f"[ERROR] Migrasi gagal: {e}")
         sys.exit(1)
 
+def db_seed():
+    """Runs database seeders to populate initial reference/static data."""
+    print("[INFO] Menjalankan database seeders...")
+    try:
+        DatabaseSeeder.run()
+        print("[OK] Database seeding berhasil.")
+    except Exception as e:
+        print(f"[ERROR] Seeding gagal: {e}")
+        sys.exit(1)
+
 def db_import(file_path: Optional[str] = None):
-    """Imports dataset from Excel file into relational database tables."""
+    """Imports dataset from Excel file into relational database tables using DosenImporter pipeline."""
     file_path = file_path or Config.EXCEL_FALLBACK_PATH
     print(f"[INFO] Mengimpor dataset dari: {file_path}")
     try:
-        import_data(file_path)
-        print("[OK] Impor dataset ke database relasional berhasil.")
+        importer = DosenImporter()
+        counts = importer.import_file(file_path)
+        print(
+            f"[OK] Impor dataset berhasil: {counts['dosen']} Dosen, {counts['publikasi']} Publikasi, "
+            f"{counts['bimbingan']} Bimbingan, {counts['pengujian']} Pengujian."
+        )
     except Exception as e:
         print(f"[ERROR] Impor gagal: {e}")
         sys.exit(1)
@@ -128,30 +143,11 @@ def db_truncate(force: bool = False):
         print("[INFO] Operasi dibatalkan oleh pengguna.")
         return
 
-    conn = DatabaseManager.get_connection()
-    if not conn:
-        print(f"[ERROR] Gagal membuka koneksi database ({driver})")
-        sys.exit(1)
-
-    cursor = conn.cursor()
     try:
-        print("[INFO] Mengosongkan data dari seluruh tabel relasional...")
-        cursor.execute("DELETE FROM riwayat_pengujian;")
-        cursor.execute("DELETE FROM riwayat_bimbingan;")
-        cursor.execute("DELETE FROM publikasi;")
-        cursor.execute("DELETE FROM dosen;")
-        
-        if driver == 'sqlite':
-            try:
-                cursor.execute("DELETE FROM sqlite_sequence WHERE name IN ('dosen', 'publikasi', 'riwayat_bimbingan', 'riwayat_pengujian');")
-            except Exception:
-                pass
-        conn.commit()
+        print("[INFO] Mengosongkan data dari seluruh tabel relasional via SQLDosenRepository...")
+        repo = SQLDosenRepository()
+        repo.truncate_all()
         print("[OK] Seluruh data pada tabel dosen, publikasi, riwayat_bimbingan, dan riwayat_pengujian berhasil dikosongkan.")
     except Exception as e:
-        conn.rollback()
         print(f"[ERROR] Gagal mengosongkan data tabel: {e}")
         sys.exit(1)
-    finally:
-        cursor.close()
-        conn.close()

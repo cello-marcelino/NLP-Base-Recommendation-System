@@ -2,13 +2,14 @@ import os
 from flask import Flask
 from flask_cors import CORS
 
-from server.src.core.config import Config
-from server.src.core.logging import init_app_logging, logger
-from server.src.core.response import ResponseFormatter
-from server.src.core.exceptions import AppException
+from server.src.config.config import Config
+from server.src.config.logging_config import logger
+from server.src.config.response import ResponseFormatter
+from server.src.exceptions.app_exceptions import AppException
+from server.src.middleware.logging_middleware import init_app_logging
 
 def create_app(config_class=Config) -> Flask:
-    """Flask application factory."""
+    """Flask application factory conforming to Layered Architecture rules."""
     app = Flask(__name__)
     app.config.from_object(config_class)
     
@@ -20,27 +21,28 @@ def create_app(config_class=Config) -> Flask:
         allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-Request-ID"]
     )
     
-    # 2. Setup Structured Logging and Request Tracing
+    # 2. Setup Structured Logging and Request Tracing Middleware
     init_app_logging(app)
     
     # 3. Ensure required storage directories exist
     os.makedirs(config_class.CACHE_DIR, exist_ok=True)
     os.makedirs(config_class.DATA_DIR, exist_ok=True)
+    os.makedirs(config_class.LOGS_DIR, exist_ok=True)
     os.makedirs(config_class.DATASET_DIR, exist_ok=True)
     
-    # 4. Register Blueprints
-    from server.src.modules.system.system_routes import system_bp
-    from server.src.modules.dosen.dosen_routes import dosen_bp
-    from server.src.modules.recommendation.recommendation_routes import recommendation_bp
+    # 4. Register Blueprints from routes layer
+    from server.src.routes.system.system_routes import system_bp
+    from server.src.routes.dosen.dosen_routes import dosen_bp
+    from server.src.routes.recommendation.recommendation_routes import recommendation_bp
     
     app.register_blueprint(system_bp, url_prefix='/api')
     app.register_blueprint(dosen_bp, url_prefix='/api')
     app.register_blueprint(recommendation_bp, url_prefix='/api')
     
-    # Also register root health check
+    # Root health check endpoint
     @app.route('/health', methods=['GET'])
     def root_health():
-        from server.src.modules.system.system_controller import SystemController
+        from server.src.controllers.system.system_controller import SystemController
         return SystemController.get_health()
 
     # 5. Global Error Handlers (conforming to rules/api-design.md & rules/error-handling.md)

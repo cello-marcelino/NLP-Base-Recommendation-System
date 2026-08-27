@@ -1,6 +1,6 @@
 import pytest
-from server.src.core.exceptions import ValidationError
-from server.src.modules.system.config_service import ConfigService
+from server.src.exceptions.app_exceptions import ValidationError
+from server.src.services.system.config_service import ConfigService
 
 def test_validate_and_sanitize_valid_config():
     valid_payload = {
