@@ -22,12 +22,9 @@ server/storage/data/*.json
 server/storage/data/*.db
 server/storage/data/*.sqlite*
 server/storage/data/*.pid
-
 server/storage/data/*.xlsx
 !server/storage/data/dataset_profiles_terintegrasi.xlsx
 !server/storage/data/.gitkeep
-
-
 server/storage/logs/*
 !server/storage/logs/.gitkeep
 
@@ -37,6 +34,10 @@ server/storage/logs/*
 .env.*.local
 *.key
 *.pem
+
+# Agent Skills & Rules
+.agents/
+rules/
 
 # Node / Frontend
 web/node_modules/
