@@ -1,5 +1,12 @@
+import os
+import sys
 import json
 import pytest
+
+# Ensure repository root is in sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
+
+from server.src.config.config import Config
 
 # Dataset hardcoded data proposal tugas akhir / tesis mahasiswa dari berbagai rumpun keahlian
 HARDCODED_THESIS_DATASET = [
@@ -38,7 +45,8 @@ HARDCODED_THESIS_DATASET = [
 def test_collect_top5_recommendations_for_all_theses_json(client):
     """
     Menguji dan mengumpulkan hasil rekomendasi Top-5 dosen lengkap
-    untuk setiap topik tesis (hardcoded manual input) dalam format JSON terstruktur.
+    untuk setiap topik tesis (hardcoded manual input) dalam format JSON terstruktur,
+    serta menyimpan file fisik JSON ke direktori storage data.
     """
     collected_results = []
     
@@ -102,10 +110,19 @@ def test_collect_top5_recommendations_for_all_theses_json(client):
             "top_5_dosen": recommendations
         })
         
-    # 6. Serialisasi ke format JSON string utuh & validasi parsing round-trip
+    # 6. Serialisasi ke format JSON string utuh
     json_output = json.dumps(collected_results, indent=2, ensure_ascii=False)
     assert len(json_output) > 0
     
+    # 7. Simpan file hasil generate JSON ke folder storage data
+    output_file = os.path.join(Config.DATA_DIR, "recommendation_top5_results.json")
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(json_output)
+        
+    assert os.path.exists(output_file)
+    
+    # 8. Validasi parsing round-trip
     parsed_back = json.loads(json_output)
     assert len(parsed_back) == len(HARDCODED_THESIS_DATASET)
     assert parsed_back[0]["thesis_id"] == "TESIS-001"
@@ -148,3 +165,65 @@ def test_batch_collect_top5_recommendations_json(client):
             assert rec["dosen"]["nidn"]
             assert "scores" in rec
             assert "xai" in rec
+
+if __name__ == "__main__":
+    from server.src.app import create_app
+    from server.src.services.system.cache_service import CacheService
+    
+    app = create_app()
+    
+    # Ensure cache is initialized
+    cache = CacheService.get_instance()
+    if not cache.is_ready:
+        print("[INFO] Melakukan warm-up cache rekomendasi NLP...")
+        cache.initialize_cache()
+
+        
+    client = app.test_client()
+    
+    results = []
+    print("\n" + "=" * 80)
+    print(" MENGEKSEKUSI PENGUJIAN TOP-5 REKOMENDASI DOSEN DENGAN DATA TESIS MANUAL")
+    print("=" * 80)
+    
+    for thesis in HARDCODED_THESIS_DATASET:
+        print(f"\n[+] Memproses {thesis['id']} ({thesis['kategori']}):")
+        print(f"    Judul: {thesis['judul'][:75]}...")
+        
+        resp = client.post('/api/recommendations', json={
+            "judul": thesis["judul"],
+            "abstrak": thesis["abstrak"],
+            "k_rank": 5
+        })
+        
+        if resp.status_code == 200:
+            payload = resp.get_json()["data"]
+            recs = payload["recommendations"]
+            meta = payload["metadata"]
+            
+            results.append({
+                "thesis_id": thesis["id"],
+                "thesis_kategori": thesis["kategori"],
+                "thesis_judul": thesis["judul"],
+                "thesis_abstrak": thesis["abstrak"],
+                "recommendation_metadata": meta,
+                "pipeline_logs": payload["pipeline"],
+                "top_5_dosen": recs
+            })
+            
+            print(f"    -> Mode: {meta.get('mode')} | Alpha: {meta.get('alpha')} | Beta: {meta.get('beta')}")
+            for r in recs:
+                print(f"       Rank #{r['rank']}: {r['dosen']['nama']} (Hybrid: {r['scores']['hybrid']:.4f}, BM25: {r['scores']['bm25']:.4f}, SBERT: {r['scores']['sbert']:.4f})")
+        else:
+            print(f"    -> [ERROR] Status code: {resp.status_code}")
+            
+    output_path = os.path.join(Config.DATA_DIR, "recommendation_top5_results.json")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+        
+    print("\n" + "=" * 80)
+    print(f"[OK] File JSON berhasil di-generate dan disimpan ke:")
+    print(f"     {output_path}")
+    print("=" * 80 + "\n")
