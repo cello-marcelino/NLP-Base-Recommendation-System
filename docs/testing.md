@@ -65,7 +65,7 @@ Untuk memastikan seluruh pengujian bersifat **deterministik**, **bebas efek samp
 
 ---
 
-## 4. Katalog Kasus Uji Eksisting (32 Test Cases)
+## 4. Katalog Kasus Uji Eksisting (34 Test Cases)
 
 ### A. Feature Tests
 | File | Nama Fungsi Test | Verifikasi Perilaku |
@@ -79,11 +79,14 @@ Untuk memastikan seluruh pengujian bersifat **deterministik**, **bebas efek samp
 | `test_recommendation_api.py` | `test_single_recommendation_empty_input` | Response 400 `VALIDATION_ERROR` jika judul dan abstrak kosong. |
 | `test_recommendation_api.py` | `test_batch_recommendation_success` | Response 200 untuk pemrosesan proposal ganda. |
 | `test_recommendation_api.py` | `test_batch_recommendation_limit_exceeded` | Response 400 `BATCH_LIMIT_EXCEEDED` jika jumlah proposal melebihi batas `MAX_BATCH_SIZE`. |
+| `test_recommendation_top5_json.py` | `test_collect_top5_recommendations_for_all_theses_json` | Mengumpulkan rekomendasi Top-5 lengkap per topik tesis hardcode dan memvalidasi struktur JSON utuh. |
+| `test_recommendation_top5_json.py` | `test_batch_collect_top5_recommendations_json` | Memproses seluruh dataset tesis hardcoded via batch endpoint dan memverifikasi kelengkapan Top-5. |
 | `test_system_api.py` | `test_get_health` | Endpoint `GET /health` mengembalikan status kesehatan sistem. |
 | `test_system_api.py` | `test_get_system_status` | Endpoint `GET /api/system/status` mengembalikan status online dan jumlah dosen. |
 | `test_system_api.py` | `test_get_dosen_list` | Endpoint `GET /api/dosen` mengembalikan katalog dosen lengkap. |
 | `test_system_api.py` | `test_get_and_patch_config` | Endpoint `GET /api/system/config` dan `PATCH /api/system/config` dengan header `X-API-Key` valid. |
 | `test_system_api.py` | `test_patch_config_unauthorized` | Response 401 `UNAUTHENTICATED` saat `PATCH /api/system/config` dengan API Key salah. |
+
 
 ### C. Unit Tests
 | File | Nama Fungsi Test | Verifikasi Perilaku |
