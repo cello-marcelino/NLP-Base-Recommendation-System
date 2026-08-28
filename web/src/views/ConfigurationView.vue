@@ -1,8 +1,13 @@
 <script setup>
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useConfigStore } from '../stores/config'
 
 const configStore = useConfigStore()
+const adminKey = ref(localStorage.getItem('siredo_admin_key') || '')
+
+const saveAdminKey = () => {
+  localStorage.setItem('siredo_admin_key', adminKey.value)
+}
 
 onMounted(() => {
   configStore.fetchConfig()
@@ -105,6 +110,25 @@ const onSave = async () => {
             </div>
             <p class="cf-desc" style="margin-top:0.5rem">Sisa bobot ({{ Math.round((1 - configStore.config.manual_alpha) * 100) }}%) akan dialokasikan untuk SBERT.</p>
           </div>
+        </div>
+
+        <!-- Otorisasi Admin -->
+        <div class="config-divider"></div>
+        <div class="config-field">
+          <div class="cf-header" style="margin-bottom:0.75rem">
+            <div>
+              <label class="cf-label">Otorisasi Admin (API Key)</label>
+              <p class="cf-desc">Masukkan `ADMIN_API_KEY` dari file `.env` server untuk menyimpan konfigurasi.</p>
+            </div>
+          </div>
+          <input 
+            type="password" 
+            v-model="adminKey" 
+            @input="saveAdminKey"
+            class="admin-key-input" 
+            placeholder="Masukkan secret key..."
+            required
+          >
         </div>
 
         <!-- Save Footer -->
@@ -244,6 +268,23 @@ const onSave = async () => {
 .btn-save:hover:not(:disabled) { background: var(--brand-dim); }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 .spin-icon { width: 16px; height: 16px; animation: spin 0.7s linear infinite; }
+
+.admin-key-input {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+.admin-key-input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-light);
+}
 
 @media (max-width: 600px) {
   .config-page { padding: 1.5rem 1rem 3rem; }
