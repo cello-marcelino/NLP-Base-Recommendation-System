@@ -46,8 +46,8 @@ const onSave = async () => {
           </div>
           <div class="slider-wrap">
             <span class="slider-tick">0.0</span>
-            <input type="range" v-model.number="configStore.config.threshold" min="0" max="5" step="0.1" class="cf-range">
-            <span class="slider-tick">5.0</span>
+            <input type="range" v-model.number="configStore.config.threshold" min="0" max="1" step="0.05" class="cf-range">
+            <span class="slider-tick">1.0</span>
           </div>
         </div>
 
