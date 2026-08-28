@@ -73,7 +73,11 @@ class Preprocessor:
         clean = Preprocessor.clean_text(text)
         words = clean.split()
         no_stop = Preprocessor.remove_stopwords(words)
-        return Preprocessor.create_ngrams(no_stop)
+        ngrams = Preprocessor.create_ngrams(no_stop)
+        
+        # Deduplikasi token (pertahankan urutan pertama)
+        seen = set()
+        return [x for x in ngrams if not (x in seen or seen.add(x))]
 
     @staticmethod
     def preprocess_for_sbert(text: str) -> str:

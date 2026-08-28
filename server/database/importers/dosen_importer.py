@@ -49,6 +49,21 @@ class DosenImporter:
         nidn = get_val(['nidn', 'id']) or None
         prodi = get_val(['program studi', 'prodi', 'program_studi']) or 'Informatika'
         keahlian = get_val(['bidang keahlian', 'keahlian', 'bidang_keahlian']) or ''
+        
+        # Normalisasi bidang keahlian
+        norm_map = {
+            "kecerdasan buatan": "Artificial Intelligence",
+            "rekayasa perangkat lunak": "Software Engineering",
+            "jaringan komputer": "Computer Network",
+            "sistem pendukung keputusan": "Decision Support System",
+            "sistem informasi geografis": "Geographical Information System"
+        }
+        keahlian_lower = keahlian.lower()
+        for id_term, en_term in norm_map.items():
+            if id_term in keahlian_lower:
+                # Simple case-insensitive replacement
+                keahlian = re.compile(re.escape(id_term), re.IGNORECASE).sub(en_term, keahlian)
+
         pendidikan = get_val(['pendidikan', 'riwayat pendidikan', 'riwayat_pendidikan']) or ''
         
         publikasi = self.parse_quoted_items(get_val(['jurnal', 'publikasi']))

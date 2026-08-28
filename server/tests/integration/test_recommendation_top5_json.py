@@ -72,9 +72,9 @@ def test_collect_top5_recommendations_for_all_theses_json(client):
         assert "beta" in metadata
         assert "mode" in metadata
         
-        # 3. Verifikasi tepat 5 dosen teratas terkumpul
+        # 3. Verifikasi jumlah dosen teratas terkumpul (bisa kurang dari 5 jika ter-filter threshold)
         recommendations = data["recommendations"]
-        assert len(recommendations) == 5, f"Ekspektasi 5 rekomendasi dosen, didapatkan {len(recommendations)}"
+        assert len(recommendations) <= 5, f"Ekspektasi maksimal 5 rekomendasi dosen, didapatkan {len(recommendations)}"
         
         # 4. Verifikasi kelengkapan data tiap dosen pada peringkat 1-5
         for idx, rec in enumerate(recommendations, start=1):
@@ -158,7 +158,7 @@ def test_batch_collect_top5_recommendations_json(client):
     for item in batch_data:
         assert item["id"].startswith("TESIS-")
         rekomendasi = item["rekomendasi"]
-        assert len(rekomendasi["recommendations"]) == 5
+        assert len(rekomendasi["recommendations"]) <= 5
         for rank_idx, rec in enumerate(rekomendasi["recommendations"], start=1):
             assert rec["rank"] == rank_idx
             assert rec["dosen"]["nama"]

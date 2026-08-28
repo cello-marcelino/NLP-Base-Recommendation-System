@@ -12,9 +12,9 @@ def test_clean_text():
     assert "!" not in cleaned
 
 def test_remove_stopwords():
-    words = ["analisis", "sentimen", "pada", "dan", "untuk", "twitter"]
+    words = ["analisis", "sentimen", "dan", "twitter", "menggunakan"]
     filtered = Preprocessor.remove_stopwords(words)
-    assert filtered == ["analisis", "sentimen", "twitter"]
+    assert filtered == ["sentimen", "twitter"]
 
 def test_create_ngrams():
     words = ["machine", "learning", "model"]

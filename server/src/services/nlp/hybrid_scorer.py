@@ -20,7 +20,14 @@ class HybridEngine:
         """
         Top-K ranking with O(n + k log k) complexity using numpy argpartition.
         """
-        skor_hybrid = (bobot_lex * skor_lex) + (bobot_sem * skor_sem)
+        def minmax(arr):
+            if arr.size == 0: return arr
+            min_v, max_v = arr.min(), arr.max()
+            return (arr - min_v) / (max_v - min_v) if max_v > min_v else arr
+            
+        norm_lex = minmax(skor_lex)
+        norm_sem = minmax(skor_sem)
+        skor_hybrid = (bobot_lex * norm_lex) + (bobot_sem * norm_sem)
         n = skor_hybrid.shape[0]
         
         if n == 0 or k_rank <= 0:
