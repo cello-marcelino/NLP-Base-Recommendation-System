@@ -143,7 +143,10 @@ const displayUjiList = computed(() => {
               <div class="xai-sub-label">Irisan Kata Kunci Eksak (BM25 Match):</div>
               <div class="xai-tags">
                 <span v-for="kata in xai?.irisan_kata" :key="kata" class="xai-tag xai-tag--blue">
-                  <span class="xai-check">v</span> {{ kata }}
+                  <svg class="xai-check" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {{ kata }}
                 </span>
                 <span v-if="!xai?.irisan_kata?.length" class="xai-empty">Tidak ada kata kunci yang cocok secara eksak.</span>
               </div>
