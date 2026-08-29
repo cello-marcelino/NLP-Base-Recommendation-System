@@ -6,17 +6,17 @@ Direktori ini berisi riwayat lengkap dari pengujian, audit kualitas, dan catatan
 
 Proses optimalisasi dilakukan dalam beberapa tahap iteratif: Pengujian kualitas awal, perbaikan algoritma, dan pengujian ulang.
 
-### 1. Audit Kualitas Tahap 1
-* **Dokumen:** [`recommendation-quality-audit.md`](./recommendation-quality-audit.md)
+### 1. Temuan Masalah (Issue)
+* **Dokumen:** [`issue-recommendation-quality.md`](./issue-recommendation-quality.md)
 * **Deskripsi:** Merupakan audit komprehensif pertama terhadap output model (berdasarkan data `recommendation_top5_results.json`). Menemukan beberapa *false-positive* yang fatal (misal: dosen animasi 3D direkomendasikan pada tesis DSS karena bias leksikal).
 * **Temuan Utama:**
   * Pengaruh skor SBERT tenggelam karena dominasi skor BM25.
   * Stopword teknis/akademis ("menggunakan", "berbasis", "sistem") belum difilter.
   * Kamus ekspansi kurang kaya.
 
-### 2. Implementasi Perbaikan & Testing (Fix Changelog)
-* **Dokumen:** [`audit-fixes-changelog.md`](./audit-fixes-changelog.md)
-* **Deskripsi:** Catatan teknis perbaikan arsitektur dan algoritma yang merespon temuan Audit 1. Perbaikan ini diuji menggunakan suite otomatis (PyTest) melalui test case integrasi dan unit.
+### 2. Implementasi Perbaikan (Fix)
+* **Dokumen:** [`fix-recommendation-quality.md`](./fix-recommendation-quality.md)
+* **Deskripsi:** Catatan teknis perbaikan arsitektur dan algoritma yang merespon temuan Issue di atas. Perbaikan ini diuji menggunakan suite otomatis (PyTest) melalui test case integrasi dan unit.
 * **Perbaikan Utama:**
   * Penambahan 12 stopword teknis.
   * Implementasi *Min-Max Normalization* pada skor BM25 dan SBERT sehingga rentangnya berimbang di `[0, 1]`.
@@ -24,8 +24,8 @@ Proses optimalisasi dilakukan dalam beberapa tahap iteratif: Pengujian kualitas 
   * Normalisasi data (bidang keahlian dosen) saat import dataset.
 * **Test Suite:** Perubahan ini menyebabkan penyesuaian pada 34 unit & integration test untuk memastikan tidak ada regresi dan batas threshold berjalan dengan benar.
 
-### 3. Audit Kualitas Tahap 2 (Post-Fix)
-* **Dokumen:** [`recommendation-quality-audit-v2.md`](./recommendation-quality-audit-v2.md)
+### 3. Validasi & Pengujian Ulang (Validation)
+* **Dokumen:** [`validation-recommendation-quality.md`](./validation-recommendation-quality.md)
 * **Deskripsi:** Hasil evaluasi ulang setelah perbaikan di atas diterapkan dan dataset di-*rebuild*.
 * **Hasil Akhir:**
   * *False-positive* berhasil dieleminasi sepenuhnya.
@@ -36,9 +36,9 @@ Proses optimalisasi dilakukan dalam beberapa tahap iteratif: Pengujian kualitas 
 ```text
 docs/audits/
 ├── README.md                              # Indeks dan ringkasan audit
-├── recommendation-quality-audit.md        # Laporan audit awal
-├── audit-fixes-changelog.md               # Changelog perbaikan teknis
-└── recommendation-quality-audit-v2.md     # Laporan audit setelah perbaikan
+├── issue-recommendation-quality.md        # Laporan temuan masalah (Issue)
+├── fix-recommendation-quality.md          # Changelog perbaikan teknis (Fix)
+└── validation-recommendation-quality.md   # Laporan validasi setelah perbaikan (Validation)
 ```
 
 Semua pengujian dan laporan kualitas pada direktori ini dilakukan dengan prinsip observabilitas dan validasi berbasis data sebelum model NLP dinaikkan ke lingkungan produksi.
