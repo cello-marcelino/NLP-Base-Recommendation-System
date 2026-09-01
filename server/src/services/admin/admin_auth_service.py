@@ -26,7 +26,7 @@ class AdminAuthService:
 
     @classmethod
     def verify_token(cls, token: str) -> Optional[Dict[str, Any]]:
-        if not token:
+        if not token or token == Config.ADMIN_API_KEY:
             return None
             
         try:

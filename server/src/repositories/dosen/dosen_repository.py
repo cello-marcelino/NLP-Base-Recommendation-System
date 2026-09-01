@@ -240,6 +240,42 @@ class SQLDosenRepository(DosenRepositoryInterface):
             cursor.close()
             conn.close()
 
+    def delete_single(self, dosen_identifier: Any) -> bool:
+        """Deletes a lecturer and associated child publications and histories."""
+        conn = DatabaseManager.get_connection()
+        if not conn:
+            raise RuntimeError("Database connection unavailable")
+            
+        is_sqlite = isinstance(conn, sqlite3.Connection)
+        param_char = '?' if is_sqlite else '%s'
+        cursor = conn.cursor()
+        
+        try:
+            # 1. Find internal id
+            cursor.execute(f"SELECT id FROM dosen WHERE id = {param_char} OR nidn = {param_char} LIMIT 1", (dosen_identifier, str(dosen_identifier)))
+            row = cursor.fetchone()
+            if not row:
+                return False
+                
+            dosen_id = row['id'] if isinstance(row, dict) or hasattr(row, 'keys') else row[0]
+            
+            # 2. Delete child tables
+            cursor.execute(f"DELETE FROM publikasi WHERE dosen_id = {param_char}", (dosen_id,))
+            cursor.execute(f"DELETE FROM riwayat_bimbingan WHERE dosen_id = {param_char}", (dosen_id,))
+            cursor.execute(f"DELETE FROM riwayat_pengujian WHERE dosen_id = {param_char}", (dosen_id,))
+            
+            # 3. Delete lecturer
+            cursor.execute(f"DELETE FROM dosen WHERE id = {param_char}", (dosen_id,))
+            conn.commit()
+            return True
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Gagal menghapus data dosen {dosen_identifier}: {e}")
+            raise e
+        finally:
+            cursor.close()
+            conn.close()
+
     def truncate_all(self):
         """Empties all lecturer and child relation tables atomically."""
         conn = DatabaseManager.get_connection()

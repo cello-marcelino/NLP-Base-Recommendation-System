@@ -94,22 +94,10 @@ class AdminDosenController:
 
     @staticmethod
     def delete(dosen_id):
-        # Delete lecturer from database
-        from server.database.connection.database import DatabaseManager
-        conn = DatabaseManager.get_connection()
-        if not conn:
-            raise RuntimeError("Database connection error")
-            
-        try:
-            cursor = conn.cursor()
-            driver = DatabaseManager.get_driver()
-            param_char = '%s' if driver == 'mysql' and hasattr(conn, 'cmd_query') else '?'
-            
-            cursor.execute(f"DELETE FROM dosen WHERE id = {param_char} OR nidn = {param_char}", (dosen_id, str(dosen_id)))
-            conn.commit()
-            cursor.close()
-        finally:
-            conn.close()
+        repo = SQLDosenRepository()
+        deleted = repo.delete_single(dosen_id)
+        if not deleted:
+            raise NotFoundError(f"Dosen dengan ID/NIDN {dosen_id} tidak ditemukan")
             
         # Refresh cache
         CacheService.get_instance().initialize_cache(force_refresh=True)
