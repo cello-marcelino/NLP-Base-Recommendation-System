@@ -180,8 +180,7 @@ const getAvatarBg = (nama) => {
             <th>Profil Dosen</th>
             <th>Program Studi</th>
             <th>Bidang Keahlian</th>
-            <th style="text-align: center;">Portfolio</th>
-            <th style="text-align: center; width: 140px;">Aksi</th>
+            <th style="text-align: center; width: 150px;">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -214,16 +213,6 @@ const getAvatarBg = (nama) => {
               </div>
             </td>
             <td class="col-center">
-              <div class="metrics-flex">
-                <span class="metric-badge m-jurnal" title="Jumlah Publikasi Jurnal">
-                  Jurnal: {{ parseListItems(dosen.jurnal).length }}
-                </span>
-                <span class="metric-badge m-bimb" title="Jumlah Bimbingan">
-                  Bimbingan: {{ parseListItems(dosen.judul_bimbing).length }}
-                </span>
-              </div>
-            </td>
-            <td class="col-center">
               <div class="actions-flex">
                 <router-link :to="`/admin/dosen/${dosen.nidn || dosen.id}`" class="act-btn btn-view" title="Lihat Detail Portfolio">
                   Detail
@@ -238,7 +227,7 @@ const getAvatarBg = (nama) => {
             </td>
           </tr>
           <tr v-if="!filteredDosen.length">
-            <td colspan="6" class="empty-state">
+            <td colspan="5" class="empty-state">
               <p>Tidak ada data dosen yang sesuai dengan kriteria pencarian.</p>
             </td>
           </tr>
