@@ -1,7 +1,9 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import api from '../../services/api'
+import { useSystemStore } from '../../stores/system'
 
+const systemStore = useSystemStore()
 const dosenList = ref([])
 const isLoading = ref(true)
 const search = ref('')
