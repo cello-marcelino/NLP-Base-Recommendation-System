@@ -51,7 +51,7 @@ graph TD
 
 ---
 
-### Alur 1: Inisialisasi Server & Cache Warm-Up (Server Startup Flow)
+### Alur 1: Inisialisasi Server & Asynchronous Cache Warm-Up (Server Startup Flow)
 
 Alur yang dieksekusi saat perintah `python siredo serve` dijalankan:
 
@@ -59,36 +59,53 @@ Alur yang dieksekusi saat perintah `python siredo serve` dijalankan:
 sequenceDiagram
     autonumber
     actor CLI as Developer / Admin
-    participant ServerCmd as CLI Server Manager
-    participant App as Flask Application
+    participant ServerCmd as CLI Server Manager (server/siredo)
+    participant App as Flask Application (Port 5000)
+    participant Worker as Background Warm-Up Worker (Thread)
     participant Cache as CacheService (Singleton)
     participant Repo as SQLDosenRepository
     participant DB as SQLite / MySQL
-    participant Disk as Storage Cache (.npy)
+    participant Disk as Storage Cache (.npy / .pkl)
 
     CLI->>ServerCmd: python siredo serve
-    ServerCmd->>ServerCmd: Spawn background process (pythonw / CREATE_NO_WINDOW)
-    ServerCmd->>Cache: initialize_cache()
-    Note over Cache: Memulai Prosedur Warm-Up (5 Tahap)
-    Cache->>Repo: get_all()
-    Repo->>DB: Fetch Dosen + 3 Flat Child Queries (No N+1)
-    DB-->>Repo: Dataset Relasional
-    Repo-->>Cache: List[Dosen] Entity Models
+    ServerCmd->>Cache: initialize_cache_async()
+    ServerCmd->>App: create_app() & Jalankan HTTP Server (Non-blocking)
+    Note over App: Port 5000 LANGSUNG TERBUKA (<50ms) & siap melayani /status
 
-    Cache->>Cache: Preprocessing & Korpus Terbobot (Keahlian ×5, Jurnal ×2)
-    Cache->>Cache: Tokenisasi & Fit BM25Okapi Inverted Index
+    par Background Warm-Up Running
+        Worker->>Cache: _warm_up(5 Tahap Real-Time)
+        Cache->>Cache: Update State -> warming_up (Progress 0%)
+        
+        Note over Cache: [1/5] Load Data Dosen
+        Cache->>Repo: get_all()
+        Repo->>DB: Fetch Dosen + 3 Flat Child Queries (No N+1)
+        DB-->>Repo: Dataset Relasional
+        Repo-->>Cache: List[Dosen] Entity Models (89 Dosen)
 
-    alt Cache Embeddings Ada di Disk
-        Cache->>Disk: np.load(sbert_embeddings.npy)
-        Disk-->>Cache: Matriks Vektor 768-D Dense (<0.1s)
-    else Cache Belum Ada
-        Cache->>Cache: SBERT forward pass encode korpus dosen
-        Cache->>Disk: Simpan sbert_embeddings.npy & keybert_dosen.json
+        Note over Cache: [2/5] Preprocessing Teks
+        Cache->>Cache: Case folding, stopword removal & bigram
+
+        Note over Cache: [3/5] BM25 Vektoring
+        Cache->>Cache: Tokenisasi & Fit BM25Okapi Inverted Index
+
+        Note over Cache: [4/5] SBERT & KeyBERT Embedding
+        alt Cache Embeddings Ada di Disk
+            Cache->>Disk: np.load(sbert_embeddings.npy) & load(keybert.json)
+            Disk-->>Cache: Matriks Vektor 384-D Dense (<0.2s)
+        else Cache Belum Ada
+            Cache->>Cache: SBERT forward pass encode 89 dosen (Neural Network)
+            Cache->>Disk: Simpan sbert_embeddings.npy & keybert_dosen.json
+        end
+
+        Note over Cache: [5/5] Simpan Snapshot Disk
+        Cache->>Disk: pickle.dump(dosen_data.pkl)
+        Cache->>Cache: Set is_ready = True & State = ready (100%)
+    and Frontend Client Monitoring
+        loop Polling Real-Time (/api/status)
+            App-->>CLI: State: warming_up (Tahap 1..5, Progress %, duration_ms)
+        end
     end
-
-    Cache->>Cache: Set flag is_ready = True
-    ServerCmd->>App: create_app() & Jalankan HTTP Server
-    Note over App: Server Siap Melayani Request (Sub-50ms)
+    Note over App: AI Engine Siap Melayani Query Rekomendasi (Sub-50ms)
 ```
 
 ---
@@ -224,39 +241,95 @@ sequenceDiagram
 
 ### Alur 5: Hot Reload & Pembaruan Konfigurasi (Zero-Downtime Flow)
 
-Alur saat administrator mengubah parameter algoritma tanpa mematikan proses server:
+Alur saat administrator mengubah parameter algoritma atau melakukan re-indexing tanpa mematikan proses server:
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Admin as Administrator
-    participant Dashboard as ConfigView.vue / CLI
+    participant Dashboard as AdminDashboardView.vue / CLI
     participant Auth as Security Middleware
     participant SystemCtrl as SystemController
     participant ConfigSvc as ConfigService
-    participant Cache as CacheService
+    participant Cache as CacheService (Singleton)
 
-    Admin->>Dashboard: Ubah manual_alpha / is_adaptive & Simpan
-    Dashboard->>Auth: PATCH /api/system/config (Header: X-API-Key)
-    Auth->>Auth: Verifikasi kecocokan ADMIN_API_KEY
-    Auth->>SystemCtrl: Delegasi eksekusi request
-
-    SystemCtrl->>ConfigSvc: update_config(payload)
-    ConfigSvc->>ConfigSvc: Validasi Whitelist Key (is_adaptive, manual_alpha, threshold)
-    ConfigSvc->>ConfigSvc: Simpan perubahan ke server/storage/data/config.json
-    ConfigSvc-->>SystemCtrl: Konfigurasi Baru yang Tervalidasi
-
-    Admin->>Dashboard: Trigger Reload (POST /api/system/reload atau CLI python siredo reload)
-    Dashboard->>SystemCtrl: POST /api/system/reload
-    SystemCtrl->>Cache: initialize_cache(force_refresh=True)
-    Cache->>Cache: Reload In-Memory Parameters & Refresh Inverted Index
-    Cache-->>SystemCtrl: Status Cache Ready
-    SystemCtrl-->>Dashboard: Response 200 OK (Konfigurasi & Cache Aktif)
+    alt Pembaruan Konfigurasi Runtime
+        Admin->>Dashboard: Ubah threshold / is_adaptive & Simpan
+        Dashboard->>Auth: PATCH /api/system/config (Header: X-API-Key)
+        Auth->>Auth: Verifikasi kecocokan ADMIN_API_KEY
+        Auth->>SystemCtrl: Delegasi eksekusi request
+        SystemCtrl->>ConfigSvc: update_config(payload)
+        ConfigSvc->>ConfigSvc: Simpan ke server/storage/data/config.json
+        ConfigSvc-->>SystemCtrl: Konfigurasi Baru Tervalidasi
+        SystemCtrl-->>Dashboard: Response 200 OK
+    else Trigger Async Hot Reload & Re-indexing
+        Admin->>Dashboard: Klik "Sync Engine" / POST /api/system/reload
+        Dashboard->>Auth: POST /api/system/reload (Header: X-API-Key)
+        Auth->>SystemCtrl: Delegasi eksekusi request
+        SystemCtrl->>Cache: initialize_cache_async(force_refresh=True)
+        Note over Cache: Worker thread menjalankan 5 tahap warm-up di background
+        SystemCtrl-->>Dashboard: Response 200 OK (Status: reloading)
+        loop Polling Real-Time (450ms)
+            Dashboard->>SystemCtrl: GET /api/status
+            SystemCtrl-->>Dashboard: warmup_status {current_step, progress_pct, duration_ms}
+        end
+        Note over Dashboard: Bar status berubah hijau (Ready & Idle) saat 100%
+    end
 ```
 
 ---
 
-### Alur 6: Manajemen Data & Provisioning Database
+### Alur 6: Manipulasi Data Dosen (Hybrid Incremental Indexing Flow)
+
+Alur saat administrator melakukan penambahan, pengubahan, atau penghapusan profil dosen tanpa merobohkan seluruh indeks AI:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Administrator
+    participant View as AdminDosenView.vue
+    participant Ctrl as AdminDosenController
+    participant Repo as SQLDosenRepository
+    participant Cache as CacheService
+    participant SBERT as SBERTEngine
+    participant KeyBERT as KeyBERTExtractor
+
+    Admin->>View: Tambah / Edit / Hapus Profil Dosen
+    View->>Ctrl: POST/PUT/DELETE /api/admin/dosen/:id
+    Ctrl->>Repo: Simpan perubahan ke Database Relasional
+    Repo-->>Ctrl: Entity Dosen Tersimpan
+
+    alt Tambah Dosen Baru (incremental_add)
+        Ctrl->>Cache: incremental_add(new_dosen)
+        Cache->>Cache: Append ke dosen_list RAM
+        Cache->>Cache: Rebuild BM25 Inverted Index (~0.1s)
+        Cache->>SBERT: add_single_embedding(new_dosen.text)
+        SBERT->>SBERT: np.vstack 1 baris vektor 384-D baru
+        Cache->>KeyBERT: Ekstrak 1 topik dosen & append
+    else Edit Dosen (incremental_update)
+        Ctrl->>Cache: incremental_update(dosen_id, updated_dosen)
+        Cache->>Cache: Ganti profil dosen pada index [idx] di RAM
+        Cache->>Cache: Rebuild BM25 Inverted Index (~0.1s)
+        Cache->>SBERT: update_single_embedding(idx, updated_text)
+        SBERT->>SBERT: Timpa baris matrix corpus_embeddings[idx] (Solusi Stale Bug)
+        Cache->>KeyBERT: Ekstrak ulang 1 topik dosen pada [idx]
+    else Hapus Dosen (incremental_delete)
+        Ctrl->>Cache: incremental_delete(dosen_id)
+        Cache->>Cache: Pop dosen dari dosen_list RAM
+        Cache->>Cache: Rebuild BM25 Inverted Index (~0.1s)
+        Cache->>SBERT: delete_single_embedding(idx)
+        SBERT->>SBERT: np.delete(corpus_embeddings, idx, axis=0)
+        Cache->>KeyBERT: Hapus entri keybert_data[idx]
+    end
+
+    Cache->>Cache: Simpan snapshot cache ke disk (.npy & .pkl)
+    Cache-->>Ctrl: Update Inkremental Selesai (~0.8 - 3.5s)
+    Ctrl-->>View: Response 200 OK (Data Dosen Diperbarui Tanpa Freeze)
+```
+
+---
+
+### Alur 7: Manajemen Data & Provisioning Database
 
 Alur provisioning skema dan pemindahan data master:
 
@@ -318,13 +391,14 @@ graph TD
 ---
 
 ## 4. Matriks Ringkasan Latensi Tiap Alur Sistem
-
+ 
 | Alur Sistem | Rata-Rata Latensi | Karakteristik Operasi | Komponen Utama |
 |---|---|---|---|
-| **Health Check** | $< 2\text{ ms}$ | Status boolean in-memory | `GET /health` |
+| **Health Check & Status** | $< 2\text{ ms}$ | Status real-time 5-tahap dari RAM | `GET /api/status` |
 | **Katalog Dosen** | $< 10\text{ ms}$ | JSON serialization dari RAM | `GET /api/dosen` |
 | **Rekomendasi Single** | $20\text{--}40\text{ ms}$ | In-memory BM25 + SBERT 1 query + SIMD Cosine | `POST /api/recommendations` |
 | **Rekomendasi SSE Stream**| Real-time step ($\sim 0.5\text{ s}$) | 5 tahapan event berurutan | `POST /api/recommendations/stream`|
 | **Rekomendasi Batch (10 Proposal)** | $200\text{--}350\text{ ms}$ | Iterasi in-memory batch | `POST /api/recommendations/batch` |
-| **Hot Reload Cache** | $< 300\text{ ms}$ | Reload disk cache & fitting BM25 | `POST /api/system/reload` |
-| **Warm-Up Startup Server** | $< 500\text{ ms}$ (cache hit) / $\sim 20\text{ s}$ (cache miss)| Pemuatan biner tensor `.npy` | `CacheService._warm_up()` |
+| **CRUD Dosen (Inkremental)** | $0.8\text{--}3.5\text{ s}$ | In-memory append/modify + SBERT row update | `POST/PUT/DELETE /api/admin/dosen` |
+| **Hot Reload Asinkron** | $< 50\text{ ms}$ (ACK) / $\sim 11\text{ s}$ (BG) | Trigger async worker & live poll status | `POST /api/system/reload` |
+| **Warm-Up Startup Server** | $< 50\text{ ms}$ (Port Open) / $\sim 11\text{ s}$ (Background) | Non-blocking Flask startup + background AI warmup | `python siredo serve` |
