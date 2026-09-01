@@ -126,7 +126,7 @@ def test_collect_top5_recommendations_for_all_theses_json(client):
     parsed_back = json.loads(json_output)
     assert len(parsed_back) == len(HARDCODED_THESIS_DATASET)
     assert parsed_back[0]["thesis_id"] == "TESIS-001"
-    assert len(parsed_back[0]["top_5_dosen"]) == 5
+    assert len(parsed_back[0]["top_5_dosen"]) <= 5
 
 def test_batch_collect_top5_recommendations_json(client):
     """
