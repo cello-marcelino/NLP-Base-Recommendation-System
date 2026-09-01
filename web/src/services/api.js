@@ -12,7 +12,10 @@ const api = axios.create({
 // Request Interceptor
 api.interceptors.request.use(
   (config) => {
-    // Optional: inject admin API key if present in localStorage / env
+    const adminToken = localStorage.getItem('siredo_admin_token')
+    if (adminToken) {
+      config.headers['Authorization'] = `Bearer ${adminToken}`
+    }
     const apiKey = localStorage.getItem('siredo_admin_key')
     if (apiKey) {
       config.headers['X-API-Key'] = apiKey

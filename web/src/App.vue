@@ -1,15 +1,28 @@
 <script setup>
-import AppSidebar from './components/layout/AppSidebar.vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import AppSidebar from './components/layout/AppSidebar.vue'
+import AdminSidebar from './components/layout/AdminSidebar.vue'
 
 const route = useRoute()
-const noSidebar = ['/']
+
+const isNoneLayout = computed(() => {
+  return route.path === '/' || route.path === '/admin/login' || route.meta.layout === 'none'
+})
+
+const isAdminLayout = computed(() => {
+  return route.path.startsWith('/admin') && route.path !== '/admin/login'
+})
 </script>
 
 <template>
-  <div class="app-shell" :class="{ 'has-sidebar': !noSidebar.includes(route.path) }">
-    <AppSidebar v-if="!noSidebar.includes(route.path)" />
-    <div class="app-content" :class="{ 'full-width': noSidebar.includes(route.path) }">
+  <div class="app-shell" :class="{ 'has-sidebar': !isNoneLayout }">
+    <!-- Admin Sidebar for Admin Portal -->
+    <AdminSidebar v-if="isAdminLayout" />
+    <!-- Public Sidebar for Public Portal -->
+    <AppSidebar v-else-if="!isNoneLayout" />
+
+    <div class="app-content" :class="{ 'full-width': isNoneLayout }">
       <router-view v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />

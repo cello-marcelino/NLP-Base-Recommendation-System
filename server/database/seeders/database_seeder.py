@@ -27,6 +27,8 @@ class DatabaseSeeder:
     def run(cls):
         logger.info("Menjalankan DatabaseSeeder...")
         cls.seed_default_config()
+        from server.database.seeders.admin_seeder import seed_admin_and_config
+        seed_admin_and_config()
         logger.info("[OK] DatabaseSeeder selesai dijalankan.")
 
 if __name__ == '__main__':

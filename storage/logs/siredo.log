@@ -1,0 +1,11 @@
+2026-09-01T19:26:22+0700 [INFO] [siredo-server] Menjalankan migrasi (sqlite): 002_create_admin_and_engine_config_tables.py...
+2026-09-01T19:26:22+0700 [INFO] [siredo-server] [OK] Migrasi 002_create_admin_and_engine_config_tables.py berhasil diaplikasikan.
+2026-09-01T19:26:22+0700 [INFO] [siredo-server] Berhasil mengaplikasikan 1 migrasi baru ke (sqlite).
+2026-09-01T19:27:07+0700 [INFO] [siredo-server] Database skema (sqlite) sudah up to date. Tidak ada migrasi baru.
+2026-09-01T19:27:41+0700 [INFO] [siredo-server] Menjalankan DatabaseSeeder...
+2026-09-01T19:27:41+0700 [INFO] [siredo-server] Seeder: System config sudah ada, melewati pembuatan ulang.
+2026-09-01T19:28:13+0700 [INFO] [siredo-server] Menjalankan DatabaseSeeder...
+2026-09-01T19:28:13+0700 [INFO] [siredo-server] Seeder: System config sudah ada, melewati pembuatan ulang.
+2026-09-01T19:28:13+0700 [INFO] [siredo-server] AdminSeeder: Default admin user 'admin' berhasil dibuat.
+2026-09-01T19:28:13+0700 [INFO] [siredo-server] AdminSeeder: Default engine_configs berhasil ditanamkan (threshold=0.3).
+2026-09-01T19:28:13+0700 [INFO] [siredo-server] [OK] DatabaseSeeder selesai dijalankan.
