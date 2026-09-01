@@ -44,7 +44,9 @@ const isAdminLayout = computed(() => {
 .app-content {
   flex: 1;
   min-width: 0;
+  width: 100%;
   background: var(--bg);
+  box-sizing: border-box;
 }
 .app-content.full-width {
   width: 100%;

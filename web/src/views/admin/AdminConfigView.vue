@@ -187,7 +187,7 @@ const resetToDefault = () => {
 </template>
 
 <style scoped>
-.admin-config-page { padding: 2.5rem 2rem; max-width: 860px; }
+.admin-config-page { padding: 2rem 2.5rem; width: 100%; max-width: 1200px; box-sizing: border-box; }
 .page-header { margin-bottom: 2rem; }
 .page-badge { display: inline-block; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; background: #ccfbf1; color: #0f766e; padding: 3px 10px; border-radius: 99px; margin-bottom: 0.75rem; }
 .page-header h1 { font-size: 1.85rem; font-weight: 700; color: #0f172a; margin: 0 0 0.5rem; }
