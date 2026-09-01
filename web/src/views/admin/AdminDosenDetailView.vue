@@ -13,7 +13,6 @@ const dosen = ref(null)
 const isLoading = ref(true)
 const errorMessage = ref(null)
 const activePortfolioTab = ref('jurnal') // 'jurnal' | 'bimbingan' | 'pengujian'
-const portfolioSearch = ref('')
 
 const parseListItems = (str) => {
   if (!str || typeof str !== 'string') return []
@@ -25,6 +24,23 @@ const parseListItems = (str) => {
     return matches.map(m => m.replace(/(^"|"$)/g, '').trim()).filter(Boolean)
   }
   return trimmed.split(/\n|;|•|\r/).map(s => s.replace(/^[0-9]+[.)]\s*/, '').trim()).filter(Boolean)
+}
+
+const parseEducationList = (str) => {
+  if (!str || typeof str !== 'string') return []
+  const trimmed = str.trim()
+  if (!trimmed || trimmed === '-' || trimmed.toLowerCase() === 'nan' || trimmed.toLowerCase() === 'null') return []
+  
+  const regex = /(?=Sarjana|Magister|Doktor|Diploma|S1|S2|S3|D3|D4)/i
+  let items = []
+  if (trimmed.includes('\n')) {
+    items = trimmed.split('\n')
+  } else if (trimmed.includes(', ') && regex.test(trimmed)) {
+    items = trimmed.split(/,\s*(?=Sarjana|Magister|Doktor|Diploma|S1|S2|S3|D3|D4)/i)
+  } else {
+    items = trimmed.split(/,|;/)
+  }
+  return items.map(s => s.trim()).filter(Boolean)
 }
 
 const fetchDetail = async () => {
@@ -79,19 +95,10 @@ const handleDelete = async () => {
   }
 }
 
+const educationList = computed(() => parseEducationList(dosen.value?.pendidikan))
 const jurnalList = computed(() => parseListItems(dosen.value?.jurnal))
 const bimbinganList = computed(() => parseListItems(dosen.value?.judul_bimbing))
 const pengujianList = computed(() => parseListItems(dosen.value?.judul_uji))
-
-const filterItems = (items) => {
-  if (!portfolioSearch.value) return items
-  const q = portfolioSearch.value.toLowerCase()
-  return items.filter(item => item.toLowerCase().includes(q))
-}
-
-const filteredJurnal = computed(() => filterItems(jurnalList.value))
-const filteredBimbingan = computed(() => filterItems(bimbinganList.value))
-const filteredPengujian = computed(() => filterItems(pengujianList.value))
 </script>
 
 <template>
@@ -164,11 +171,23 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
 
           <div class="profile-divider"></div>
 
+          <!-- Enhanced Education Timeline Section -->
           <div class="info-sec">
             <label>Riwayat Pendidikan</label>
-            <p class="edu-text">{{ dosen.pendidikan || 'Belum ada data riwayat pendidikan' }}</p>
+            <div v-if="educationList.length" class="edu-timeline">
+              <div v-for="(edu, idx) in educationList" :key="idx" class="edu-item">
+                <div class="edu-dot"></div>
+                <div class="edu-content">
+                  <span class="edu-title">{{ edu }}</span>
+                </div>
+              </div>
+            </div>
+            <p v-else class="text-subtle">Belum ada data riwayat pendidikan.</p>
           </div>
 
+          <div class="profile-divider"></div>
+
+          <!-- Expertise Section -->
           <div class="info-sec">
             <label>Bidang Keahlian Spesifik</label>
             <div class="keahlian-flex">
@@ -187,7 +206,7 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
 
       <!-- Right Column: Portfolios with Clear Distinct Sections -->
       <div class="portfolio-col">
-        <!-- Control & Tab Switcher Bar -->
+        <!-- Control & Tab Switcher Bar (Without Search) -->
         <div class="portfolio-nav-bar">
           <div class="portfolio-tabs">
             <button 
@@ -215,15 +234,6 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
               Pengujian Sidang ({{ pengujianList.length }})
             </button>
           </div>
-
-          <div class="portfolio-search">
-            <input 
-              type="text" 
-              v-model="portfolioSearch" 
-              placeholder="Cari judul karya ilmiah..." 
-              class="port-search-input"
-            />
-          </div>
         </div>
 
         <!-- Section 1: Publikasi Jurnal -->
@@ -236,12 +246,12 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
               <span class="category-badge badge-teal">Kategori 1</span>
               <h3>Publikasi Jurnal & Makalah Ilmiah</h3>
             </div>
-            <span class="count-pill pill-teal">{{ filteredJurnal.length }} Judul</span>
+            <span class="count-pill pill-teal">{{ jurnalList.length }} Judul</span>
           </div>
 
           <div class="sec-body">
-            <div v-if="filteredJurnal.length" class="items-grid">
-              <div v-for="(j, idx) in filteredJurnal" :key="idx" class="item-card item-jurnal">
+            <div v-if="jurnalList.length" class="items-grid">
+              <div v-for="(j, idx) in jurnalList" :key="idx" class="item-card item-jurnal">
                 <span class="item-num num-teal">#{{ idx + 1 }}</span>
                 <div class="item-content">
                   <p class="item-title">{{ j }}</p>
@@ -265,12 +275,12 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
               <span class="category-badge badge-blue">Kategori 2</span>
               <h3>Riwayat Bimbingan Tugas Akhir / Skripsi</h3>
             </div>
-            <span class="count-pill pill-blue">{{ filteredBimbingan.length }} Judul</span>
+            <span class="count-pill pill-blue">{{ bimbinganList.length }} Judul</span>
           </div>
 
           <div class="sec-body">
-            <div v-if="filteredBimbingan.length" class="items-grid">
-              <div v-for="(b, idx) in filteredBimbingan" :key="idx" class="item-card item-bimbingan">
+            <div v-if="bimbinganList.length" class="items-grid">
+              <div v-for="(b, idx) in bimbinganList" :key="idx" class="item-card item-bimbingan">
                 <span class="item-num num-blue">#{{ idx + 1 }}</span>
                 <div class="item-content">
                   <p class="item-title">{{ b }}</p>
@@ -294,12 +304,12 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
               <span class="category-badge badge-purple">Kategori 3</span>
               <h3>Riwayat Pengujian Sidang Skripsi</h3>
             </div>
-            <span class="count-pill pill-purple">{{ filteredPengujian.length }} Judul</span>
+            <span class="count-pill pill-purple">{{ pengujianList.length }} Judul</span>
           </div>
 
           <div class="sec-body">
-            <div v-if="filteredPengujian.length" class="items-grid">
-              <div v-for="(u, idx) in filteredPengujian" :key="idx" class="item-card item-pengujian">
+            <div v-if="pengujianList.length" class="items-grid">
+              <div v-for="(u, idx) in pengujianList" :key="idx" class="item-card item-pengujian">
                 <span class="item-num num-purple">#{{ idx + 1 }}</span>
                 <div class="item-content">
                   <p class="item-title">{{ u }}</p>
@@ -341,7 +351,7 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
 .btn-back-link { display: inline-block; margin-top: 0.75rem; font-size: 0.85rem; color: #0d9488; font-weight: 600; text-decoration: none; }
 
 /* Grid Layout */
-.detail-grid { display: grid; grid-template-columns: 340px 1fr; gap: 2rem; align-items: start; }
+.detail-grid { display: grid; grid-template-columns: 360px 1fr; gap: 2rem; align-items: start; }
 @media (max-width: 960px) { .detail-grid { grid-template-columns: 1fr; } }
 
 .profile-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 1.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
@@ -369,29 +379,30 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
 .mc-num { font-size: 1.25rem; font-weight: 700; font-family: var(--font-mono, monospace); }
 .mc-lbl { font-size: 0.8rem; font-weight: 600; color: #475569; }
 
-.info-sec { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.25rem; }
+.info-sec { display: flex; flex-direction: column; gap: 0.5rem; }
 .info-sec label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
-.edu-text { font-size: 0.875rem; color: #0f172a; margin: 0; line-height: 1.5; }
+
+/* Education Timeline Component */
+.edu-timeline { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 0.25rem; }
+.edu-item { display: flex; align-items: flex-start; gap: 0.75rem; }
+.edu-dot { width: 8px; height: 8px; border-radius: 50%; background: #0d9488; margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 0 3px #ccfbf1; }
+.edu-content { flex: 1; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0.75rem; }
+.edu-title { font-size: 0.825rem; font-weight: 600; color: #1e293b; line-height: 1.45; display: block; }
 
 .keahlian-flex { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.25rem; }
 .tag-item { font-size: 0.75rem; background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; padding: 3px 10px; border-radius: 6px; font-weight: 600; }
-.text-subtle { font-size: 0.83rem; color: #94a3b8; font-style: italic; }
+.text-subtle { font-size: 0.83rem; color: #94a3b8; font-style: italic; margin: 0; }
 
 /* Portfolio Column & Tabs */
-.portfolio-col { display: flex; flex-direction: column; gap: 1.75rem; }
+.portfolio-col { display: flex; flex-direction: column; gap: 1.5rem; }
 
-.portfolio-nav-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem 1rem; }
-.portfolio-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-.ptab-btn { background: none; border: 1px solid transparent; padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.15s; }
+.portfolio-nav-bar { display: flex; align-items: center; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.65rem 0.85rem; }
+.portfolio-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; width: 100%; }
+.ptab-btn { background: none; border: 1px solid transparent; padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.825rem; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.15s; }
 .ptab-btn:hover { background: #f8fafc; color: #0f172a; }
-.ptab-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
 .ptab-btn.tab-teal.active { background: #0d9488; border-color: #0d9488; color: white; }
 .ptab-btn.tab-blue.active { background: #0284c7; border-color: #0284c7; color: white; }
 .ptab-btn.tab-purple.active { background: #7c3aed; border-color: #7c3aed; color: white; }
-
-.portfolio-search { flex: 1; max-width: 280px; }
-.port-search-input { width: 100%; padding: 0.45rem 0.75rem; font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; }
-.port-search-input:focus { outline: none; border-color: #0d9488; background: white; }
 
 /* Distinct Section Cards */
 .portfolio-section { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
