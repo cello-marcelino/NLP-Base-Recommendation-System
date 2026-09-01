@@ -181,6 +181,64 @@ class SQLDosenRepository(DosenRepositoryInterface):
             cursor.close()
             conn.close()
 
+    def update_single(self, dosen_identifier: Any, data: Dict[str, Any]):
+        """Updates master lecturer record and refreshes child publications/histories."""
+        conn = DatabaseManager.get_connection()
+        if not conn:
+            raise RuntimeError("Database connection unavailable")
+            
+        is_sqlite = isinstance(conn, sqlite3.Connection)
+        param_char = '?' if is_sqlite else '%s'
+        cursor = conn.cursor()
+        
+        try:
+            # 1. Find internal id
+            cursor.execute(f"SELECT id FROM dosen WHERE id = {param_char} OR nidn = {param_char} LIMIT 1", (dosen_identifier, str(dosen_identifier)))
+            row = cursor.fetchone()
+            if not row:
+                raise RuntimeError(f"Dosen dengan ID/NIDN {dosen_identifier} tidak ditemukan di database")
+                
+            dosen_id = row['id'] if isinstance(row, dict) or hasattr(row, 'keys') else row[0]
+            
+            # 2. Update master table
+            cursor.execute(
+                f"UPDATE dosen SET nidn = {param_char}, nama = {param_char}, program_studi = {param_char}, "
+                f"bidang_keahlian = {param_char}, pendidikan = {param_char} WHERE id = {param_char}",
+                (
+                    data.get('nidn', ''),
+                    data.get('nama', ''),
+                    data.get('program_studi', 'Teknik Informatika'),
+                    data.get('bidang_keahlian', ''),
+                    data.get('pendidikan', ''),
+                    dosen_id
+                )
+            )
+            
+            # 3. Refresh child tables
+            cursor.execute(f"DELETE FROM publikasi WHERE dosen_id = {param_char}", (dosen_id,))
+            cursor.execute(f"DELETE FROM riwayat_bimbingan WHERE dosen_id = {param_char}", (dosen_id,))
+            cursor.execute(f"DELETE FROM riwayat_pengujian WHERE dosen_id = {param_char}", (dosen_id,))
+            
+            for pub in data.get('publikasi', []):
+                if pub:
+                    cursor.execute(f"INSERT INTO publikasi (dosen_id, judul) VALUES ({param_char}, {param_char})", (dosen_id, str(pub)))
+            for bimb in data.get('riwayat_bimbingan', []):
+                if bimb:
+                    cursor.execute(f"INSERT INTO riwayat_bimbingan (dosen_id, judul_tugas_akhir, peran) VALUES ({param_char}, {param_char}, {param_char})", (dosen_id, str(bimb), 'Pembimbing'))
+            for uji in data.get('riwayat_pengujian', []):
+                if uji:
+                    cursor.execute(f"INSERT INTO riwayat_pengujian (dosen_id, judul_sidang, peran) VALUES ({param_char}, {param_char}, {param_char})", (dosen_id, str(uji), 'Penguji'))
+                    
+            conn.commit()
+            return dosen_id
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Gagal memperbarui data dosen {dosen_identifier}: {e}")
+            raise e
+        finally:
+            cursor.close()
+            conn.close()
+
     def truncate_all(self):
         """Empties all lecturer and child relation tables atomically."""
         conn = DatabaseManager.get_connection()

@@ -67,6 +67,32 @@ class AdminDosenController:
         return ResponseFormatter.success(data=counts, message="Data dosen baru berhasil disimpan")
 
     @staticmethod
+    def update(dosen_id):
+        data = request.get_json(silent=True) or {}
+        nama = data.get("nama")
+        if not nama:
+            raise ValidationError("Nama dosen wajib diisi")
+            
+        record = {
+            "nidn": data.get("nidn", ""),
+            "nama": nama,
+            "program_studi": data.get("program_studi", "Teknik Informatika"),
+            "bidang_keahlian": data.get("bidang_keahlian", ""),
+            "pendidikan": data.get("pendidikan", ""),
+            "publikasi": data.get("publikasi", []),
+            "riwayat_bimbingan": data.get("riwayat_bimbingan", []),
+            "riwayat_pengujian": data.get("riwayat_pengujian", [])
+        }
+        
+        repo = SQLDosenRepository()
+        updated_id = repo.update_single(dosen_id, record)
+        
+        # Refresh in-memory cache
+        CacheService.get_instance().initialize_cache(force_refresh=True)
+        
+        return ResponseFormatter.success(data={"id": updated_id}, message="Data dosen berhasil diperbarui")
+
+    @staticmethod
     def delete(dosen_id):
         # Delete lecturer from database
         from server.database.connection.database import DatabaseManager

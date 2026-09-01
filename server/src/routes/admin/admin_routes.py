@@ -75,6 +75,11 @@ def get_dosen_detail(dosen_id):
 def create_dosen():
     return AdminDosenController.create()
 
+@admin_bp.route('/dosen/<dosen_id>', methods=['PUT'])
+@require_admin_auth
+def update_dosen(dosen_id):
+    return AdminDosenController.update(dosen_id)
+
 @admin_bp.route('/dosen/<dosen_id>', methods=['DELETE'])
 @require_admin_auth
 def delete_dosen(dosen_id):
