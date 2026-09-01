@@ -24,11 +24,21 @@ const formData = ref({
 
 const fetchDosen = async () => {
   isLoading.value = true
+  if (systemStore.isExcelMode && systemStore.dosenList.length > 0) {
+    dosenList.value = systemStore.dosenList
+    isLoading.value = false
+    return
+  }
+
   try {
     const res = await api.get('/admin/dosen')
     dosenList.value = res.data.data || []
   } catch (err) {
-    console.error(err)
+    if (systemStore.dosenList.length > 0) {
+      dosenList.value = systemStore.dosenList
+    } else {
+      console.error(err)
+    }
   } finally {
     isLoading.value = false
   }
