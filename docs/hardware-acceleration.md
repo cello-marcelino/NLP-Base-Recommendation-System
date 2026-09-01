@@ -24,8 +24,8 @@ SiReDo memanfaatkan arsitektur Deep Learning (Transformer) untuk pencocokan sema
 | Modul | Komponen SiReDo | Operasi Komputasi Berat | Dukungan GPU |
 |---|---|---|---|
 | **`torch` (PyTorch)** | Backend Komputasi Tensor | Eksekusi operasi matriks perkalian dense, forward pass neural network, dan alokasi memory GPU (VRAM) | **Penuh (NVIDIA CUDA / ROCm / Apple MPS)** |
-| **`sentence-transformers`** | [`SBERTEngine`](file:///C:/Users/USER/marcell-porto-project/siredo/server/src/services/nlp/sbert_engine.py) | Meng-encode teks korpus profil dosen dan teks query proposal ke dalam vektor dense 768 dimensi | **Penuh** (Otomatis dialokasikan ke GPU) |
-| **`keybert`** | [`SBERTEngine`](file:///C:/Users/USER/marcell-porto-project/siredo/server/src/services/nlp/sbert_engine.py) | Ekstraksi frasa kunci representatif kandidat dosen menggunakan cosine similarity embedding frasa n-gram | **Penuh** |
+| **`sentence-transformers`** | [`SBERTEngine`](server/src/services/nlp/sbert_engine.py) | Meng-encode teks korpus profil dosen dan teks query proposal ke dalam vektor dense 768 dimensi | **Penuh** (Otomatis dialokasikan ke GPU) |
+| **`keybert`** | [`SBERTEngine`](server/src/services/nlp/sbert_engine.py) | Ekstraksi frasa kunci representatif kandidat dosen menggunakan cosine similarity embedding frasa n-gram | **Penuh** |
 | **`transformers`** | Layer Arsitektur SBERT | Multi-Head Self-Attention layers dan Feed-Forward Network | **Penuh** |
 
 ---

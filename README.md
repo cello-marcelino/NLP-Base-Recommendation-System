@@ -12,10 +12,10 @@ Dibangun dengan arsitektur Decoupled Fullstack:
 
 ```
 siredo/
-├── siredo                        # Entrypoint SiReDo CLI (python siredo <cmd>)
-├── .env                          # File konfigurasi environment utama
-├── .env.example                  # Template konfigurasi environment
 ├── server/                       # Backend Flask REST API
+│   ├── siredo                    # Entrypoint SiReDo CLI (python siredo <cmd>)
+│   ├── .env                      # File konfigurasi environment backend
+│   ├── .env.example              # Template konfigurasi environment
 │   ├── src/
 │   │   ├── controllers/          # Presentation Layer: Controller HTTP
 │   │   ├── routes/               # Routing Layer: Definisi Blueprint & Endpoint
@@ -61,9 +61,10 @@ siredo/
 
 ## SiReDo CLI Framework
 
-SiReDo dilengkapi CLI mandiri untuk mempermudah operasional dan development:
+SiReDo dilengkapi CLI mandiri di dalam folder `server/` untuk mempermudah operasional dan development:
 
 ```powershell
+# Dari dalam direktori server/
 python siredo serve                 # Menjalankan API server (background by default)
 python siredo serve --foreground    # Menjalankan API server (foreground / blocking)
 python siredo reload                # Hot reload NLP cache pada server aktif
@@ -87,12 +88,11 @@ python siredo cache:clear           # Bersihkan file cache embedding disk
 cd server
 python -m venv .venv
 # Windows PowerShell:
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 # Linux/macOS:
 # source .venv/bin/activate
 
 pip install -r requirements.txt
-cd ..
 copy .env.example .env
 
 # Inisialisasi Database & Jalankan Server via CLI

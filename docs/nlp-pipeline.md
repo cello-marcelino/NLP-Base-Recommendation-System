@@ -71,7 +71,7 @@ SiReDo memadukan dua paradigma Information Retrieval (IR) komplementer:
 
 ## 2. Tahap 1: Text Preprocessing & Korpus Dosen
 
-Komponen: [`server/src/services/nlp/preprocessor.py`](file:///C:/Users/USER/marcell-porto-project/siredo/server/src/services/nlp/preprocessor.py)
+Komponen: [`server/src/services/nlp/preprocessor.py`](server/src/services/nlp/preprocessor.py)
 
 ### A. Preprocessing Query Mahasiswa
 1. **Case Folding**: Mengonversi seluruh teks menjadi huruf kecil (*lowercase*).
@@ -95,7 +95,7 @@ Data profil dosen dikonstruksi menjadi dua representasi teks:
 
 ## 3. Tahap 2: Ekspansi Sinonim (Ontologi Domain IT)
 
-Komponen: [`server/src/services/nlp/kamus_ekspansi.py`](file:///C:/Users/USER/marcell-porto-project/siredo/server/src/services/nlp/kamus_ekspansi.py)
+Komponen: [`server/src/services/nlp/kamus_ekspansi.py`](server/src/services/nlp/kamus_ekspansi.py)
 
 Untuk mengatasi kesenjangan kosakata (*vocabulary mismatch problem*), query mahasiswa dicocokkan dengan kamus ontologi sinonim domain ilmu komputer:
 
@@ -121,7 +121,7 @@ Setiap sinonim yang ditemukan ditambahkan ke query dan dicatat dalam `pipeline_l
 
 ## 4. Tahap 3: Lexical Engine & Hard Constraint Pruning (BM25)
 
-Komponen: [`server/src/services/nlp/bm25_engine.py`](file:///C:/Users/USER/marcell-porto-project/siredo/server/src/services/nlp/bm25_engine.py)
+Komponen: [`server/src/services/nlp/bm25_engine.py`](server/src/services/nlp/bm25_engine.py)
 
 ### A. Algoritma BM25Okapi
 Skor relevansi leksikal dihitung menggunakan formula standar Okapi BM25:
@@ -144,7 +144,7 @@ $$\text{Score}_{\text{BM25}}(i) \leftarrow 0.0$$
 
 ## 5. Tahap 4: Semantic Engine (Sentence-BERT)
 
-Komponen: [`server/src/services/nlp/sbert_engine.py`](file:///C:/Users/USER/marcell-porto-project/siredo/server/src/services/nlp/sbert_engine.py)
+Komponen: [`server/src/services/nlp/sbert_engine.py`](server/src/services/nlp/sbert_engine.py)
 
 ### A. Model & Vector Embeddings
 - **Model**: `paraphrase-multilingual-MiniLM-L12-v2`
@@ -164,7 +164,7 @@ $$\text{Score}_{\text{SBERT}}(i) = \max\left(0.0, \text{Sim}_{\text{Cosine}}(\ve
 
 ## 6. Tahap 5: Adaptive Hybrid Scoring & Top-K Ranking
 
-Komponen: [`server/src/services/nlp/hybrid_scorer.py`](file:///C:/Users/USER/marcell-porto-project/siredo/server/src/services/nlp/hybrid_scorer.py)
+Komponen: [`server/src/services/nlp/hybrid_scorer.py`](server/src/services/nlp/hybrid_scorer.py)
 
 ### A. Dynamic Adaptive Weighting
 Panjang query masukan menentukan karakteristik pencarian yang optimal:
