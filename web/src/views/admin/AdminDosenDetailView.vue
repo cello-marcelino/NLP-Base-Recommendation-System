@@ -12,7 +12,7 @@ const dosenId = route.params.id
 const dosen = ref(null)
 const isLoading = ref(true)
 const errorMessage = ref(null)
-const activePortfolioTab = ref('all') // 'all' | 'jurnal' | 'bimbingan' | 'pengujian'
+const activePortfolioTab = ref('jurnal') // 'jurnal' | 'bimbingan' | 'pengujian'
 const portfolioSearch = ref('')
 
 const parseListItems = (str) => {
@@ -192,14 +192,6 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
           <div class="portfolio-tabs">
             <button 
               type="button" 
-              class="ptab-btn" 
-              :class="{ active: activePortfolioTab === 'all' }"
-              @click="activePortfolioTab = 'all'"
-            >
-              Semua Portfolio ({{ jurnalList.length + bimbinganList.length + pengujianList.length }})
-            </button>
-            <button 
-              type="button" 
               class="ptab-btn tab-teal" 
               :class="{ active: activePortfolioTab === 'jurnal' }"
               @click="activePortfolioTab = 'jurnal'"
@@ -236,7 +228,7 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
 
         <!-- Section 1: Publikasi Jurnal -->
         <div 
-          v-if="activePortfolioTab === 'all' || activePortfolioTab === 'jurnal'" 
+          v-if="activePortfolioTab === 'jurnal'" 
           class="portfolio-section card-jurnal"
         >
           <div class="sec-header header-jurnal">
@@ -265,7 +257,7 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
 
         <!-- Section 2: Riwayat Bimbingan Skripsi -->
         <div 
-          v-if="activePortfolioTab === 'all' || activePortfolioTab === 'bimbingan'" 
+          v-if="activePortfolioTab === 'bimbingan'" 
           class="portfolio-section card-bimbingan"
         >
           <div class="sec-header header-bimbingan">
@@ -294,7 +286,7 @@ const filteredPengujian = computed(() => filterItems(pengujianList.value))
 
         <!-- Section 3: Riwayat Pengujian Sidang -->
         <div 
-          v-if="activePortfolioTab === 'all' || activePortfolioTab === 'pengujian'" 
+          v-if="activePortfolioTab === 'pengujian'" 
           class="portfolio-section card-pengujian"
         >
           <div class="sec-header header-pengujian">
