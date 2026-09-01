@@ -106,39 +106,70 @@ Ketika request `POST /api/recommendations` masuk:
 
 ---
 
-## 5. Strategi Invalidasi & Pembaruan Cache (Cache Invalidation)
+## 5. Strategi Hybrid Incremental Indexing & Cache Invalidation
 
-Untuk menjaga konsistensi antara data di Database/Dataset dengan data di Caching Layer:
+Mulai versi 3.1.0+, SiReDo beralih dari mekanisme *full-rebuild* yang lambat ke arsitektur **Hybrid Incremental Indexing**:
 
 ```
-                       Event Pembaruan Data
-                                │
-        ┌───────────────────────┴───────────────────────┐
-        ▼                                               ▼
-Skenario 1: Hot Reload (Tanpa Restart)    Skenario 2: Hard Cache Reset
-─────────────────────────────────────     ────────────────────────────
-1. Admin update konfigurasi / DB          1. python siredo cache:clear
-2. python siredo reload                   2. python siredo db:import
-   (atau POST /api/system/reload)         3. python siredo serve
-3. In-memory cache di-refresh langsung    4. Cache disk di-generate ulang
+                       Event Perubahan Data Dosen (CRUD)
+                                       │
+        ┌──────────────────────────────┼──────────────────────────────┐
+        ▼                              ▼                              ▼
+  Operasi TAMBAH                 Operasi EDIT                   Operasi HAPUS
+ (incremental_add)            (incremental_update)           (incremental_delete)
+        │                              │                              │
+ 1. Append Dosen ke RAM        1. Update profil di RAM        1. Hapus dosen dari RAM
+ 2. Rebuild BM25 (~0.1s)       2. Rebuild BM25 (~0.1s)        2. Rebuild BM25 (~0.1s)
+ 3. Encode 1 baris SBERT       3. Re-encode 1 baris SBERT     3. Hapus baris dari matriks
+ 4. Ekstrak 1 KeyBERT          4. Re-ekstrak 1 KeyBERT        4. Hapus 1 KeyBERT
+ 5. Simpan snapshot cache      5. Simpan snapshot cache       5. Simpan snapshot cache
+        │                              │                              │
+        └──────────────────────────────┴──────────────────────────────┘
+                                       │
+                    Selesai dalam ~0.8 - 3.5 Detik (Zero Downtime)
 ```
 
-### 1. Hot Reload via API / CLI
+### A. Tiga Metode Incremental Indexing ([`server/src/services/system/cache_service.py`])
+
+1. **`incremental_add(new_dosen)`**:
+   - Menambahkan 1 objek `Dosen` baru ke `self.dosen_list`.
+   - Melakukan fitting ulang BM25 secara instan (~0.1s untuk puluhan dokumen).
+   - Menjalankan `sbert.add_single_embedding()` yang melakukan `np.vstack` 1 vektor baru ke matriks tensor SBERT.
+   - Mengekstrak 1 topik KeyBERT dan menyimpannya ke disk.
+
+2. **`incremental_update(dosen_identifier)`**:
+   - Menemukan indeks dosen target dalam memori.
+   - Memperbarui data profil di `self.dosen_list[idx]`.
+   - Mengganti baris matriks vektor `self.corpus_embeddings[idx]` dengan vektor hasil *encode* terbaru (menyelesaikan masalah *stale embeddings*).
+   - Memperbarui metadata topik `self.keybert_data[idx]` secara spesifik.
+
+3. **`incremental_delete(dosen_identifier)`**:
+   - Menghapus profil dari memori.
+   - Menghapus baris pada matriks NumPy menggunakan `np.delete(self.corpus_embeddings, idx, axis=0)`.
+   - Membuang entri KeyBERT yang bersesuaian.
+
+---
+
+## 6. Prosedur Maintenance & Hard Reset Cache
+
+Jika terjadi anomali dataset atau migrasi database besar:
+
+### 1. Hot Reload Asinkron (Async Re-indexing)
 - **Perintah CLI**: `python siredo reload`
 - **Endpoint**: `POST /api/system/reload` (terotentikasi `X-API-Key`)
-- **Mekanisme**: Memanggil `CacheService.get_instance().initialize_cache(force_refresh=True)`, memuat ulang data dari database, dan memperbarui inverted index BM25 di RAM tanpa *downtime*.
+- **Mekanisme**: Memanggil `CacheService.get_instance().initialize_cache_async(force_refresh=True)` di *background worker thread*. Status server berubah menjadi `reloading` dengan progres real-time 5 tahap yang dapat dipantau langsung di Admin Dashboard.
 
-### 2. Pembersihan Disk Cache
+### 2. Pembersihan Disk Cache Total
 - **Perintah CLI**: `python siredo cache:clear`
 - **Mekanisme**: Menghapus seluruh file `.npy`, `.json`, dan `.pkl` di `server/storage/cache/`. Pada eksekusi berikutnya, sistem otomatis meng-generate ulang embedding baru dari database.
 
 ---
 
-## 6. Ketahanan Sistem & Graceful Degradation
+## 7. Ketahanan Sistem & Graceful Degradation
 
-1. **Proteksi Akses Sebelum Siap (*Warm-Up Guard*)**:
-   Jika ada request rekomendasi masuk saat proses warm-up sedang berlangsung (`cache.is_ready == False`), sistem mengembalikan respon HTTP 503 `SERVICE_UNAVAILABLE` dengan pesan deskriptif dan tidak mengalami *crash*.
+1. **Asynchronous Non-blocking Warm-Up Guard**:
+   Server Flask langsung membuka port HTTP `5000` saat proses *booting* selesai. Selama inisialisasi AI berjalan di latar belakang (`cache.is_ready == False`), request status (`/status`) tetap dapat merespon real-time progres, sedangkan request kalkulasi rekomendasi akan dijaga dengan respon HTTP 503 `SERVICE_UNAVAILABLE`.
 2. **Deteksi Perubahan Jumlah Data (*Cache Invalidation Check*)**:
    Jika file `sbert_embeddings.npy` ditemukan di disk namun jumlah barisnya tidak sesuai dengan jumlah dosen di database, SBERTEngine otomatis mendeteksi ketidakcocokan tersebut dan meregenerasi embedding baru.
 3. **Penanganan Thread-Safety**:
-   Inisialisasi cache dilindungi oleh `threading.RLock()` sehingga aman dari *race condition* pada lingkungan multi-threaded Flask server.
+   Seluruh operasi manipulasi cache dilindungi oleh `threading.RLock()` reentrant lock sehingga aman dari *race condition* pada lingkungan multi-threaded Flask server.
