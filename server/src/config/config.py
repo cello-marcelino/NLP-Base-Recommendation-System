@@ -5,9 +5,14 @@ from dotenv import load_dotenv
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
 
-# Load .env tunggal dari root proyek
+# Load .env: Utamakan server/.env, dengan fallback ke root .env
+SERVER_ENV = os.path.join(BASE_DIR, '.env')
 ROOT_ENV = os.path.join(ROOT_DIR, '.env')
-load_dotenv(ROOT_ENV)
+
+if os.path.exists(SERVER_ENV):
+    load_dotenv(SERVER_ENV)
+elif os.path.exists(ROOT_ENV):
+    load_dotenv(ROOT_ENV)
 
 class Config:
     """Centralized configuration class loaded from environment variables."""
