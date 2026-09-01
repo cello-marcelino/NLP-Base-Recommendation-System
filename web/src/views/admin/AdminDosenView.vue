@@ -320,23 +320,23 @@ const getAvatarBg = (nama) => {
             <td class="col-center">
               <div class="metrics-flex">
                 <span class="metric-badge m-jurnal" title="Jumlah Publikasi Jurnal">
-                  📚 {{ parseListItems(dosen.jurnal).length }}
+                  Jurnal: {{ parseListItems(dosen.jurnal).length }}
                 </span>
                 <span class="metric-badge m-bimb" title="Jumlah Bimbingan">
-                  🎓 {{ parseListItems(dosen.judul_bimbing).length }}
+                  Bimbingan: {{ parseListItems(dosen.judul_bimbing).length }}
                 </span>
               </div>
             </td>
             <td class="col-center">
               <div class="actions-flex">
                 <button type="button" class="act-btn btn-view" @click="openDetailModal(dosen)" title="Lihat Detail Portfolio">
-                  👁️ Detail
+                  Detail
                 </button>
                 <button type="button" class="act-btn btn-edit" @click="openEditModal(dosen)" title="Edit Dosen">
-                  ✏️ Edit
+                  Edit
                 </button>
                 <button type="button" class="act-btn btn-del" @click="handleDelete(dosen)" title="Hapus Dosen">
-                  🗑️
+                  Hapus
                 </button>
               </div>
             </td>
@@ -366,7 +366,7 @@ const getAvatarBg = (nama) => {
             :class="{ active: activeTab === 'utama' }"
             @click="activeTab = 'utama'"
           >
-            👤 Data Utama
+            Data Utama
           </button>
           <button 
             type="button" 
@@ -374,7 +374,7 @@ const getAvatarBg = (nama) => {
             :class="{ active: activeTab === 'publikasi' }"
             @click="activeTab = 'publikasi'"
           >
-            📚 Publikasi Jurnal
+            Publikasi Jurnal
           </button>
           <button 
             type="button" 
@@ -382,12 +382,12 @@ const getAvatarBg = (nama) => {
             :class="{ active: activeTab === 'riwayat' }"
             @click="activeTab = 'riwayat'"
           >
-            🎓 Bimbingan & Sidang
+            Bimbingan & Sidang
           </button>
         </div>
 
         <form @submit.prevent="handleSave" class="modal-body">
-          <div v-if="formError" class="error-banner">⚠ {{ formError }}</div>
+          <div v-if="formError" class="error-banner">[ERROR] {{ formError }}</div>
 
           <!-- Tab 1: Data Utama -->
           <div v-if="activeTab === 'utama'" class="tab-pane">

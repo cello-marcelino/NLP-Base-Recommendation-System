@@ -88,7 +88,7 @@ const downloadJson = () => {
           <span v-else>Memproses Dataset...</span>
         </button>
 
-        <p v-if="errorMessage" class="error-msg">⚠ {{ errorMessage }}</p>
+        <p v-if="errorMessage" class="error-msg">[ERROR] {{ errorMessage }}</p>
       </div>
 
       <!-- Results Table -->

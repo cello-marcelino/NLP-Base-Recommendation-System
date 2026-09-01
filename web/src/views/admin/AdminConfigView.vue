@@ -91,7 +91,7 @@ const resetToDefault = () => {
 
       <!-- Default Optimization Banner -->
       <div class="opt-info-banner">
-        <div class="banner-icon">💡</div>
+        <div class="banner-icon">[INFO]</div>
         <div>
           <strong>Konfigurasi Teroptimasi (Hasil Audit NLP):</strong>
           <p>Mesin SiReDo secara default menggunakan <code>threshold = 0.3</code> dan <code>is_adaptive = True</code> berdasarkan changelog optimasi Min-Max Normalization. Perubahan di luar angka ini dapat mempengaruhi relevansi ranking dosen.</p>
@@ -158,8 +158,8 @@ const resetToDefault = () => {
 
       <!-- Action Footer -->
       <div class="config-footer">
-        <p v-if="successMessage" class="msg msg-success">✓ {{ successMessage }}</p>
-        <p v-if="errorMessage" class="msg msg-error">⚠ {{ errorMessage }}</p>
+        <p v-if="successMessage" class="msg msg-success">[OK] {{ successMessage }}</p>
+        <p v-if="errorMessage" class="msg msg-error">[ERROR] {{ errorMessage }}</p>
         <div class="btn-group">
           <button type="button" @click="resetToDefault" class="btn-reset">Reset Ke Default (0.3)</button>
           <button type="submit" :disabled="isSaving" class="btn-save">
@@ -172,7 +172,7 @@ const resetToDefault = () => {
     <!-- Warning Modal -->
     <div v-if="showWarningModal" class="modal-backdrop" @click.self="showWarningModal = false">
       <div class="warning-modal-box">
-        <div class="warn-icon">⚠️</div>
+        <div class="warn-icon">[PERINGATAN]</div>
         <h3>Peringatan Perubahan Parameter Engine</h3>
         <p>Anda mencoba mengubah konfigurasi engine dari **nilai default teroptimasi** (Threshold: 0.3, Adaptive Mode: ON).</p>
         <p class="warn-highlight">Perubahan ini dapat mempengaruhi kualitas normalisasi skor Min-Max dan menyebabkan dosen yang tidak relevan masuk ke jajaran Top-5 rekomendasi.</p>
