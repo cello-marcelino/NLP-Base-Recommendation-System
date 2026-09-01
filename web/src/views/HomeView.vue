@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../services/api'
+import SingleRecommendationView from './SingleRecommendationView.vue'
 
 const router = useRouter()
 const serverStatus = ref('checking')
@@ -32,9 +33,7 @@ onMounted(checkStatus)
         <span class="topbar-name">SiReDo<span class="topbar-api"> API</span></span>
       </div>
       <div class="topbar-links">
-        <router-link to="/docs" class="tl">Dokumentasi</router-link>
-        <router-link to="/preprocessing" class="tl">Pipeline</router-link>
-        <router-link to="/single" class="tl tl-btn">Coba Sekarang →</router-link>
+        <router-link to="/docs" class="tl">Dokumentasi API</router-link>
       </div>
     </header>
 
@@ -55,8 +54,7 @@ onMounted(checkStatus)
           berdasarkan judul dan abstrak topik penelitian.
         </p>
         <div class="hero-actions">
-          <router-link to="/single" class="btn-primary">Mulai Analisis →</router-link>
-          <router-link to="/docs" class="btn-ghost">Lihat Dokumentasi API</router-link>
+          <a href="#demo" class="btn-primary">Mulai Analisis →</a>
         </div>
 
         <!-- Quick stats -->
@@ -109,14 +107,6 @@ onMounted(checkStatus)
             <span class="card-cta">Lihat referensi →</span>
           </router-link>
 
-          <router-link to="/single" class="doc-card">
-            <div class="card-icon" style="background:#f0fdf4;color:#16a34a">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </div>
-            <h3>Single Recommendation</h3>
-            <p>Analisis satu topik penelitian secara real-time. Lihat skor BM25, SBERT, dan Hybrid setiap dosen beserta XAI explanation.</p>
-            <span class="card-cta">Buka tool →</span>
-          </router-link>
 
           <router-link to="/batch" class="doc-card">
             <div class="card-icon" style="background:#fffbeb;color:#d97706">
@@ -145,6 +135,13 @@ onMounted(checkStatus)
 <span class="tok-key">GET</span>   http://localhost:5000/api/config
 <span class="tok-key">GET</span>   http://localhost:5000/api/status</pre>
         </div>
+      </div>
+    </section>
+
+    <!-- Demo Section (Single Recommendation) -->
+    <section id="demo" class="demo-section">
+      <div class="demo-inner">
+        <SingleRecommendationView />
       </div>
     </section>
 
@@ -406,6 +403,17 @@ onMounted(checkStatus)
   font-size: 0.82rem;
   line-height: 1.9;
   overflow-x: auto;
+}
+
+/* Demo section */
+.demo-section {
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border);
+  padding: 0;
+}
+.demo-inner {
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 /* Footer */

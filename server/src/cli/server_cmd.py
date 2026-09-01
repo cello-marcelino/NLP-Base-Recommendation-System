@@ -72,10 +72,10 @@ def _run_server_worker(host: str, port: int, debug: bool, device: str = None):
     from server.src.app import create_app
     from server.src.services.system.cache_service import CacheService
     
-    # 1. Warm up in-memory cache and NLP models
-    CacheService.get_instance().initialize_cache()
+    # 1. Start background warm-up for NLP models & embeddings
+    CacheService.get_instance().initialize_cache_async()
     
-    # 2. Build Flask App
+    # 2. Build Flask App immediately
     app = create_app(Config)
     
     def cleanup_handler(*args):
@@ -132,7 +132,7 @@ def serve(host: str = None, port: int = None, debug: bool = None, foreground: bo
         if os.path.exists(pythonw):
             python_exe = pythonw
             
-    script_path = os.path.abspath(os.path.join(Config.ROOT_DIR, 'siredo'))
+    script_path = os.path.abspath(sys.argv[0])
     
     cmd = [
         python_exe,

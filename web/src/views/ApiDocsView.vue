@@ -14,6 +14,13 @@ const sections = [
   { id: 'status', label: 'GET /status' },
   { id: 'errors', label: 'Error Handling' },
 ]
+const scrollToSection = (id) => {
+  activeSection.value = id
+  const el = document.getElementById(id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' })
+  }
+}
 </script>
 
 <template>
@@ -27,7 +34,7 @@ const sections = [
           :href="`#${s.id}`"
           class="toc-link"
           :class="{ active: activeSection === s.id }"
-          @click.prevent="activeSection = s.id; document.getElementById(s.id)?.scrollIntoView({behavior:'smooth'})"
+          @click.prevent="scrollToSection(s.id)"
         >{{ s.label }}</a>
       </nav>
     </aside>
@@ -310,6 +317,9 @@ curl -X POST http://localhost:5000/api/rekomendasi/single \
             Gunakan endpoint ini sebagai <strong>health check</strong>. Tunggu hingga
             <code>cache_ready: true</code> sebelum mengirimkan request rekomendasi.
           </p>
+          <blockquote>
+            <strong>Update v3.1.0:</strong> Berkat sistem <em>Hybrid Incremental Indexing</em>, status <code>cache_ready</code> tidak akan lagi menjadi <code>false</code> saat terjadi perubahan data dosen (CRUD). Model AI akan di-update secara parsial (<em>on-the-fly</em>) dalam memori tanpa menghentikan layanan (zero downtime).
+          </blockquote>
         </section>
 
         <!-- Errors -->

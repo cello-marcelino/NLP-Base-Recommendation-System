@@ -231,12 +231,18 @@
             Nilai berkisar dari 0 (tidak relevan) hingga 1 (identik secara semantik).
           </p>
 
-          <h3>Cache & Optimasi</h3>
+          <h3>Cache & Optimasi (Incremental Indexing)</h3>
           <p>
-            Embedding corpus dosen di-encode sekali saat server startup dan disimpan di file
-            <code>sbert_embeddings.npy</code>. Saat ada query baru, hanya query yang di-encode
-            secara real-time. SBERT hanya dijalankan untuk dosen yang lolos BM25 hard filter,
-            menghemat komputasi secara signifikan pada corpus besar.
+            Embedding corpus dosen di-encode dan disimpan di file
+            <code>sbert_embeddings.npy</code>. Mulai versi 3.1.0, SiReDo mengimplementasikan
+            <strong>Hybrid Incremental Indexing</strong>. Setiap kali ada perubahan data dosen (CRUD),
+            sistem hanya akan menghitung ulang dan memperbarui vektor dari dosen yang bersangkutan secara parsial
+            di dalam memori, tanpa melakukan <em>full re-encoding</em>. 
+          </p>
+          <p>
+            Pendekatan ini memangkas waktu pembaruan dari hitungan menit menjadi <strong>kurang dari 1 detik</strong> (zero downtime).
+            Saat ada query baru, SBERT hanya dijalankan untuk query tersebut dan dosen yang lolos filter BM25,
+            menghemat komputasi secara drastis pada corpus yang besar.
           </p>
         </section>
 
@@ -356,11 +362,23 @@
               </p>
               <div class="sc-impact">Dampak: Meningkatkan recall untuk SBERT</div>
             </div>
+
+            <div class="scenario-card" style="border-left-color: var(--blue)">
+              <div class="sc-header">
+                <span class="sc-badge" style="background:var(--blue-bg);color:var(--blue)">D</span>
+                <h3>Incremental Indexing — Zero Downtime Sync</h3>
+              </div>
+              <p>
+                Pembaruan data dosen via panel Admin tidak lagi memblokir sistem. Cache SBERT dan KeyBERT diperbarui secara parsial (<em>on-the-fly</em>) 
+                hanya untuk data yang berubah, menghapus kebutuhan <em>full warmup</em> yang memakan waktu lama.
+              </p>
+              <div class="sc-impact">Dampak: Skalabilitas tinggi dan update instan (~1 detik)</div>
+            </div>
           </div>
 
           <hr>
           <p>
-            <router-link to="/single" style="color:var(--brand);font-weight:600">→ Coba pipeline ini secara langsung di halaman Single Recommendation</router-link>
+            <router-link to="/" style="color:var(--brand);font-weight:600">→ Coba pipeline ini secara langsung di halaman Live Demo</router-link>
           </p>
         </section>
 

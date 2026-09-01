@@ -11,15 +11,18 @@ class SystemController:
     @staticmethod
     def get_status():
         cache = CacheService.get_instance()
+        state = cache.warmup_status.get("state", "idle") if hasattr(cache, 'warmup_status') else ("ready" if cache.is_ready else "warming_up")
         return ResponseFormatter.success(
             data={
-                "status": "online",
+                "status": state,
                 "app_name": Config.APP_NAME,
                 "environment": Config.APP_ENV,
                 "cache_ready": cache.is_ready,
-                "total_dosen": len(cache.dosen_list) if cache.is_ready else 0
+                "total_dosen": len(cache.dosen_list) if cache.is_ready else 0,
+                "device": Config.TORCH_DEVICE.upper(),
+                "warmup_status": cache.warmup_status
             },
-            message="Sistem beroperasi normal"
+            message="Status sistem berhasil diambil"
         )
 
     @staticmethod
@@ -29,7 +32,8 @@ class SystemController:
         return ResponseFormatter.success(
             data={
                 "status": "healthy" if cache.is_ready else "warming_up",
-                "cache_ready": cache.is_ready
+                "cache_ready": cache.is_ready,
+                "warmup_status": cache.warmup_status
             },
             status_code=status_code,
             message="Health check"
@@ -52,11 +56,12 @@ class SystemController:
     @staticmethod
     def reload_system():
         cache = CacheService.get_instance()
-        cache.initialize_cache(force_refresh=True)
+        cache.initialize_cache_async(force_refresh=True)
         return ResponseFormatter.success(
             data={
-                "cache_ready": cache.is_ready,
-                "total_dosen": len(cache.dosen_list)
+                "status": "reloading",
+                "cache_ready": False,
+                "warmup_status": cache.warmup_status
             },
-            message="Sistem dan cache berhasil dimuat ulang (reloaded)"
+            message="Proses reload dan re-indexing NLP engine dimulai di background"
         )

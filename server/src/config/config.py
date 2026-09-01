@@ -28,7 +28,11 @@ class Config:
     DATASET_DIR = DATA_DIR
     
     # Logging Configuration
-    LOG_FILE = os.getenv('LOG_FILE', os.path.join(LOGS_DIR, 'siredo.log'))
+    _log_env = os.getenv('LOG_FILE')
+    if _log_env:
+        LOG_FILE = _log_env if os.path.isabs(_log_env) else os.path.join(BASE_DIR, _log_env)
+    else:
+        LOG_FILE = os.path.join(LOGS_DIR, 'siredo.log')
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
     
     # Application settings
@@ -51,15 +55,8 @@ class Config:
     # Database Configuration (Driver: 'sqlite' | 'mysql')
     DB_DRIVER = os.getenv('DB_DRIVER', 'sqlite').lower().strip()
     
-    # SQLite file located in server/database/siredo.db
-    _raw_sqlite = os.getenv('DB_SQLITE_PATH', os.path.join(DATABASE_DIR, 'siredo.db'))
-    if not os.path.isabs(_raw_sqlite):
-        if _raw_sqlite.startswith('server/'):
-            DB_SQLITE_PATH = os.path.abspath(os.path.join(ROOT_DIR, _raw_sqlite))
-        else:
-            DB_SQLITE_PATH = os.path.abspath(os.path.join(BASE_DIR, _raw_sqlite))
-    else:
-        DB_SQLITE_PATH = _raw_sqlite
+    _db_path = os.getenv('DB_SQLITE_PATH', os.path.join(DATABASE_DIR, 'siredo.db'))
+    DB_SQLITE_PATH = _db_path if os.path.isabs(_db_path) else os.path.join(BASE_DIR, _db_path)
     
     # MySQL Configuration (Used if DB_DRIVER=mysql)
     DB_HOST = os.getenv('DB_HOST', 'localhost')

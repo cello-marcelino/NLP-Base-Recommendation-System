@@ -38,6 +38,23 @@ const parseListItems = (str) => {
     .filter(s => s.length > 0 && s !== '-')
 }
 
+const parseEducationList = (str) => {
+  if (!str || typeof str !== 'string') return []
+  const trimmed = str.trim()
+  if (!trimmed || trimmed === '-' || trimmed.toLowerCase() === 'nan' || trimmed.toLowerCase() === 'null') return []
+  
+  const regex = /(?=Sarjana|Magister|Doktor|Diploma|S1|S2|S3|D3|D4)/i
+  let items = []
+  if (trimmed.includes('\n')) {
+    items = trimmed.split('\n')
+  } else if (trimmed.includes(', ') && regex.test(trimmed)) {
+    items = trimmed.split(/,\s*(?=Sarjana|Magister|Doktor|Diploma|S1|S2|S3|D3|D4)/i)
+  } else {
+    items = trimmed.split(/,|;/)
+  }
+  return items.map(s => s.trim()).filter(Boolean)
+}
+
 const matchTerms = computed(() => {
   const terms = new Set()
   if (Array.isArray(props.xai?.irisan_kata)) {
@@ -68,7 +85,7 @@ const filterRelevant = (items) => {
 const allJurnalList = computed(() => parseListItems(props.dosen?.jurnal))
 const allBimbinganList = computed(() => parseListItems(props.dosen?.judul_bimbing))
 const allUjiList = computed(() => parseListItems(props.dosen?.judul_uji))
-const pendidikanList = computed(() => parseListItems(props.dosen?.pendidikan))
+const pendidikanList = computed(() => parseEducationList(props.dosen?.pendidikan))
 
 const displayJurnalList = computed(() => {
   if (showAllRecords.value) return allJurnalList.value
@@ -116,10 +133,13 @@ const displayUjiList = computed(() => {
           </div>
           <div class="xai-card">
             <h4 class="xai-label">Riwayat Pendidikan</h4>
-            <div v-if="pendidikanList.length" class="xai-edu-list">
-              <span v-for="(edu, idx) in pendidikanList" :key="'edu'+idx" class="edu-chip">
-                {{ edu }}
-              </span>
+            <div v-if="pendidikanList.length" class="edu-timeline">
+              <div v-for="(edu, idx) in pendidikanList" :key="'edu'+idx" class="edu-item">
+                <div class="edu-dot"></div>
+                <div class="edu-content">
+                  <span class="edu-title">{{ edu }}</span>
+                </div>
+              </div>
             </div>
             <p v-else class="xai-empty">Belum ada data pendidikan.</p>
           </div>
@@ -331,12 +351,11 @@ const displayUjiList = computed(() => {
 .xai-text { font-size: 0.85rem; color: var(--text-primary); line-height: 1.5; margin: 0; }
 .xai-empty { font-size: 0.78rem; color: var(--text-muted); font-style: italic; margin: 0; }
 
-.xai-edu-list { display: flex; flex-direction: column; gap: 0.35rem; }
-.edu-chip {
-  font-size: 0.78rem; color: var(--text-secondary);
-  background: var(--bg-subtle); padding: 3px 8px; border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-}
+.edu-timeline { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.25rem; }
+.edu-item { display: flex; align-items: flex-start; gap: 0.75rem; }
+.edu-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); margin-top: 6px; flex-shrink: 0; box-shadow: 0 0 0 3px var(--brand-light); }
+.edu-content { flex: 1; background: var(--bg-subtle); border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.6rem; }
+.edu-title { font-size: 0.78rem; font-weight: 600; color: var(--text-primary); line-height: 1.35; display: block; }
 
 .xai-reasons-grid {
   display: flex; flex-direction: column; gap: 0.75rem;

@@ -49,14 +49,14 @@ class SBERTEngine:
             self.model = SentenceTransformer(self.MODEL_NAME, device=device)
             self.kw_model = KeyBERT(model=self.model)
 
-    def encode_corpus(self, corpus_texts: List[str], corpus_normal: List[str], cache_path: Optional[str] = None) -> np.ndarray:
+    def encode_corpus(self, corpus_texts: List[str], corpus_normal: List[str], cache_path: Optional[str] = None, force_refresh: bool = False) -> np.ndarray:
         self.load_model()
         device = self.get_compute_device()
         
         kb_cache_path = cache_path.replace('sbert_embeddings.npy', 'keybert_dosen.json') if cache_path else None
         
         # 1. Load or Generate SBERT Embeddings
-        if cache_path and os.path.exists(cache_path):
+        if cache_path and os.path.exists(cache_path) and not force_refresh:
             logger.info(f"Memuat SBERT cache embeddings dari disk: {cache_path}")
             self.corpus_embeddings = np.load(cache_path)
             if len(self.corpus_embeddings) != len(corpus_texts):
@@ -70,7 +70,7 @@ class SBERTEngine:
                 np.save(cache_path, self.corpus_embeddings)
                 
         # 2. Load or Generate KeyBERT Keywords
-        if kb_cache_path and os.path.exists(kb_cache_path):
+        if kb_cache_path and os.path.exists(kb_cache_path) and not force_refresh:
             try:
                 with open(kb_cache_path, 'r', encoding='utf-8') as f:
                     self.keybert_data = json.load(f)
@@ -119,3 +119,55 @@ class SBERTEngine:
         filtered_embeddings = self.corpus_embeddings[valid_indices]
         cos_scores = util.cos_sim(query_embedding, filtered_embeddings)[0].numpy()
         return np.clip(cos_scores, 0.0, None)
+
+    def add_single_embedding(self, sbert_text: str, normal_text: str):
+        """Encode 1 teks dan append ke corpus_embeddings matrix."""
+        self.load_model()
+        device = self.get_compute_device()
+        
+        logger.info(f"Incremental Add SBERT & KeyBERT...")
+        new_emb = self.model.encode(sbert_text, convert_to_numpy=True, show_progress_bar=False, device=device)
+        new_emb = new_emb.reshape(1, -1)
+        
+        if self.corpus_embeddings is not None:
+            self.corpus_embeddings = np.vstack([self.corpus_embeddings, new_emb])
+        else:
+            self.corpus_embeddings = new_emb
+        
+        # KeyBERT for new entry
+        new_kw = self.kw_model.extract_keywords(
+            normal_text, keyphrase_ngram_range=(1, 3),
+            stop_words=list(STOPWORDS), use_maxsum=True,
+            nr_candidates=15, top_n=5
+        )
+        self.keybert_data.append([(str(k[0]), float(k[1])) for k in new_kw])
+
+    def update_single_embedding(self, idx: int, sbert_text: str, normal_text: str):
+        """Re-encode 1 teks dan replace baris idx di corpus_embeddings."""
+        self.load_model()
+        device = self.get_compute_device()
+        
+        logger.info(f"Incremental Update SBERT & KeyBERT index {idx}...")
+        new_emb = self.model.encode(sbert_text, convert_to_numpy=True, show_progress_bar=False, device=device)
+        
+        if self.corpus_embeddings is not None and idx < len(self.corpus_embeddings):
+            self.corpus_embeddings[idx] = new_emb
+        
+        # Re-extract KeyBERT for updated entry
+        new_kw = self.kw_model.extract_keywords(
+            normal_text, keyphrase_ngram_range=(1, 3),
+            stop_words=list(STOPWORDS), use_maxsum=True,
+            nr_candidates=15, top_n=5
+        )
+        if idx < len(self.keybert_data):
+            self.keybert_data[idx] = [(str(k[0]), float(k[1])) for k in new_kw]
+
+    def delete_single_embedding(self, idx: int):
+        """Hapus baris idx dari corpus_embeddings dan keybert_data."""
+        logger.info(f"Incremental Delete SBERT & KeyBERT index {idx}...")
+        if self.corpus_embeddings is not None and idx < len(self.corpus_embeddings):
+            self.corpus_embeddings = np.delete(self.corpus_embeddings, idx, axis=0)
+        
+        if idx < len(self.keybert_data):
+            self.keybert_data.pop(idx)
+

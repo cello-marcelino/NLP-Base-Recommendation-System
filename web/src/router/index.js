@@ -7,11 +7,7 @@ const routes = [
     name: 'Home',
     component: () => import('../views/HomeView.vue') 
   },
-  { 
-    path: '/single', 
-    name: 'Single',
-    component: () => import('../views/SingleRecommendationView.vue') 
-  },
+  { path: '/single', redirect: '/' },
   { 
     path: '/preprocessing', 
     name: 'Preprocessing',

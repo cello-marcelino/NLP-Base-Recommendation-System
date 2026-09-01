@@ -58,6 +58,7 @@
 
 /* Base resets & mapping to Tailwind theme variables */
 *, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
 :root {
   /* Mapping legacy variables so existing custom CSS blocks in .vue files don't break */

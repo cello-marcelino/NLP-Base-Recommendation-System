@@ -61,8 +61,11 @@ class AdminDosenController:
         repo = SQLDosenRepository()
         counts = repo.save_batch([record])
         
-        # Refresh in-memory cache
-        CacheService.get_instance().initialize_cache(force_refresh=True)
+        # Refresh in-memory cache incrementally
+        all_dosen = SQLDosenRepository().get_all()
+        new_dosen = all_dosen[-1] if all_dosen else None
+        if new_dosen:
+            CacheService.get_instance().incremental_add(new_dosen)
         
         return ResponseFormatter.success(data=counts, message="Data dosen baru berhasil disimpan")
 
@@ -87,8 +90,8 @@ class AdminDosenController:
         repo = SQLDosenRepository()
         updated_id = repo.update_single(dosen_id, record)
         
-        # Refresh in-memory cache
-        CacheService.get_instance().initialize_cache(force_refresh=True)
+        # Refresh in-memory cache incrementally
+        CacheService.get_instance().incremental_update(dosen_id)
         
         return ResponseFormatter.success(data={"id": updated_id}, message="Data dosen berhasil diperbarui")
 
@@ -99,6 +102,6 @@ class AdminDosenController:
         if not deleted:
             raise NotFoundError(f"Dosen dengan ID/NIDN {dosen_id} tidak ditemukan")
             
-        # Refresh cache
-        CacheService.get_instance().initialize_cache(force_refresh=True)
+        # Refresh cache incrementally
+        CacheService.get_instance().incremental_delete(dosen_id)
         return ResponseFormatter.success(data={"id": dosen_id}, message="Data dosen berhasil dihapus")
