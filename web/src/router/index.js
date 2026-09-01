@@ -48,6 +48,24 @@ const routes = [
     meta: { requiresAdmin: true, layout: 'admin' }
   },
   {
+    path: '/admin/dosen/create',
+    name: 'AdminDosenCreate',
+    component: () => import('../views/admin/AdminDosenFormView.vue'),
+    meta: { requiresAdmin: true, layout: 'admin' }
+  },
+  {
+    path: '/admin/dosen/:id',
+    name: 'AdminDosenDetail',
+    component: () => import('../views/admin/AdminDosenDetailView.vue'),
+    meta: { requiresAdmin: true, layout: 'admin' }
+  },
+  {
+    path: '/admin/dosen/:id/edit',
+    name: 'AdminDosenEdit',
+    component: () => import('../views/admin/AdminDosenFormView.vue'),
+    meta: { requiresAdmin: true, layout: 'admin' }
+  },
+  {
     path: '/admin/batch',
     name: 'AdminBatch',
     component: () => import('../views/admin/AdminBatchView.vue'),
