@@ -359,3 +359,182 @@
 2026-09-01T20:06:15+0700 [INFO] [siredo-server] request_id=4b8b1650 endpoint=GET /api/system/status status=200 duration=1.0ms
 2026-09-01T20:06:30+0700 [INFO] [siredo-server] request_id=0dca9b96 endpoint=GET /api/system/status status=200 duration=1.0ms
 2026-09-01T20:06:36+0700 [INFO] [siredo-server] request_id=946aa6ce endpoint=GET /api/admin/dosen status=200 duration=7.01ms
+2026-09-01T20:06:45+0700 [INFO] [siredo-server] request_id=f223854b endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:06:57+0700 [WARNING] [siredo-server] Application error [NOT_FOUND]: Dosen dengan ID/NIDN undefined tidak ditemukan
+2026-09-01T20:06:57+0700 [INFO] [siredo-server] request_id=b66e1151 endpoint=GET /api/admin/dosen/undefined status=404 duration=1.98ms
+2026-09-01T20:06:59+0700 [INFO] [siredo-server] request_id=cec1c5e2 endpoint=GET /api/admin/dosen status=200 duration=4.13ms
+2026-09-01T20:07:00+0700 [INFO] [siredo-server] request_id=e0421f00 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:07:00+0700 [WARNING] [siredo-server] Application error [NOT_FOUND]: Dosen dengan ID/NIDN undefined tidak ditemukan
+2026-09-01T20:07:00+0700 [INFO] [siredo-server] request_id=48973fe5 endpoint=GET /api/admin/dosen/undefined status=404 duration=3.56ms
+2026-09-01T20:07:06+0700 [INFO] [siredo-server] request_id=f2a7fd2f endpoint=GET /api/admin/dosen status=200 duration=4.64ms
+2026-09-01T20:07:15+0700 [INFO] [siredo-server] request_id=72fd0017 endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:07:30+0700 [INFO] [siredo-server] request_id=638c808f endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:07:45+0700 [INFO] [siredo-server] request_id=a2ddc137 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:08:00+0700 [INFO] [siredo-server] request_id=1f195056 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:08:15+0700 [INFO] [siredo-server] request_id=f08611ac endpoint=GET /api/system/status status=200 duration=0.52ms
+2026-09-01T20:08:30+0700 [INFO] [siredo-server] request_id=abc3b7eb endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:08:45+0700 [INFO] [siredo-server] request_id=9fc7a680 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:09:00+0700 [INFO] [siredo-server] request_id=14b223aa endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:09:15+0700 [INFO] [siredo-server] request_id=44d6de4f endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:09:30+0700 [INFO] [siredo-server] request_id=a3f445fa endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:09:45+0700 [INFO] [siredo-server] request_id=1af21b2a endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:10:00+0700 [INFO] [siredo-server] request_id=0448677c endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:10:15+0700 [INFO] [siredo-server] request_id=61acc969 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:10:31+0700 [INFO] [siredo-server] request_id=1c0d3aa1 endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:10:45+0700 [INFO] [siredo-server] request_id=40b57c9d endpoint=GET /api/system/status status=200 duration=0.17ms
+2026-09-01T20:10:45+0700 [INFO] [siredo-server] request_id=6228699b endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:10:45+0700 [INFO] [siredo-server] request_id=3df5ac86 endpoint=GET /api/admin/dosen status=200 duration=11.5ms
+2026-09-01T20:10:49+0700 [WARNING] [siredo-server] Application error [NOT_FOUND]: Dosen dengan ID/NIDN undefined tidak ditemukan
+2026-09-01T20:10:49+0700 [INFO] [siredo-server] request_id=b7eee14b endpoint=GET /api/admin/dosen/undefined status=404 duration=2.0ms
+2026-09-01T20:10:51+0700 [INFO] [siredo-server] request_id=cfc3462f endpoint=GET /api/admin/dosen status=200 duration=7.76ms
+2026-09-01T20:11:01+0700 [INFO] [siredo-server] request_id=c7b4d427 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:11:16+0700 [INFO] [siredo-server] request_id=eaaf48ac endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:11:31+0700 [INFO] [siredo-server] request_id=2cfac4dd endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:11:46+0700 [INFO] [siredo-server] request_id=20acad36 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:12:01+0700 [INFO] [siredo-server] request_id=538c9182 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:12:15+0700 [INFO] [siredo-server] request_id=232c9026 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:12:30+0700 [INFO] [siredo-server] request_id=2e1ab80e endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:12:45+0700 [INFO] [siredo-server] request_id=8a2602cd endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:13:01+0700 [INFO] [siredo-server] request_id=515f18bd endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:13:16+0700 [INFO] [siredo-server] request_id=99467f9e endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:13:31+0700 [INFO] [siredo-server] request_id=610c4bb9 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:13:46+0700 [INFO] [siredo-server] request_id=cb899d63 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:14:01+0700 [INFO] [siredo-server] request_id=95ab1e80 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:14:16+0700 [INFO] [siredo-server] request_id=17c9835a endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:14:31+0700 [INFO] [siredo-server] request_id=8926b40c endpoint=GET /api/system/status status=200 duration=0.91ms
+2026-09-01T20:14:46+0700 [INFO] [siredo-server] request_id=34fe09a0 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:15:18+0700 [INFO] [siredo-server] request_id=03879d40 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:15:24+0700 [INFO] [siredo-server] request_id=692be937 endpoint=GET /api/system/status status=200 duration=1.02ms
+2026-09-01T20:15:24+0700 [INFO] [siredo-server] request_id=e9aa690d endpoint=GET /api/admin/dosen status=200 duration=5.16ms
+2026-09-01T20:15:25+0700 [WARNING] [siredo-server] Application error [NOT_FOUND]: Dosen dengan ID/NIDN undefined tidak ditemukan
+2026-09-01T20:15:25+0700 [INFO] [siredo-server] request_id=90fc1e9f endpoint=GET /api/admin/dosen/undefined status=404 duration=0.0ms
+2026-09-01T20:15:26+0700 [INFO] [siredo-server] request_id=d34f194b endpoint=GET /api/admin/dosen status=200 duration=3.53ms
+2026-09-01T20:15:27+0700 [WARNING] [siredo-server] Application error [NOT_FOUND]: Dosen dengan ID/NIDN undefined tidak ditemukan
+2026-09-01T20:15:27+0700 [INFO] [siredo-server] request_id=8c69c33f endpoint=GET /api/admin/dosen/undefined status=404 duration=1.99ms
+2026-09-01T20:15:39+0700 [INFO] [siredo-server] request_id=fdc9a337 endpoint=GET /api/system/status status=200 duration=0.51ms
+2026-09-01T20:15:54+0700 [INFO] [siredo-server] request_id=497e1428 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:16:09+0700 [INFO] [siredo-server] request_id=af6dcc0e endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:16:24+0700 [INFO] [siredo-server] request_id=c8d7cec5 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:16:39+0700 [INFO] [siredo-server] request_id=707876a5 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:16:54+0700 [INFO] [siredo-server] request_id=ffa521fd endpoint=GET /api/system/status status=200 duration=1.23ms
+2026-09-01T20:17:09+0700 [INFO] [siredo-server] request_id=bc5ff848 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:17:24+0700 [INFO] [siredo-server] request_id=5f873501 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:17:39+0700 [INFO] [siredo-server] request_id=dddb14b8 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:18:18+0700 [INFO] [siredo-server] request_id=51164f0e endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:19:18+0700 [INFO] [siredo-server] request_id=2dab79be endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:20:18+0700 [INFO] [siredo-server] request_id=9bd8928f endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:21:18+0700 [INFO] [siredo-server] request_id=3e663473 endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:22:18+0700 [INFO] [siredo-server] request_id=413fb7bb endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:23:18+0700 [INFO] [siredo-server] request_id=66345487 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:24:21+0700 [INFO] [siredo-server] request_id=ccc42de2 endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:24:49+0700 [INFO] [siredo-server] Berhasil memuat 86 data dosen dari database relasional (sqlite).
+2026-09-01T20:25:21+0700 [INFO] [siredo-server] request_id=e777b335 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:25:46+0700 [INFO] [siredo-server] Berhasil memuat 86 data dosen dari database relasional (sqlite).
+2026-09-01T20:26:18+0700 [INFO] [siredo-server] request_id=743cbf20 endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:27:18+0700 [INFO] [siredo-server] request_id=43dda9a4 endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:28:18+0700 [INFO] [siredo-server] request_id=05a68cc6 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:29:18+0700 [INFO] [siredo-server] request_id=a9c451b3 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:30:18+0700 [INFO] [siredo-server] request_id=b5e2b4a8 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:30:28+0700 [INFO] [siredo-server] request_id=64f50b63 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:30:31+0700 [INFO] [siredo-server] request_id=ea2131a5 endpoint=GET /api/admin/dosen status=200 duration=12.0ms
+2026-09-01T20:30:33+0700 [WARNING] [siredo-server] Application error [NOT_FOUND]: Dosen dengan ID/NIDN undefined tidak ditemukan
+2026-09-01T20:30:33+0700 [INFO] [siredo-server] request_id=f19439c3 endpoint=GET /api/admin/dosen/undefined status=404 duration=1.0ms
+2026-09-01T20:30:34+0700 [INFO] [siredo-server] request_id=f33066c6 endpoint=GET /api/admin/dosen status=200 duration=6.06ms
+2026-09-01T20:30:35+0700 [WARNING] [siredo-server] Application error [NOT_FOUND]: Dosen dengan ID/NIDN undefined tidak ditemukan
+2026-09-01T20:30:35+0700 [INFO] [siredo-server] request_id=ce6ad94f endpoint=GET /api/admin/dosen/undefined status=404 duration=1.0ms
+2026-09-01T20:30:39+0700 [INFO] [siredo-server] request_id=f5abba75 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:30:39+0700 [INFO] [siredo-server] request_id=e4684dfc endpoint=GET /api/admin/dosen status=200 duration=8.45ms
+2026-09-01T20:30:48+0700 [INFO] [siredo-server] request_id=2505a24e endpoint=GET /api/admin/dosen status=200 duration=5.0ms
+2026-09-01T20:30:54+0700 [INFO] [siredo-server] request_id=1c728cfd endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:31:09+0700 [INFO] [siredo-server] request_id=4dc9b1b3 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:31:14+0700 [INFO] [siredo-server] Berhasil memuat 86 data dosen dari database relasional (sqlite).
+2026-09-01T20:31:16+0700 [INFO] [siredo-server] ==================================================
+2026-09-01T20:31:16+0700 [INFO] [siredo-server] MEMULAI PROSES WARM-UP SERVER (SIREDO V3)
+2026-09-01T20:31:16+0700 [INFO] [siredo-server] ==================================================
+2026-09-01T20:31:16+0700 [INFO] [siredo-server] [1/5] Mengambil data dosen dari Storage (Database MySQL / Excel)...
+2026-09-01T20:31:16+0700 [INFO] [siredo-server] Berhasil memuat 89 data dosen dari database relasional (sqlite).
+2026-09-01T20:31:16+0700 [INFO] [siredo-server]       [OK] Berhasil memuat 89 data dosen (0.04s)
+2026-09-01T20:31:16+0700 [INFO] [siredo-server] [2/5] Membangun Korpus & Preprocessing Teks...
+2026-09-01T20:31:16+0700 [INFO] [siredo-server]       [OK] Preprocessing korpus selesai (0.02s)
+2026-09-01T20:31:16+0700 [INFO] [siredo-server] [3/5] Tokenisasi & Fitting BM25 Engine...
+2026-09-01T20:31:16+0700 [INFO] [siredo-server]       [OK] Lexical BM25 Engine siap (0.17s)
+2026-09-01T20:31:16+0700 [INFO] [siredo-server] [4/5] Menyiapkan Semantic SBERT Engine (Model & Embeddings)...
+2026-09-01T20:31:16+0700 [INFO] [siredo-server] Memuat model Sentence-BERT 'paraphrase-multilingual-MiniLM-L12-v2' pada device: CPU...
+2026-09-01T20:31:24+0700 [INFO] [siredo-server] request_id=5eaeade7 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:31:25+0700 [INFO] [siredo-server] Berhasil memuat 89 data dosen dari database relasional (sqlite).
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] ==================================================
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] MEMULAI PROSES WARM-UP SERVER (SIREDO V3)
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] ==================================================
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] [1/5] Mengambil data dosen dari Storage (Database MySQL / Excel)...
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] Berhasil memuat 89 data dosen dari database relasional (sqlite).
+2026-09-01T20:31:27+0700 [INFO] [siredo-server]       [OK] Berhasil memuat 89 data dosen (0.05s)
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] [2/5] Membangun Korpus & Preprocessing Teks...
+2026-09-01T20:31:27+0700 [INFO] [siredo-server]       [OK] Preprocessing korpus selesai (0.02s)
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] [3/5] Tokenisasi & Fitting BM25 Engine...
+2026-09-01T20:31:27+0700 [INFO] [siredo-server]       [OK] Lexical BM25 Engine siap (0.12s)
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] [4/5] Menyiapkan Semantic SBERT Engine (Model & Embeddings)...
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] Memuat model Sentence-BERT 'paraphrase-multilingual-MiniLM-L12-v2' pada device: CPU...
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] Memuat SBERT cache embeddings dari disk: C:\Users\USER\marcell-porto-project\siredo\server\storage\cache\sbert_embeddings.npy
+2026-09-01T20:31:27+0700 [INFO] [siredo-server] Jumlah data berubah, meregenerasi SBERT embeddings...
+2026-09-01T20:31:37+0700 [INFO] [siredo-server] Mengekstrak topik kata kunci KeyBERT (Semantic XAI - CPU)...
+2026-09-01T20:31:39+0700 [INFO] [siredo-server] Memuat SBERT cache embeddings dari disk: C:\Users\USER\marcell-porto-project\siredo\server\storage\cache\sbert_embeddings.npy
+2026-09-01T20:31:39+0700 [INFO] [siredo-server] Mengekstrak topik kata kunci KeyBERT (Semantic XAI - CPU)...
+2026-09-01T20:31:39+0700 [INFO] [siredo-server] request_id=c914b348 endpoint=GET /api/system/status status=200 duration=1.0ms
+2026-09-01T20:31:54+0700 [INFO] [siredo-server] request_id=81cee2a0 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:32:11+0700 [INFO] [siredo-server] Berhasil memuat 89 data dosen dari database relasional (sqlite).
+2026-09-01T20:32:14+0700 [INFO] [siredo-server] request_id=bd51415e endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:32:25+0700 [INFO] [siredo-server] request_id=b991c3b0 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:32:39+0700 [INFO] [siredo-server] request_id=28c79b7d endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:33:20+0700 [INFO] [siredo-server] Berhasil memuat 89 data dosen dari database relasional (sqlite).
+2026-09-01T20:33:20+0700 [INFO] [siredo-server] Berhasil memuat 89 data dosen dari database relasional (sqlite).
+2026-09-01T20:33:23+0700 [INFO] [siredo-server] ==================================================
+2026-09-01T20:33:23+0700 [INFO] [siredo-server] MEMULAI PROSES WARM-UP SERVER (SIREDO V3)
+2026-09-01T20:33:23+0700 [INFO] [siredo-server] ==================================================
+2026-09-01T20:33:23+0700 [INFO] [siredo-server] [1/5] Mengambil data dosen dari Storage (Database MySQL / Excel)...
+2026-09-01T20:33:23+0700 [INFO] [siredo-server] Berhasil memuat 89 data dosen dari database relasional (sqlite).
+2026-09-01T20:33:23+0700 [INFO] [siredo-server]       [OK] Berhasil memuat 89 data dosen (0.05s)
+2026-09-01T20:33:23+0700 [INFO] [siredo-server] [2/5] Membangun Korpus & Preprocessing Teks...
+2026-09-01T20:33:23+0700 [INFO] [siredo-server]       [OK] Preprocessing korpus selesai (0.03s)
+2026-09-01T20:33:23+0700 [INFO] [siredo-server] [3/5] Tokenisasi & Fitting BM25 Engine...
+2026-09-01T20:33:23+0700 [INFO] [siredo-server]       [OK] Lexical BM25 Engine siap (0.16s)
+2026-09-01T20:33:23+0700 [INFO] [siredo-server] [4/5] Menyiapkan Semantic SBERT Engine (Model & Embeddings)...
+2026-09-01T20:33:23+0700 [INFO] [siredo-server] Memuat model Sentence-BERT 'paraphrase-multilingual-MiniLM-L12-v2' pada device: CPU...
+2026-09-01T20:33:27+0700 [INFO] [siredo-server] request_id=9cb6cdb2 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:33:36+0700 [INFO] [siredo-server] Memuat SBERT cache embeddings dari disk: C:\Users\USER\marcell-porto-project\siredo\server\storage\cache\sbert_embeddings.npy
+2026-09-01T20:33:36+0700 [INFO] [siredo-server] Mengekstrak topik kata kunci KeyBERT (Semantic XAI - CPU)...
+2026-09-01T20:33:41+0700 [INFO] [siredo-server] Berhasil memuat 89 data dosen dari database relasional (sqlite).
+2026-09-01T20:34:16+0700 [INFO] [siredo-server] request_id=d07695b5 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:34:31+0700 [INFO] [siredo-server] request_id=ccadb1dd endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:34:39+0700 [INFO] [siredo-server] request_id=4d0f0cbf endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:34:54+0700 [INFO] [siredo-server] request_id=6d6aa7e1 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:35:09+0700 [INFO] [siredo-server] request_id=ff8ff88f endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:35:24+0700 [INFO] [siredo-server] request_id=58ad8c5a endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:36:28+0700 [INFO] [siredo-server] request_id=8c10d7eb endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:37:17+0700 [INFO] [siredo-server] request_id=c41ddee8 endpoint=GET /health status=200 duration=0.0ms
+2026-09-01T20:37:17+0700 [INFO] [siredo-server] request_id=2bd30f6a endpoint=GET /api/dosen status=200 duration=0.71ms
+2026-09-01T20:37:17+0700 [INFO] [siredo-server] Memuat model Sentence-BERT 'paraphrase-multilingual-MiniLM-L12-v2' pada device: CPU...
+2026-09-01T20:37:28+0700 [INFO] [siredo-server] request_id=c8324c80 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:37:30+0700 [INFO] [siredo-server] request_id=8aa02be5 endpoint=POST /api/recommendations status=200 duration=13769.27ms
+2026-09-01T20:37:31+0700 [INFO] [siredo-server] request_id=6d00ac59 endpoint=POST /api/recommendations status=200 duration=868.09ms
+2026-09-01T20:37:31+0700 [WARNING] [siredo-server] Application error [VALIDATION_ERROR]: Judul atau abstrak penelitian harus diisi
+2026-09-01T20:37:31+0700 [INFO] [siredo-server] request_id=585d8bdf endpoint=POST /api/recommendations status=400 duration=1.0ms
+2026-09-01T20:37:33+0700 [INFO] [siredo-server] request_id=42adfe4b endpoint=POST /api/recommendations/batch status=200 duration=1605.5ms
+2026-09-01T20:37:33+0700 [WARNING] [siredo-server] Application error [BATCH_LIMIT_EXCEEDED]: Jumlah batch proposal (10) melebihi batas maksimum yang diizinkan (5)
+2026-09-01T20:37:33+0700 [INFO] [siredo-server] request_id=848195c3 endpoint=POST /api/recommendations/batch status=400 duration=3.0ms
+2026-09-01T20:37:34+0700 [INFO] [siredo-server] request_id=e66d0f5d endpoint=POST /api/recommendations status=200 duration=1317.64ms
+2026-09-01T20:37:35+0700 [INFO] [siredo-server] request_id=de34d28b endpoint=POST /api/recommendations status=200 duration=631.5ms
+2026-09-01T20:37:36+0700 [INFO] [siredo-server] request_id=c7c6aedb endpoint=POST /api/recommendations status=200 duration=656.02ms
+2026-09-01T20:37:36+0700 [INFO] [siredo-server] request_id=2d08f218 endpoint=POST /api/recommendations status=200 duration=687.85ms
+2026-09-01T20:37:37+0700 [INFO] [siredo-server] request_id=d3e36b93 endpoint=POST /api/recommendations status=200 duration=737.5ms
+2026-09-01T20:37:41+0700 [INFO] [siredo-server] request_id=fd5624a5 endpoint=POST /api/recommendations/batch status=200 duration=4188.66ms
+2026-09-01T20:37:41+0700 [INFO] [siredo-server] request_id=34457a6f endpoint=GET /health status=200 duration=0.0ms
+2026-09-01T20:37:42+0700 [INFO] [siredo-server] request_id=e07b19c0 endpoint=GET /api/system/status status=200 duration=0.0ms
+2026-09-01T20:37:42+0700 [INFO] [siredo-server] request_id=cf3e0eeb endpoint=GET /api/dosen status=200 duration=0.0ms
+2026-09-01T20:37:42+0700 [INFO] [siredo-server] request_id=d76a2b31 endpoint=GET /api/system/config status=200 duration=4.48ms
+2026-09-01T20:37:42+0700 [INFO] [siredo-server] Konfigurasi runtime berhasil diperbarui: {'is_adaptive': False, 'manual_alpha': 0.6}
+2026-09-01T20:37:42+0700 [INFO] [siredo-server] request_id=855eaae7 endpoint=PATCH /api/system/config status=200 duration=7.99ms
+2026-09-01T20:37:42+0700 [WARNING] [siredo-server] Application error [UNAUTHENTICATED]: Akses ditolak: API Key admin tidak valid atau tidak disertakan
+2026-09-01T20:37:42+0700 [INFO] [siredo-server] request_id=4fff8971 endpoint=PATCH /api/system/config status=401 duration=1.33ms
+2026-09-01T20:37:43+0700 [INFO] [siredo-server] request_id=b1dbc5c3 endpoint=GET /health status=200 duration=0.14ms
+2026-09-01T20:37:43+0700 [INFO] [siredo-server] request_id=aaacb477 endpoint=GET /api/dosen status=200 duration=0.0ms
+2026-09-01T20:37:43+0700 [INFO] [siredo-server] Memuat model Sentence-BERT 'paraphrase-multilingual-MiniLM-L12-v2' pada device: CPU...

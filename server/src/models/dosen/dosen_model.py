@@ -12,9 +12,11 @@ class Dosen:
     judul_bimbing: str
     judul_uji: str
     pendidikan: str
+    id: Optional[int] = None
     
     def to_dict(self) -> Dict[str, Any]:
         return {
+            "id": self.id,
             "nidn": self.nidn,
             "nama": self.nama,
             "program_studi": self.program_studi,
@@ -27,24 +29,24 @@ class Dosen:
 
 @dataclass
 class Publikasi:
-    id: Optional[int]
-    dosen_id: int
-    judul: str
-    tahun: Optional[int]
-    penerbit: Optional[str]
+    id: Optional[int] = None
+    dosen_id: int = 0
+    judul: str = ""
+    tahun: Optional[int] = None
+    penerbit: Optional[str] = None
 
 @dataclass
 class RiwayatBimbingan:
-    id: Optional[int]
-    dosen_id: int
-    judul_tugas_akhir: str
-    tahun: Optional[int]
+    id: Optional[int] = None
+    dosen_id: int = 0
+    judul_tugas_akhir: str = ""
+    tahun: Optional[int] = None
     peran: str = "Pembimbing"
 
 @dataclass
 class RiwayatPengujian:
-    id: Optional[int]
-    dosen_id: int
-    judul_sidang: str
-    tahun: Optional[int]
+    id: Optional[int] = None
+    dosen_id: int = 0
+    judul_sidang: str = ""
+    tahun: Optional[int] = None
     peran: str = "Penguji"

@@ -90,6 +90,7 @@ class SQLDosenRepository(DosenRepositoryInterface):
                 uji_str = format_list_to_quoted_str(pengujian_map.get(d_id, []))
                 
                 dosen_list.append(Dosen(
+                    id=d_id,
                     nidn=str(nidn or ''),
                     nama=str(nama or ''),
                     program_studi=str(prodi or ''),
