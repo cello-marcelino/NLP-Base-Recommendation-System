@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import api from '../../services/api'
 import { useSystemStore } from '../../stores/system'
@@ -12,6 +12,8 @@ const dosenId = route.params.id
 const dosen = ref(null)
 const isLoading = ref(true)
 const errorMessage = ref(null)
+const activePortfolioTab = ref('all') // 'all' | 'jurnal' | 'bimbingan' | 'pengujian'
+const portfolioSearch = ref('')
 
 const parseListItems = (str) => {
   if (!str || typeof str !== 'string') return []
@@ -76,6 +78,20 @@ const handleDelete = async () => {
     alert(err.userMessage || 'Gagal menghapus data dosen')
   }
 }
+
+const jurnalList = computed(() => parseListItems(dosen.value?.jurnal))
+const bimbinganList = computed(() => parseListItems(dosen.value?.judul_bimbing))
+const pengujianList = computed(() => parseListItems(dosen.value?.judul_uji))
+
+const filterItems = (items) => {
+  if (!portfolioSearch.value) return items
+  const q = portfolioSearch.value.toLowerCase()
+  return items.filter(item => item.toLowerCase().includes(q))
+}
+
+const filteredJurnal = computed(() => filterItems(jurnalList.value))
+const filteredBimbingan = computed(() => filterItems(bimbinganList.value))
+const filteredPengujian = computed(() => filterItems(pengujianList.value))
 </script>
 
 <template>
@@ -84,7 +100,7 @@ const handleDelete = async () => {
     <div class="page-header">
       <div>
         <router-link to="/admin/dosen" class="btn-back">← Kembali ke Daftar Dosen</router-link>
-        <span class="page-badge mt-2">Detail Portfolio Dosen</span>
+        <span class="page-badge mt-2">Detail Portfolio Akademik</span>
         <h1 v-if="dosen">{{ dosen.nama }}</h1>
         <h1 v-else>Detail Dosen</h1>
       </div>
@@ -113,83 +129,195 @@ const handleDelete = async () => {
     <!-- Detail View Card Grid -->
     <div v-else-if="dosen" class="detail-grid">
       <!-- Left Column: Profile Card & Keahlian -->
-      <div class="profile-card">
-        <div class="profile-header">
-          <div class="avatar-circle" :style="{ backgroundColor: getAvatarBg(dosen.nama) }">
-            {{ dosen.nama ? dosen.nama.charAt(0) : 'D' }}
-          </div>
-          <div class="profile-info">
-            <h2>{{ dosen.nama }}</h2>
-            <div class="chips-row">
-              <span class="chip prodi-chip">{{ dosen.program_studi || 'Teknik Informatika' }}</span>
-              <span v-if="dosen.nidn" class="chip nidn-chip">NIDN: {{ dosen.nidn }}</span>
+      <div class="profile-col">
+        <div class="profile-card">
+          <div class="profile-header">
+            <div class="avatar-circle" :style="{ backgroundColor: getAvatarBg(dosen.nama) }">
+              {{ dosen.nama ? dosen.nama.charAt(0) : 'D' }}
+            </div>
+            <div class="profile-info">
+              <h2>{{ dosen.nama }}</h2>
+              <div class="chips-row">
+                <span class="chip prodi-chip">{{ dosen.program_studi || 'Teknik Informatika' }}</span>
+                <span v-if="dosen.nidn" class="chip nidn-chip">NIDN: {{ dosen.nidn }}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="profile-divider"></div>
+          <div class="profile-divider"></div>
 
-        <div class="info-sec">
-          <label>Riwayat Pendidikan</label>
-          <p>{{ dosen.pendidikan || 'Belum diisi' }}</p>
-        </div>
+          <!-- Summary Metric Counts -->
+          <div class="metrics-grid">
+            <div class="metric-card-sm m-teal" @click="activePortfolioTab = 'jurnal'">
+              <span class="mc-num">{{ jurnalList.length }}</span>
+              <span class="mc-lbl">Publikasi Jurnal</span>
+            </div>
+            <div class="metric-card-sm m-blue" @click="activePortfolioTab = 'bimbingan'">
+              <span class="mc-num">{{ bimbinganList.length }}</span>
+              <span class="mc-lbl">Judul Bimbingan</span>
+            </div>
+            <div class="metric-card-sm m-purple" @click="activePortfolioTab = 'pengujian'">
+              <span class="mc-num">{{ pengujianList.length }}</span>
+              <span class="mc-lbl">Judul Pengujian</span>
+            </div>
+          </div>
 
-        <div class="info-sec">
-          <label>Bidang Keahlian Utama</label>
-          <div class="keahlian-flex">
-            <span 
-              v-for="(tag, idx) in (dosen.bidang_keahlian ? dosen.bidang_keahlian.split(',') : [])" 
-              :key="idx" 
-              class="tag-item"
-            >
-              {{ tag.trim() }}
-            </span>
-            <span v-if="!dosen.bidang_keahlian" class="text-subtle">-</span>
+          <div class="profile-divider"></div>
+
+          <div class="info-sec">
+            <label>Riwayat Pendidikan</label>
+            <p class="edu-text">{{ dosen.pendidikan || 'Belum ada data riwayat pendidikan' }}</p>
+          </div>
+
+          <div class="info-sec">
+            <label>Bidang Keahlian Spesifik</label>
+            <div class="keahlian-flex">
+              <span 
+                v-for="(tag, idx) in (dosen.bidang_keahlian ? dosen.bidang_keahlian.split(',') : [])" 
+                :key="idx" 
+                class="tag-item"
+              >
+                {{ tag.trim() }}
+              </span>
+              <span v-if="!dosen.bidang_keahlian" class="text-subtle">-</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Right Column: Lists & Portfolios -->
+      <!-- Right Column: Portfolios with Clear Distinct Sections -->
       <div class="portfolio-col">
-        <!-- Card 1: Publikasi Jurnal -->
-        <div class="port-card">
-          <div class="port-header">
-            <h3>Publikasi Jurnal Relevan</h3>
-            <span class="count-badge badge-teal">{{ parseListItems(dosen.jurnal).length }} Judul</span>
+        <!-- Control & Tab Switcher Bar -->
+        <div class="portfolio-nav-bar">
+          <div class="portfolio-tabs">
+            <button 
+              type="button" 
+              class="ptab-btn" 
+              :class="{ active: activePortfolioTab === 'all' }"
+              @click="activePortfolioTab = 'all'"
+            >
+              Semua Portfolio ({{ jurnalList.length + bimbinganList.length + pengujianList.length }})
+            </button>
+            <button 
+              type="button" 
+              class="ptab-btn tab-teal" 
+              :class="{ active: activePortfolioTab === 'jurnal' }"
+              @click="activePortfolioTab = 'jurnal'"
+            >
+              Publikasi Jurnal ({{ jurnalList.length }})
+            </button>
+            <button 
+              type="button" 
+              class="ptab-btn tab-blue" 
+              :class="{ active: activePortfolioTab === 'bimbingan' }"
+              @click="activePortfolioTab = 'bimbingan'"
+            >
+              Bimbingan Skripsi ({{ bimbinganList.length }})
+            </button>
+            <button 
+              type="button" 
+              class="ptab-btn tab-purple" 
+              :class="{ active: activePortfolioTab === 'pengujian' }"
+              @click="activePortfolioTab = 'pengujian'"
+            >
+              Pengujian Sidang ({{ pengujianList.length }})
+            </button>
           </div>
-          <div class="port-body">
-            <ol v-if="parseListItems(dosen.jurnal).length" class="item-list">
-              <li v-for="(j, idx) in parseListItems(dosen.jurnal)" :key="idx">{{ j }}</li>
-            </ol>
-            <p v-else class="text-empty">Belum ada data publikasi jurnal yang terdaftar.</p>
+
+          <div class="portfolio-search">
+            <input 
+              type="text" 
+              v-model="portfolioSearch" 
+              placeholder="Cari judul karya ilmiah..." 
+              class="port-search-input"
+            />
           </div>
         </div>
 
-        <!-- Card 2: Riwayat Bimbingan -->
-        <div class="port-card">
-          <div class="port-header">
-            <h3>Riwayat Bimbingan Skripsi</h3>
-            <span class="count-badge badge-blue">{{ parseListItems(dosen.judul_bimbing).length }} Judul</span>
+        <!-- Section 1: Publikasi Jurnal -->
+        <div 
+          v-if="activePortfolioTab === 'all' || activePortfolioTab === 'jurnal'" 
+          class="portfolio-section card-jurnal"
+        >
+          <div class="sec-header header-jurnal">
+            <div class="sec-title-group">
+              <span class="category-badge badge-teal">Kategori 1</span>
+              <h3>Publikasi Jurnal & Makalah Ilmiah</h3>
+            </div>
+            <span class="count-pill pill-teal">{{ filteredJurnal.length }} Judul</span>
           </div>
-          <div class="port-body">
-            <ol v-if="parseListItems(dosen.judul_bimbing).length" class="item-list">
-              <li v-for="(b, idx) in parseListItems(dosen.judul_bimbing)" :key="idx">{{ b }}</li>
-            </ol>
-            <p v-else class="text-empty">Belum ada riwayat bimbingan mahasiswa.</p>
+
+          <div class="sec-body">
+            <div v-if="filteredJurnal.length" class="items-grid">
+              <div v-for="(j, idx) in filteredJurnal" :key="idx" class="item-card item-jurnal">
+                <span class="item-num num-teal">#{{ idx + 1 }}</span>
+                <div class="item-content">
+                  <p class="item-title">{{ j }}</p>
+                  <span class="item-type-tag tag-teal">Publikasi Jurnal / Paper</span>
+                </div>
+              </div>
+            </div>
+            <div v-else class="empty-box">
+              <p>Tidak ada data publikasi jurnal yang terdaftar.</p>
+            </div>
           </div>
         </div>
 
-        <!-- Card 3: Riwayat Pengujian Sidang -->
-        <div class="port-card">
-          <div class="port-header">
-            <h3>Riwayat Pengujian Sidang Skripsi</h3>
-            <span class="count-badge badge-purple">{{ parseListItems(dosen.judul_uji).length }} Judul</span>
+        <!-- Section 2: Riwayat Bimbingan Skripsi -->
+        <div 
+          v-if="activePortfolioTab === 'all' || activePortfolioTab === 'bimbingan'" 
+          class="portfolio-section card-bimbingan"
+        >
+          <div class="sec-header header-bimbingan">
+            <div class="sec-title-group">
+              <span class="category-badge badge-blue">Kategori 2</span>
+              <h3>Riwayat Bimbingan Tugas Akhir / Skripsi</h3>
+            </div>
+            <span class="count-pill pill-blue">{{ filteredBimbingan.length }} Judul</span>
           </div>
-          <div class="port-body">
-            <ol v-if="parseListItems(dosen.judul_uji).length" class="item-list">
-              <li v-for="(u, idx) in parseListItems(dosen.judul_uji)" :key="idx">{{ u }}</li>
-            </ol>
-            <p v-else class="text-empty">Belum ada riwayat pengujian sidang.</p>
+
+          <div class="sec-body">
+            <div v-if="filteredBimbingan.length" class="items-grid">
+              <div v-for="(b, idx) in filteredBimbingan" :key="idx" class="item-card item-bimbingan">
+                <span class="item-num num-blue">#{{ idx + 1 }}</span>
+                <div class="item-content">
+                  <p class="item-title">{{ b }}</p>
+                  <span class="item-type-tag tag-blue">Peran: Pembimbing Utama / Anggota</span>
+                </div>
+              </div>
+            </div>
+            <div v-else class="empty-box">
+              <p>Tidak ada riwayat bimbingan mahasiswa yang terdaftar.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Riwayat Pengujian Sidang -->
+        <div 
+          v-if="activePortfolioTab === 'all' || activePortfolioTab === 'pengujian'" 
+          class="portfolio-section card-pengujian"
+        >
+          <div class="sec-header header-pengujian">
+            <div class="sec-title-group">
+              <span class="category-badge badge-purple">Kategori 3</span>
+              <h3>Riwayat Pengujian Sidang Skripsi</h3>
+            </div>
+            <span class="count-pill pill-purple">{{ filteredPengujian.length }} Judul</span>
+          </div>
+
+          <div class="sec-body">
+            <div v-if="filteredPengujian.length" class="items-grid">
+              <div v-for="(u, idx) in filteredPengujian" :key="idx" class="item-card item-pengujian">
+                <span class="item-num num-purple">#{{ idx + 1 }}</span>
+                <div class="item-content">
+                  <p class="item-title">{{ u }}</p>
+                  <span class="item-type-tag tag-purple">Peran: Penguji Sidang Mahasiswa</span>
+                </div>
+              </div>
+            </div>
+            <div v-else class="empty-box">
+              <p>Tidak ada riwayat pengujian sidang skripsi yang terdaftar.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -233,26 +361,89 @@ const handleDelete = async () => {
 .prodi-chip { background: #e0f2fe; color: #0369a1; }
 .nidn-chip { background: #f1f5f9; color: #475569; font-family: var(--font-mono, monospace); }
 
-.profile-divider { height: 1px; background: #e2e8f0; margin: 1.5rem 0; }
+.profile-divider { height: 1px; background: #e2e8f0; margin: 1.25rem 0; }
+
+/* Mini Metric Cards in Profile */
+.metrics-grid { display: grid; grid-template-columns: 1fr; gap: 0.65rem; }
+.metric-card-sm { padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: transform 0.15s; }
+.metric-card-sm:hover { transform: translateY(-1px); }
+.m-teal { background: #f0fdfa; border-color: #99f6e4; }
+.m-teal .mc-num { color: #0f766e; }
+.m-blue { background: #f0f9ff; border-color: #bae6fd; }
+.m-blue .mc-num { color: #0369a1; }
+.m-purple { background: #faf5ff; border-color: #e9d5ff; }
+.m-purple .mc-num { color: #7e22ce; }
+
+.mc-num { font-size: 1.25rem; font-weight: 700; font-family: var(--font-mono, monospace); }
+.mc-lbl { font-size: 0.8rem; font-weight: 600; color: #475569; }
+
 .info-sec { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1.25rem; }
 .info-sec label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
-.info-sec p { font-size: 0.875rem; color: #0f172a; margin: 0; line-height: 1.5; }
+.edu-text { font-size: 0.875rem; color: #0f172a; margin: 0; line-height: 1.5; }
 
 .keahlian-flex { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0.25rem; }
 .tag-item { font-size: 0.75rem; background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; padding: 3px 10px; border-radius: 6px; font-weight: 600; }
 .text-subtle { font-size: 0.83rem; color: #94a3b8; font-style: italic; }
 
-/* Portfolio Column */
-.portfolio-col { display: flex; flex-direction: column; gap: 1.5rem; }
-.port-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-.port-header { padding: 1.15rem 1.5rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
-.port-header h3 { font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0; }
-.count-badge { font-size: 0.75rem; font-family: var(--font-mono, monospace); font-weight: 700; padding: 3px 10px; border-radius: 99px; }
-.badge-teal { background: #ccfbf1; color: #0f766e; }
-.badge-blue { background: #e0f2fe; color: #0284c7; }
-.badge-purple { background: #f3e8ff; color: #7e22ce; }
+/* Portfolio Column & Tabs */
+.portfolio-col { display: flex; flex-direction: column; gap: 1.75rem; }
 
-.port-body { padding: 1.5rem; }
-.item-list { padding-left: 1.25rem; margin: 0; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.875rem; color: #334155; line-height: 1.55; }
-.text-empty { font-size: 0.85rem; color: #94a3b8; font-style: italic; margin: 0; }
+.portfolio-nav-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 0.75rem 1rem; }
+.portfolio-tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.ptab-btn { background: none; border: 1px solid transparent; padding: 0.45rem 0.85rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.15s; }
+.ptab-btn:hover { background: #f8fafc; color: #0f172a; }
+.ptab-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+.ptab-btn.tab-teal.active { background: #0d9488; border-color: #0d9488; color: white; }
+.ptab-btn.tab-blue.active { background: #0284c7; border-color: #0284c7; color: white; }
+.ptab-btn.tab-purple.active { background: #7c3aed; border-color: #7c3aed; color: white; }
+
+.portfolio-search { flex: 1; max-width: 280px; }
+.port-search-input { width: 100%; padding: 0.45rem 0.75rem; font-size: 0.8rem; border: 1px solid #cbd5e1; border-radius: 6px; background: #f8fafc; }
+.port-search-input:focus { outline: none; border-color: #0d9488; background: white; }
+
+/* Distinct Section Cards */
+.portfolio-section { background: white; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+
+.card-jurnal { border-top: 4px solid #0d9488; }
+.card-bimbingan { border-top: 4px solid #0284c7; }
+.card-pengujian { border-top: 4px solid #7c3aed; }
+
+.sec-header { padding: 1.15rem 1.5rem; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; justify-content: space-between; }
+.header-jurnal { background: #f0fdfa; }
+.header-bimbingan { background: #f0f9ff; }
+.header-pengujian { background: #faf5ff; }
+
+.sec-title-group { display: flex; flex-direction: column; gap: 0.2rem; }
+.category-badge { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; display: inline-block; }
+.badge-teal { color: #0f766e; }
+.badge-blue { color: #0369a1; }
+.badge-purple { color: #7e22ce; }
+
+.sec-title-group h3 { font-size: 1.05rem; font-weight: 700; color: #0f172a; margin: 0; }
+
+.count-pill { font-size: 0.75rem; font-family: var(--font-mono, monospace); font-weight: 700; padding: 4px 12px; border-radius: 99px; }
+.pill-teal { background: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
+.pill-blue { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+.pill-purple { background: #f3e8ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+
+.sec-body { padding: 1.25rem 1.5rem; }
+.items-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.item-card { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; background: #ffffff; transition: all 0.15s; }
+.item-card:hover { border-color: #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+
+.item-num { font-size: 0.75rem; font-family: var(--font-mono, monospace); font-weight: 700; padding: 3px 8px; border-radius: 6px; flex-shrink: 0; }
+.num-teal { background: #ccfbf1; color: #0f766e; }
+.num-blue { background: #e0f2fe; color: #0284c7; }
+.num-purple { background: #f3e8ff; color: #7e22ce; }
+
+.item-content { flex: 1; display: flex; flex-direction: column; gap: 0.35rem; }
+.item-title { font-size: 0.885rem; font-weight: 600; color: #0f172a; line-height: 1.5; margin: 0; }
+
+.item-type-tag { font-size: 0.7rem; font-weight: 600; display: inline-block; }
+.tag-teal { color: #0f766e; }
+.tag-blue { color: #0284c7; }
+.tag-purple { color: #7e22ce; }
+
+.empty-box { text-align: center; padding: 2rem; color: #94a3b8; font-size: 0.85rem; font-style: italic; }
 </style>
