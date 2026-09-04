@@ -11,7 +11,7 @@ class SystemController:
     @staticmethod
     def get_status():
         cache = CacheService.get_instance()
-        state = cache.warmup_status.get("state", "idle") if hasattr(cache, 'warmup_status') else ("ready" if cache.is_ready else "warming_up")
+        state = "online" if cache.is_ready else cache.warmup_status.get("state", "warming_up")
         return ResponseFormatter.success(
             data={
                 "status": state,
