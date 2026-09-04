@@ -8,6 +8,7 @@ const adminAuth = useAdminAuthStore()
 
 const username = ref('admin')
 const password = ref('')
+const showPassword = ref(false)
 const isSubmitting = ref(false)
 
 const handleLogin = async () => {
@@ -55,14 +56,33 @@ const handleLogin = async () => {
 
         <div class="form-group">
           <label for="password">Password</label>
-          <input 
-            id="password"
-            type="password" 
-            v-model="password" 
-            placeholder="Masukkan password..." 
-            required
-            autocomplete="current-password"
-          />
+          <div class="password-input-wrapper">
+            <input 
+              id="password"
+              :type="showPassword ? 'text' : 'password'" 
+              v-model="password" 
+              placeholder="Masukkan password..." 
+              required
+              autocomplete="current-password"
+            />
+            <button 
+              type="button" 
+              class="password-toggle-btn"
+              @click="showPassword = !showPassword"
+              :title="showPassword ? 'Sembunyikan password' : 'Lihat password'"
+              :aria-label="showPassword ? 'Sembunyikan password' : 'Lihat password'"
+            >
+              <!-- Eye Off (Slash) Icon -->
+              <svg v-if="showPassword" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+              </svg>
+              <!-- Eye Open Icon -->
+              <svg v-else width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <button type="submit" :disabled="isSubmitting" class="btn-submit">
@@ -113,6 +133,40 @@ const handleLogin = async () => {
 .form-group input:focus {
   outline: none; border-color: #0d9488; background: #ffffff;
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 2.5rem;
+}
+.password-toggle-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.password-toggle-btn:hover {
+  color: #0f766e;
+  background: #f1f5f9;
+}
+.password-toggle-btn:focus {
+  outline: none;
+  color: #0d9488;
 }
 
 .error-alert {
