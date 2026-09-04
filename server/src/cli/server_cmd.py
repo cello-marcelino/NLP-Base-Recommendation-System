@@ -63,6 +63,18 @@ def check_server_healthy(host: str, port: int) -> bool:
 
 def _run_server_worker(host: str, port: int, debug: bool, device: str = None):
     """Internal blocking worker that warms cache and runs Flask."""
+    # Ensure sys.stdout and sys.stderr are valid file objects under pythonw / DETACHED_PROCESS on Windows
+    if sys.stdout is None:
+        try:
+            sys.stdout = open(Config.LOG_FILE, 'a', encoding='utf-8', buffering=1)
+        except Exception:
+            sys.stdout = open(os.devnull, 'w')
+    if sys.stderr is None:
+        try:
+            sys.stderr = open(Config.LOG_FILE, 'a', encoding='utf-8', buffering=1)
+        except Exception:
+            sys.stderr = open(os.devnull, 'w')
+
     save_pid(os.getpid())
     
     if device:
@@ -127,11 +139,6 @@ def serve(host: str = None, port: int = None, debug: bool = None, foreground: bo
     print(f"[INFO] Memulai server SiReDo di background (device: {effective_device.upper()}, warming up NLP cache)...")
     
     python_exe = sys.executable
-    if os.name == 'nt':
-        pythonw = os.path.join(os.path.dirname(python_exe), 'pythonw.exe')
-        if os.path.exists(pythonw):
-            python_exe = pythonw
-            
     script_path = os.path.abspath(sys.argv[0])
     
     cmd = [
@@ -150,11 +157,12 @@ def serve(host: str = None, port: int = None, debug: bool = None, foreground: bo
     os.makedirs(Config.LOGS_DIR, exist_ok=True)
     
     if os.name == 'nt':
-        # CREATE_NO_WINDOW prevents Windows from opening any new terminal/console window
+        # DETACHED_PROCESS + CREATE_NO_WINDOW ensures child process survives parent exit and has no console window
+        DETACHED_PROCESS = 0x00000008
         CREATE_NO_WINDOW = 0x08000000
         proc = subprocess.Popen(
             cmd,
-            creationflags=CREATE_NO_WINDOW,
+            creationflags=DETACHED_PROCESS | CREATE_NO_WINDOW,
             close_fds=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
