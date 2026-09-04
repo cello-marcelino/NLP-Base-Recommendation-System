@@ -100,7 +100,7 @@ python siredo db:migrate
 python siredo db:import
 python siredo serve
 ```
-Server aktif di `http://localhost:5000` dengan proses warm-up in-memory cache secara otomatis.
+Server aktif di `http://localhost:5055` dengan proses warm-up in-memory cache secara otomatis.
 
 ### 2. Frontend Setup (`web/`)
 ```bash
