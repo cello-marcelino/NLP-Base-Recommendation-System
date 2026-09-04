@@ -5,6 +5,8 @@ Tables:
 - engine_configs (NLP engine dynamic runtime parameters)
 """
 
+from werkzeug.security import generate_password_hash
+
 def up(conn, driver: str = 'sqlite'):
     cursor = conn.cursor()
     
@@ -53,6 +55,23 @@ def up(conn, driver: str = 'sqlite'):
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        
+    # Auto-seed default admin user & default engine config on table creation
+    param_char = '%s' if driver == 'mysql' else '?'
+    cursor.execute(f"SELECT id FROM admins WHERE username = {param_char}", ('admin',))
+    if not cursor.fetchone():
+        pwd_hash = generate_password_hash("admin123")
+        cursor.execute(
+            f"INSERT INTO admins (username, password_hash, name) VALUES ({param_char}, {param_char}, {param_char})",
+            ('admin', pwd_hash, 'Administrator SiReDo')
+        )
+        
+    cursor.execute("SELECT id FROM engine_configs LIMIT 1")
+    if not cursor.fetchone():
+        cursor.execute(
+            f"INSERT INTO engine_configs (threshold, adaptive_alpha_threshold, is_adaptive, manual_alpha) VALUES ({param_char}, {param_char}, {param_char}, {param_char})",
+            (0.3, 15, 1, 0.7)
+        )
         
     conn.commit()
     cursor.close()

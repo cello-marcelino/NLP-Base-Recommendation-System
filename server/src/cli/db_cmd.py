@@ -42,7 +42,7 @@ def db_seed():
     print("[INFO] Menjalankan database seeders...")
     try:
         DatabaseSeeder.run()
-        print("[OK] Database seeding berhasil.")
+        print("[OK] Database seeding berhasil: Akun admin default ('admin' / 'admin123') dan konfigurasi engine NLP siap.")
     except Exception as e:
         print(f"[ERROR] Seeding gagal: {e}")
         sys.exit(1)
