@@ -84,23 +84,69 @@ python siredo cache:clear           # Bersihkan file cache embedding disk
 ## Quick Start
 
 ### 1. Backend Setup (`server/`)
-```bash
+
+Pilih salah satu lingkungan (*environment*) di bawah ini sesuai spesifikasi perangkat Anda:
+
+#### Opsi A: Menggunakan Conda GPU Environment (Akselerasi CUDA — Rekomendasi)
+Gunakan opsi ini jika Anda memiliki kartu grafis NVIDIA untuk mempercepat inferensi Sentence-BERT dan KeyBERT:
+
+```powershell
+# 1. Masuk ke direktori server
+cd server
+
+# 2. Aktifkan Conda environment GPU (atau buat baru jika belum ada)
+# conda create -n gpuenv python=3.11 -y
+conda activate gpuenv
+
+# 3. Pastikan PyTorch dengan CUDA terpasang (contoh CUDA 12.1):
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+
+# 4. Pasang dependensi SiReDo
+pip install -r requirements.txt
+
+# 5. Salin file environment (pastikan TORCH_DEVICE=cuda dan APP_PORT=5055)
+copy .env.example .env
+
+# 6. Inisialisasi Database, Seeder Akun Admin, & Impor Korpus Dosen
+python siredo db:migrate
+python siredo db:seed
+python siredo db:import
+
+# 7. Jalankan Backend Server (Akselerasi GPU aktif)
+python siredo serve --device cuda
+# Atau jalankan di depan layar: python siredo serve --foreground --device cuda
+```
+
+#### Opsi B: Menggunakan Python Virtualenv Standar (CPU Only)
+Gunakan opsi ini jika perangkat tidak memiliki GPU diskrit NVIDIA:
+
+```powershell
+# 1. Masuk ke direktori server & buat virtual environment
 cd server
 python -m venv .venv
+
+# 2. Aktifkan virtual environment
 # Windows PowerShell:
 .\.venv\Scripts\Activate.ps1
-# Linux/macOS:
+# Linux / macOS:
 # source .venv/bin/activate
 
+# 3. Pasang dependensi
 pip install -r requirements.txt
 copy .env.example .env
 
-# Inisialisasi Database & Jalankan Server via CLI
+# 4. Inisialisasi Database, Seeder, & Impor Korpus
 python siredo db:migrate
+python siredo db:seed
 python siredo db:import
+
+# 5. Jalankan Backend Server
 python siredo serve
 ```
-Server aktif di `http://localhost:5055` dengan proses warm-up in-memory cache secara otomatis.
+
+> **Catatan Server & Kredensial:**
+> - Backend REST API berjalan aktif di `http://localhost:5055`.
+> - Kredensial default Portal Admin: Username `admin` | Password `admin123`.
 
 ### 2. Frontend Setup (`web/`)
 ```bash
