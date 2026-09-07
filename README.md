@@ -84,37 +84,90 @@ python siredo cache:clear           # Bersihkan file cache embedding disk
 ## Quick Start
 
 ### 1. Backend Setup (`server/`)
+
+Masuk ke direktori `server/`:
 ```bash
 cd server
+```
+
+Buat virtual environment Python:
+```bash
 python -m venv .venv
-# Windows PowerShell:
+```
+
+Aktifkan virtual environment:
+- **Windows (PowerShell):**
+```powershell
 .\.venv\Scripts\Activate.ps1
-# Linux/macOS:
-# source .venv/bin/activate
+```
+- **Linux / macOS:**
+```bash
+source .venv/bin/activate
+```
 
+Install dependensi:
+```bash
 pip install -r requirements.txt
-copy .env.example .env
+```
 
-# Inisialisasi Database & Jalankan Server via CLI
+Salin file konfigurasi environment:
+- **Windows (PowerShell/CMD):**
+```powershell
+copy .env.example .env
+```
+- **Linux / macOS:**
+```bash
+cp .env.example .env
+```
+
+Jalankan migrasi skema database:
+```bash
 python siredo db:migrate
+```
+
+Impor dataset awal ke database:
+```bash
 python siredo db:import
+```
+
+Jalankan server API:
+```bash
 python siredo serve
 ```
-Server aktif di `http://localhost:5000` dengan proses warm-up in-memory cache secara otomatis.
-
-### 2. Frontend Setup (`web/`)
-```bash
-cd web
-npm install
-npm run dev
-```
-Buka browser di `http://localhost:5173`.
+> Server aktif di `http://localhost:5000` dengan proses warm-up in-memory cache secara otomatis.
 
 ---
 
-## Menjalankan Automated Tests
+### 2. Frontend Setup (`web/`)
+
+Buka terminal baru, lalu masuk ke direktori `web/`:
 ```bash
+cd web
+```
+
+Install dependensi frontend:
+```bash
+npm install
+```
+
+Jalankan server development frontend:
+```bash
+npm run dev
+```
+> Buka browser di `http://localhost:5173`.
+
+---
+
+### 3. Menjalankan Automated Tests
+
+Menjalankan seluruh test suite otomatis:
+- **Windows (PowerShell):**
+```powershell
 & "server/.venv/Scripts/pytest.exe" server/tests/ -v
+```
+- **Linux / macOS:**
+```bash
+server/.venv/bin/pytest server/tests/ -v
 ```
 
 ---
