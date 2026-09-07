@@ -125,6 +125,11 @@ Jalankan migrasi skema database:
 python siredo db:migrate
 ```
 
+Tanamkan data awal & akun admin default (`admin` / `admin123`):
+```bash
+python siredo db:seed
+```
+
 Impor dataset awal ke database:
 ```bash
 python siredo db:import
